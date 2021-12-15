@@ -10,11 +10,9 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn new() -> Chunk {
-        Chunk {
-            code: Vec::new(),
-        }
+        Chunk { code: Vec::new() }
     }
-        
+
     pub fn write(&mut self, instruction: Opcode) {
         self.code.push(instruction);
     }

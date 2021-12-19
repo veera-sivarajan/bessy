@@ -1,15 +1,15 @@
-type Value = f64; // double precision floating point numbers
+use std::fmt;
 
-pub struct ValueArray {
-    pub values: Vec<Value>,
+#[derive(Debug, Copy, Clone)]
+pub enum Value {
+    Number(f64),
 }
 
-impl ValueArray {
-    pub fn new() -> ValueArray {
-        ValueArray { values: Vec::new() }
-    }
-
-    pub fn write_value_array(&mut self, value: Value) {
-        self.values.push(value);
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Value::Number(num) => write!(f, "{}", num),
+        }
     }
 }
+    

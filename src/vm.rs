@@ -1,5 +1,6 @@
 use crate::chunk::{Chunk, Opcode};
 use crate::value::Value;
+use crate::compiler;
 
 macro_rules! debug_instruction {
     ( $chunk:ident, $instruction:expr ) => {{
@@ -8,14 +9,14 @@ macro_rules! debug_instruction {
             print!("[ {} ]", ele);
         }
         println!();
-        debug::disassemble_instruction(&$chunk.chunk, &$chunk.ip - 1, $instruction);
+        debug::disassemble(&$chunk.chunk, &$chunk.ip - 1, $instruction);
     }};
 }
 
 pub enum InterpretResult {
     Ok,
-    // CompileError,
-    // RuntimeError,
+    CompileError,
+    RuntimeError,
 }
 
 pub struct VM {
@@ -33,10 +34,9 @@ impl VM {
         }
     }
 
-    pub fn interpret(&mut self, chunk: Chunk) -> InterpretResult {
-        self.chunk = chunk;
-        self.ip = 0;
-        self.run()
+    pub fn interpret(&mut self, source: String) -> InterpretResult {
+        compiler::compile(source);
+        InterpretResult::Ok
     }
 
     fn next_index(&mut self) -> usize {

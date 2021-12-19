@@ -3,12 +3,12 @@ use crate::chunk::{Chunk, Opcode};
 pub fn disassemble_chunk(chunk: &Chunk, name: &str) {
     println!("== {} ==", name);
     for (offset, instruction) in chunk.code.iter().enumerate() {
-        disassemble_instruction(chunk, offset, *instruction);
+        disassemble(chunk, offset, *instruction);
     }
     println!("== END ==");
 }
 
-pub fn disassemble_instruction(chunk: &Chunk, offset: usize, instruction: Opcode) {
+pub fn disassemble(chunk: &Chunk, offset: usize, instruction: Opcode) {
     print_offset(offset, chunk);
     match instruction {
         Opcode::Return => println!("OP_RETURN"),

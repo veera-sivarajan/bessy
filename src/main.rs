@@ -11,7 +11,19 @@ fn main() {
     let mut program = Chunk::new();
     let constant = program.add_constant(Value::Number(1.2));
     program.write_opcode(Opcode::Constant(constant), 121);
-    program.write_opcode(Opcode::Negate, 122);
+
+    let constant = program.add_constant(Value::Number(3.4));
+    program.write_opcode(Opcode::Constant(constant), 121);
+
+    program.write_opcode(Opcode::Add, 121);
+
+    let constant = program.add_constant(Value::Number(5.6));
+    program.write_opcode(Opcode::Constant(constant), 121);
+
+    program.write_opcode(Opcode::Divide, 121);
+
+    program.write_opcode(Opcode::Negate, 121);
+
     program.write_opcode(Opcode::Return, 123);
     // FIXME: Cloning for now but I should pass a borrow with
     // lifetime parameter to make it more efficient

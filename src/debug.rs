@@ -8,13 +8,16 @@ pub fn disassemble_chunk(chunk: &Chunk, name: &str) {
     println!("== END ==");
 }
 
-pub fn disassemble_instruction(chunk: &Chunk, offset: usize, instruction:Opcode) {
+pub fn disassemble_instruction(chunk: &Chunk, offset: usize, instruction: Opcode) {
     print_offset(offset, chunk);
     match instruction {
         Opcode::Return => println!("OP_RETURN"),
-        Opcode::Constant(index) =>
-            print_constant("OP_CONSTANT", index, chunk),
+        Opcode::Constant(index) => print_constant("OP_CONSTANT", index, chunk),
         Opcode::Negate => println!("OP_NEGATE"),
+        Opcode::Add => println!("OP_ADD"),
+        Opcode::Subtract => println!("OP_SUBTRACT"),
+        Opcode::Multiply => println!("OP_MULTIPLY"),
+        Opcode::Divide => println!("OP_DIVIDE"),
     }
 }
 

@@ -4,10 +4,15 @@ use crate::value::Value;
 #[derive(Copy, Clone)]
 pub enum Opcode {
     Constant(usize), // Constant opcode followed by index to the constant
-    Negate,
     Return,
+    // unary operator
+    Negate,
+    // Binary operators
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
 }
-
 
 #[derive(Clone)]
 pub struct Chunk {

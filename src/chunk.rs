@@ -1,12 +1,14 @@
 use crate::value::Value;
 
 #[repr(u8)]
+#[derive(Copy, Clone)]
 pub enum Opcode {
-    Constant(u8),
+    Constant(usize), // Constant opcode followed by index to the constant
     Return,
 }
 
 
+#[derive(Clone)]
 pub struct Chunk {
     pub code: Vec<Opcode>,
     pub constants: Vec<Value>,
@@ -32,9 +34,7 @@ impl Chunk {
         self.constants.len() - 1
     }
 
-    pub fn get_constant(&self, index: u8) -> Value {
-        // self.constants.get(index).unwrap()
-        self.constants[index as usize]
-            
+    pub fn get_constant(&self, index: usize) -> Value {
+        self.constants[index]
     }
 }

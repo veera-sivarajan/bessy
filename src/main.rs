@@ -39,7 +39,7 @@ fn main() {
             let input = get_input();
             if input == "exit" {
                 std::process::exit(0);
-            } else if input.len() > 0 {
+            } else if !input.is_empty() {
                 // TODO
                 vm.interpret(input);
             } else {

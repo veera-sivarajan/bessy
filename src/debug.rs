@@ -14,6 +14,7 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize, instruction:Opcode)
         Opcode::Return => println!("OP_RETURN"),
         Opcode::Constant(index) =>
             print_constant("OP_CONSTANT", index, chunk),
+        Opcode::Negate => println!("OP_NEGATE"),
     }
 }
 

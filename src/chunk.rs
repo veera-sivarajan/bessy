@@ -4,6 +4,7 @@ use crate::value::Value;
 #[derive(Copy, Clone)]
 pub enum Opcode {
     Constant(usize), // Constant opcode followed by index to the constant
+    Negate,
     Return,
 }
 

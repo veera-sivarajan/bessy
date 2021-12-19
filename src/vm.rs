@@ -9,15 +9,16 @@ macro_rules! debug_instruction {
                 print!("[ {} ]", ele);
             }
             println!();
-            debug::disassemble_instruction(&$chunk.chunk, &$chunk.ip - 1, $instruction);  
+            debug::disassemble_instruction(&$chunk.chunk, &$chunk.ip - 1,
+                                           $instruction);  
         }
     };
 }
 
 pub enum InterpretResult {
     Ok,
-    CompileError,
-    RuntimeError,
+    // CompileError,
+    // RuntimeError,
 }
 
 pub struct VM {
@@ -55,7 +56,7 @@ impl VM {
     fn run(&mut self) -> InterpretResult {
         loop {
             let instruction = self.next_instruction();
-            debug_instruction!(self, instruction);
+            // debug_instruction!(self, instruction);
             match instruction {
                 Opcode::Return => {
                     println!("{}", self.stack.pop().unwrap());
@@ -66,6 +67,10 @@ impl VM {
                     self.stack.push(constant_value);
                     continue;
                 },
+                Opcode::Negate => {
+                    let Value::Number(top) = self.stack.pop().unwrap(); 
+                    self.stack.push(Value::Number(-top));
+                }
             }
         }
     }

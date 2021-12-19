@@ -1,5 +1,18 @@
 use crate::chunk::{Chunk, Opcode};
-use crate::debug;
+use crate::value::Value;
+
+macro_rules! debug_instruction {
+    ( $chunk:ident, $instruction:expr ) => {
+        {
+            use crate::debug;
+            for ele in &$chunk.stack {
+                print!("[ {} ]", ele);
+            }
+            println!();
+            debug::disassemble_instruction(&$chunk.chunk, &$chunk.ip - 1, $instruction);  
+        }
+    };
+}
 
 pub enum InterpretResult {
     Ok,
@@ -10,6 +23,7 @@ pub enum InterpretResult {
 pub struct VM {
     chunk: Chunk,
     ip: usize, // instruction pointer points to next instruction to be interpreted
+    stack: Vec<Value>,
 }
 
 impl VM {
@@ -17,6 +31,7 @@ impl VM {
         VM {
             chunk: Chunk::new(),
             ip: 0,
+            stack: Vec::with_capacity(256),
         }
     }
     
@@ -40,12 +55,15 @@ impl VM {
     fn run(&mut self) -> InterpretResult {
         loop {
             let instruction = self.next_instruction();
-            debug::disassemble_instruction(&self.chunk,
-                                           self.ip - 1, instruction);  
+            debug_instruction!(self, instruction);
             match instruction {
-                Opcode::Return => return InterpretResult::Ok,
+                Opcode::Return => {
+                    println!("{}", self.stack.pop().unwrap());
+                    return InterpretResult::Ok;
+                }
                 Opcode::Constant(index) => {
-                    println!("{}", self.chunk.get_constant(index));
+                    let constant_value = self.chunk.get_constant(index);
+                    self.stack.push(constant_value);
                     continue;
                 },
             }

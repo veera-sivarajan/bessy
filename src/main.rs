@@ -10,11 +10,10 @@ fn main() {
     // println!("Hello, world!");
     let mut program = Chunk::new();
     let constant = program.add_constant(Value::Number(1.2));
-    program.write_opcode(Opcode::Constant(constant), 123);
-    program.write_opcode(Opcode::Return, 123);
-    program.write_opcode(Opcode::Return, 123);
-    program.write_opcode(Opcode::Return, 123);
-
+    program.write_opcode(Opcode::Constant(constant), 121);
+    program.write_opcode(Opcode::Return, 121);
+    // FIXME: Cloning for now but I should pass a borrow with
+    // lifetime parameter to make it more efficient
     let mut vm = vm::VM::new(program.clone(), 0);
     vm.interpret(program);
     // debug::disassemble_chunk(&program, "test chunk");

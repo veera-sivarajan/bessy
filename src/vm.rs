@@ -1,4 +1,5 @@
 use crate::chunk::{Chunk, Opcode};
+use crate::debug;
 
 pub enum InterpretResult {
     Ok,
@@ -8,7 +9,7 @@ pub enum InterpretResult {
 
 pub struct VM {
     chunk: Chunk,
-    ip: usize, // instruction pointer
+    ip: usize, // instruction pointer points to next instruction to be interpreted
 }
 
 impl VM {
@@ -35,7 +36,9 @@ impl VM {
 
     fn run(&mut self) -> InterpretResult {
         loop {
-            match self.next_instruction() {
+            let instruction = self.next_instruction();
+            debug::disassemble_instruction(&self.chunk, self.ip - 1, instruction);  
+            match instruction {
                 Opcode::Return => return InterpretResult::Ok,
                 Opcode::Constant(index) => {
                     println!("{}", self.chunk.get_constant(index));

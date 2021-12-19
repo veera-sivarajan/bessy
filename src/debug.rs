@@ -16,7 +16,6 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize, instruction:Opcode)
             print_constant("OP_CONSTANT", index, chunk),
     }
 }
-    
 
 fn print_constant(name: &str, index: usize, chunk: &Chunk) {
     print!("{} {:04} '", name, index);

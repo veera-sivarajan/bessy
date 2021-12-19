@@ -13,13 +13,16 @@ pub struct VM {
 }
 
 impl VM {
-    pub fn new(chunk: Chunk, ip: usize) -> VM {
-        VM { chunk, ip }
+    pub fn new() -> VM {
+        VM {
+            chunk: Chunk::new(),
+            ip: 0,
+        }
     }
     
     pub fn interpret(&mut self, chunk: Chunk) -> InterpretResult {
-        // self.chunk = chunk;
-        // self.ip = 0;
+        self.chunk = chunk;
+        self.ip = 0;
         self.run()
     }
 
@@ -37,7 +40,8 @@ impl VM {
     fn run(&mut self) -> InterpretResult {
         loop {
             let instruction = self.next_instruction();
-            debug::disassemble_instruction(&self.chunk, self.ip - 1, instruction);  
+            debug::disassemble_instruction(&self.chunk,
+                                           self.ip - 1, instruction);  
             match instruction {
                 Opcode::Return => return InterpretResult::Ok,
                 Opcode::Constant(index) => {

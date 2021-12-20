@@ -3,6 +3,8 @@ mod debug;
 mod value;
 mod vm;
 mod compiler;
+mod scanner;
+mod token;
 
 use crate::chunk::{Chunk, Opcode};
 use crate::value::Value;

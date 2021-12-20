@@ -23,11 +23,11 @@ fn get_input() -> String {
 fn run_file(path: &str, mut vm: VM) { 
     let file_string = fs::read_to_string(path)
         .expect("Source file cannot be read.");
-    let result = vm.interpret(file_string);
+    let result = vm.interpret(file_string.as_str()); // deref coericion
     match result {
         InterpretResult::CompileError => std::process::exit(65), 
         InterpretResult::RuntimeError => std::process::exit(70), 
-        InterpretResult::Ok => std::process::exit(0),
+        InterpretResult::Ok => unreachable!(), 
     }
 }
 
@@ -41,7 +41,7 @@ fn main() {
                 std::process::exit(0);
             } else if !input.is_empty() {
                 // TODO
-                vm.interpret(input);
+                vm.interpret(input.as_str()); // deref coercion 
             } else {
                 continue;
             }

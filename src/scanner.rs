@@ -7,7 +7,7 @@ pub struct Scanner<'a> {
     line: u32,
 }
 
-impl Scanner {
+impl<'a> Scanner<'a> {
     pub fn init_scanner(source: &str) -> Scanner {
         Scanner { source, start: 0, current: 0, line: 1 }
     }
@@ -31,7 +31,7 @@ impl Scanner {
     }
 
     fn peek_next(&self) -> u8 {
-        if self.current > self.code.len() - 2 {
+        if self.current > self.source.len() - 2 {
             b'\0'
         } else {
             self.source.as_bytes()[self.current + 1]
@@ -50,13 +50,13 @@ impl Scanner {
     fn skip_whitespace(&mut self) {
         loop {
             match self.peek() {
-                ' ' | '\r' | '\t' => self.advance() += 1;
-                '\n' => {
+                b' ' | b'\r' | b'\t' => self.current += 1,
+                b'\n' => {
                     self.line += 1;
-                    self.advance() += 1;
+                    self.current += 1;
                 },
                 b'/' if self.peek_next() == b'/' => {
-                    while self.peek() != '\n' && !self.is_at_end() {
+                    while self.peek() != b'\n' && !self.is_at_end() {
                         self.advance();
                     }
                 }
@@ -89,31 +89,31 @@ impl Scanner {
                         TokenType::BangEqual
                     } else {
                         TokenType::Bang
-                    }
+                    };
                     self.make_token(new_type)
                 },
                 b'=' => {
-                    let new_type = if self.match(b'=') {
+                    let new_type = if self.matches(b'=') {
                         TokenType::EqualEqual
                     } else {
                         TokenType::Equal
-                    }
+                    };
                     self.make_token(new_type)
                 },
                 b'<' => {
-                    let new_type = if self.match(b'=') {
+                    let new_type = if self.matches(b'=') {
                         TokenType::LessEqual
                     } else {
                         TokenType::Less
-                    }
+                    };
                     self.make_token(new_type)
                 },
                 b'>' => {
-                    let new_type = if self.match(b'=') {
+                    let new_type = if self.matches(b'=') {
                         TokenType::GreaterEqual
                     } else {
                         TokenType::Greater
-                    }
+                    };
                     self.make_token(new_type)
                 },
                 b'"' => self.scan_string(),
@@ -152,7 +152,7 @@ impl Scanner {
             self.error_token("Unterminated String.")
         } else {
             self.advance();
-            self.make_token(TokenType::String);
+            self.make_token(TokenType::String)
         }
     }
 
@@ -160,7 +160,8 @@ impl Scanner {
         while self.peek().is_ascii_alphabetic() || self.peek().is_ascii_digit() {
             self.advance();
         }
-        self.make_token(self.identifier_type());
+        let id_type = self.identifier_type();
+        self.make_token(id_type)
     }
 
     fn identifier_type(&mut self) -> TokenType {
@@ -191,7 +192,7 @@ impl Scanner {
                   start: usize,
                   len: usize,
                   rest: &str, kind: TokenType) -> TokenType {
-        let lexeme = &self.source[self.start..start.current];
+        let lexeme = &self.source[self.start..self.current];
         if lexeme.len() == start + len && lexeme == rest {
             kind
         } else {

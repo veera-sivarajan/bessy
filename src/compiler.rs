@@ -2,8 +2,8 @@ use crate::scanner::Scanner;
 use crate::token::{Token, TokenType};
 
 pub fn compile(source: &str) {
-    let lexer = Scanner::init_scanner(source);
-    let mut curr_line: i32 = -1;
+    let mut lexer = Scanner::init_scanner(source);
+    let mut curr_line: u32 = 0;
     loop {
         let token = lexer.scan_token();
         if token.line != curr_line {
@@ -12,7 +12,7 @@ pub fn compile(source: &str) {
         } else {
             print!("   | ");
         }
-        println!("{:02} {}", token.kind, token.start);
+        println!("{:?} {}", token.kind, token.lexeme);
 
         if token.kind == TokenType::Eof {
             break;

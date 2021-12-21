@@ -29,7 +29,7 @@ fn run_file(path: &str, mut vm: VM) {
     match result {
         InterpretResult::CompileError => std::process::exit(65), 
         InterpretResult::RuntimeError => std::process::exit(70), 
-        InterpretResult::Ok => unreachable!(), 
+        InterpretResult::Ok => std::process::exit(0),
     }
 }
 

@@ -193,7 +193,7 @@ impl<'a> Scanner<'a> {
                   len: usize,
                   rest: &str, kind: TokenType) -> TokenType {
         let lexeme = &self.source[self.start..self.current];
-        if lexeme.len() == start + len && lexeme == rest {
+        if lexeme.len() == start + len && &lexeme[start..] == rest {
             kind
         } else {
             TokenType::Identifier

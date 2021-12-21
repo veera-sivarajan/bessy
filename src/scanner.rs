@@ -114,11 +114,27 @@ impl Scanner {
                     }
                     self.make_token(new_type)
                 },
-                
+                '"' => self.scan_string(),
             }
         }
 
         return self.error_token("Unexpected character.");
+    }
+
+    fn scan_string(&mut self) -> Token {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            self.error_token("Unterminated String.")
+        } else {
+            self.advance();
+            self.make_token(TokenType::String);
+        }
     }
 
     fn make_token(&self, kind: TokenType) -> Token {

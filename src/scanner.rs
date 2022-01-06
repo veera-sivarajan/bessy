@@ -1,13 +1,13 @@
 use crate::{token::{Token, TokenType}};
 
-pub struct Scanner<'a> {
-    source: &'a str,
+pub struct Scanner<'src> {
+    source: &'src str,
     start: usize,
     current: usize,
     line: u32,
 }
 
-impl<'a> Scanner<'a> {
+impl<'src> Scanner<'src> {
     pub fn init_scanner(source: &str) -> Scanner {
         Scanner { source, start: 0, current: 0, line: 1 }
     }

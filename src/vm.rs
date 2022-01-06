@@ -35,8 +35,7 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: &str) -> InterpretResult {
-        compiler::compile(source);
-        InterpretResult::Ok
+        
     }
 
     fn next_index(&mut self) -> usize {

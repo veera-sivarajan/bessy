@@ -48,9 +48,9 @@ pub enum TokenType {
     Eof,
 }
 
-pub struct Token<'b> {
+pub struct Token<'src> {
     pub kind: TokenType,
-    pub lexeme: &'b str,
+    pub lexeme: &'src str,
     pub line: u32,
 }
 

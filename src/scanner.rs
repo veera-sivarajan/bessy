@@ -8,7 +8,7 @@ pub struct Scanner<'src> {
 }
 
 impl<'src> Scanner<'src> {
-    pub fn init_scanner(source: &str) -> Scanner {
+    pub fn new(source: &str) -> Scanner {
         Scanner { source, start: 0, current: 0, line: 1 }
     }
 
@@ -65,7 +65,7 @@ impl<'src> Scanner<'src> {
         }
     }
                 
-    pub fn scan_token(&mut self) -> Token {
+    pub fn scan_token(&mut self) -> Token<'src> {
         self.skip_whitespace();
         self.start = self.current;
 
@@ -124,7 +124,7 @@ impl<'src> Scanner<'src> {
         }
     }
 
-    fn scan_number(&mut self) -> Token {
+    fn scan_number(&mut self) -> Token<'src> {
         while self.peek().is_ascii_digit() {
             self.advance();
         }
@@ -140,7 +140,7 @@ impl<'src> Scanner<'src> {
         self.make_token(TokenType::Number)
     }
 
-    fn scan_string(&mut self) -> Token {
+    fn scan_string(&mut self) -> Token<'src> {
         while self.peek() != b'"' && !self.is_at_end() {
             if self.peek() == b'\n' {
                 self.line += 1;
@@ -156,7 +156,7 @@ impl<'src> Scanner<'src> {
         }
     }
 
-    fn identifier(&mut self) -> Token {
+    fn identifier(&mut self) -> Token<'src> {
         while self.peek().is_ascii_alphabetic() || self.peek().is_ascii_digit() {
             self.advance();
         }
@@ -200,7 +200,7 @@ impl<'src> Scanner<'src> {
         }
     }
         
-    fn make_token(&self, kind: TokenType) -> Token {
+    fn make_token(&self, kind: TokenType) -> Token<'src> {
         Token {
             kind,
             lexeme: &self.source[self.start..self.current],

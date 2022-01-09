@@ -54,4 +54,14 @@ pub struct Token<'src> {
     pub line: u32,
 }
 
+impl<'src> Default for Token<'src> {
+    fn default() -> Self {
+        Token {
+            kind: TokenType::Eof,
+            lexeme: "",
+            line: 0,
+        }
+    }
+}
+
 

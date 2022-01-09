@@ -1,6 +1,6 @@
 use crate::chunk::{Chunk, Opcode};
 use crate::value::Value;
-use crate::compiler;
+use crate::compiler::{Parser};
 
 macro_rules! debug_instruction {
     ( $chunk:ident, $instruction:expr ) => {{
@@ -35,7 +35,14 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: &str) -> InterpretResult {
-        
+        let parser = Parser::new(source);
+        if !parser.compile() {
+            InterpretResult::CompileError
+        } else {
+            self.chunk = parser.chunk;
+            self.ip = 0;
+            self.run()
+        }
     }
 
     fn next_index(&mut self) -> usize {

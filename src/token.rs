@@ -51,7 +51,7 @@ pub enum TokenType {
 pub struct Token<'src> {
     pub kind: TokenType,
     pub lexeme: &'src str,
-    pub line: u32,
+    pub line: usize,
 }
 
 impl<'src> Default for Token<'src> {

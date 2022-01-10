@@ -54,3 +54,32 @@ fn main() {
         std::process::exit(64);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn number() {
+        let mut vm = VM::new();
+        assert_eq!(vm::InterpretResult::Ok, vm.interpret("1"));
+    }
+
+    #[test]
+    fn binary() {
+        let mut vm = VM::new();
+        assert_eq!(vm::InterpretResult::Ok, vm.interpret("1 + 1"));
+    }
+
+    #[test]
+    fn grouping() {
+        let mut vm = VM::new();
+        assert_eq!(vm::InterpretResult::Ok, vm.interpret("(1 + 1) + 1"));
+    }
+
+    #[test]
+    fn unary() {
+        let mut vm = VM::new();
+        assert_eq!(vm::InterpretResult::Ok, vm.interpret("-1"));
+    }
+    
+}

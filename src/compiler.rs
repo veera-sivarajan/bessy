@@ -175,7 +175,8 @@ impl<'src> Parser<'src> {
             rule(self);
             while self.is_lower_precedence(precedence) {
                 self.advance();
-                let infix_rule = self.get_rule(self.previous.kind).infix.unwrap();
+                let infix_rule = self.get_rule(self.previous.kind) .infix
+                    .unwrap();
                 infix_rule(self);
             }
         } else {

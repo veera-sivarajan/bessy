@@ -13,6 +13,7 @@ use crate::compiler::{Parser};
 //     }};
 // }
 
+#[derive(PartialEq, Debug)]
 pub enum InterpretResult {
     Ok,
     CompileError,
@@ -86,7 +87,8 @@ impl VM {
                     let Value::Number(top) = self.stack.pop().unwrap();
                     self.stack.push(Value::Number(-top));
                 }
-                Opcode::Add | Opcode::Subtract | Opcode::Multiply | Opcode::Divide => {
+                Opcode::Add | Opcode::Subtract |
+                Opcode::Multiply | Opcode::Divide => {
                     let result = self.evaluate_binary(instruction);
                     self.stack.push(result);
                 }

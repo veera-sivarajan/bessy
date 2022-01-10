@@ -266,7 +266,26 @@ impl<'src> Parser<'src> {
             self.had_error = true;
         }
     }
-            
-            
-        
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn compiles_successfully() {
+        let mut parser = Parser::new("1");
+        assert_eq!(true, parser.compile());
+    }
+
+    #[test]
+    fn compile_fails() {
+        let mut parser = Parser::new("1;");
+        assert_eq!(false, parser.compile());
+    }
+
+    #[test]
+    fn grouping_without_rightparen() {
+        let mut parser = Parser::new("(1 + 2");
+        assert_eq!(false, parser.compile());
+    }
 }

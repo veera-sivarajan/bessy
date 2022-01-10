@@ -81,5 +81,10 @@ mod tests {
         let mut vm = VM::new();
         assert_eq!(vm::InterpretResult::Ok, vm.interpret("-1"));
     }
-    
+
+    #[test]
+    fn parse_string_error() {
+        let mut vm = VM::new();
+        assert_eq!(vm::InterpretResult::CompileError, vm.interpret("\"hello\""));
+    }
 }

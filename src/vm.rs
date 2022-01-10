@@ -35,7 +35,7 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: &str) -> InterpretResult {
-        let parser = Parser::new(source);
+        let mut parser = Parser::new(source);
         if !parser.compile() {
             InterpretResult::CompileError
         } else {

@@ -5,6 +5,7 @@ use crate::value::Value;
 use std::collections::HashMap;
 use crate::debug;
 
+#[derive(Copy, Clone)]
 enum Precedence {
     None, // lowest precedence
     Assignment, // =
@@ -26,26 +27,29 @@ impl Precedence {
             Precedence::Assignment => Precedence::Or,
             Precedence::Or => Precedence::And,
             Precedence::And => Precedence::Equality,
-            Precedence::Equality => Precedence::Term,
+            Precedence::Equality => Precedence::Comparison,
+            Precedence::Comparison => Precedence::Term,
             Precedence::Term => Precedence::Factor,
             Precedence::Factor => Precedence::Unary,
-            Precedence::Unary => Precedence::Primary,
+            Precedence::Unary => Precedence::Call,
+            Precedence::Call => Precedence::Primary,
             Precedence::Primary => Precedence::None,
+            
         }
     }
 }
 
-type ParseFn = fn(&mut Parser);
+// type ParseFn = fn(&mut Parser);
 
-struct ParseRule {
-    prefix: Option<ParseFn>,
-    infix: Option<ParseFn>,
+struct ParseRule<'src> {
+    prefix: Option<fn(&mut Parser<'src>)>,
+    infix: Option<fn(&mut Parser<'src>)>,
     precedence: Precedence,
 }
 
-impl ParseRule {
-    fn new(prefix: Option<ParseFn>,
-           infix: Option<ParseFn>, prec: Precedence) -> ParseRule {
+impl<'src> ParseRule<'src> {
+    fn new(prefix: Option<fn(&mut Parser<'src>)>,
+           infix: Option<fn(&mut Parser<'src>)>, prec: Precedence) -> ParseRule<'src> {
         ParseRule { prefix, infix, precedence: prec }
     }
 }
@@ -57,7 +61,7 @@ pub struct Parser<'src> {
     previous: Token<'src>,
     had_error: bool,
     panic_mode: bool,
-    rules: HashMap<TokenType, ParseRule>,
+    rules: HashMap<TokenType, ParseRule<'src>>,
 }
 
 impl<'src> Parser<'src> {
@@ -74,7 +78,7 @@ impl<'src> Parser<'src> {
         }
     }
 
-    fn init_rules() -> HashMap<TokenType, ParseRule> {
+    fn init_rules() -> HashMap<TokenType, ParseRule<'src>> {
         let mut buffer = HashMap::new();
         buffer.insert(TokenType::LeftParen, ParseRule::new(Some(Parser::grouping), None, Precedence::None));
         buffer.insert(TokenType::RightParen, ParseRule::new(None, None, Precedence::None));
@@ -124,12 +128,13 @@ impl<'src> Parser<'src> {
         self.emit_opcode(Opcode::Return);
         if !self.had_error {
             // self.chunk.disassemble("code");
+            
         }
         self.end_compiler();
         !self.had_error
     }
 
-    fn advance(&self) {
+    fn advance(&mut self) {
         self.previous = self.current;
         
         loop {
@@ -142,7 +147,7 @@ impl<'src> Parser<'src> {
         }
     }
 
-    fn consume(&self, kind: TokenType, message: &str) {
+    fn consume(&mut self, kind: TokenType, message: &str) {
         if self.current.kind == kind {
             self.advance()
         } else {
@@ -150,12 +155,12 @@ impl<'src> Parser<'src> {
         }
     }
 
-    fn get_rule(&self, kind: TokenType) -> &ParseRule {
+    fn get_rule(&self, kind: TokenType) -> &ParseRule<'src> {
         self.rules.get(&kind).unwrap()
     }
 
     fn is_lower_precedence(&self, precedence: Precedence) -> bool {
-        let current_precedence = self.get_rule(parser.current.kind).precedence;
+        let current_precedence = self.get_rule(self.current.kind).precedence;
         precedence as u8 <= current_precedence as u8
     }
 
@@ -206,7 +211,8 @@ impl<'src> Parser<'src> {
     fn binary(&mut self) {
         let operator = self.previous.kind;
         let rule = self.get_rule(operator); 
-        self.parse_precedence(rule.precedence.next());
+        let next_precedence = rule.precedence.next();
+        self.parse_precedence(next_precedence);
         match operator {
             TokenType::Plus => self.emit_opcode(Opcode::Add),
             TokenType::Minus => self.emit_opcode(Opcode::Subtract),
@@ -218,11 +224,11 @@ impl<'src> Parser<'src> {
 
     // NOTE Auxiliary functions for writing into chunk
     
-    fn end_compiler(&self) {
+    fn end_compiler(&mut self) {
         self.emit_return();
     }
 
-    fn emit_constant(&self, value: Value) {
+    fn emit_constant(&mut self, value: Value) {
         let index = self.chunk.add_constant(value);
         if index > usize::MAX { 
             self.error("Too many constants in one chunk.");
@@ -232,30 +238,30 @@ impl<'src> Parser<'src> {
         }
     }
         
-    fn emit_return(&self) {
+    fn emit_return(&mut self) {
         self.emit_opcode(Opcode::Return);
     }
     
-    fn emit_bytes(&self, ins_a: Opcode, ins_b: Opcode) {
+    fn emit_bytes(&mut self, ins_a: Opcode, ins_b: Opcode) {
         self.emit_opcode(ins_a);
         self.emit_opcode(ins_b);
     }
 
-    fn emit_opcode(&self, instruction: Opcode) {
+    fn emit_opcode(&mut self, instruction: Opcode) {
         self.chunk.write_opcode(instruction, self.previous.line);
     }
 
     // NOTE Auxiliary functions for throwing errors
     
-    fn error_at_current(&self, message: &str) {
+    fn error_at_current(&mut self, message: &str) {
         self.error_at(self.current, message)
     }
 
-    fn error(&self, message: &str) {
+    fn error(&mut self, message: &str) {
         self.error_at(self.previous, message)
     }
 
-    fn error_at(&self, token: Token, message: &str) {
+    fn error_at(&mut self, token: Token, message: &str) {
         if self.panic_mode {
             return;
         } else {

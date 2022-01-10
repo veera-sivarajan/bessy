@@ -2,6 +2,7 @@ use crate::scanner::Scanner;
 use crate::token::{Token, TokenType};
 use crate::chunk::{Chunk, Opcode};
 use crate::value::Value;
+use std::collections::HashMap;
 use crate::debug;
 
 enum Precedence {
@@ -34,6 +35,20 @@ impl Precedence {
     }
 }
 
+type ParseFn = fn(&mut Parser);
+
+struct ParseRule {
+    prefix: Option<ParseFn>,
+    infix: Option<ParseFn>,
+    precedence: Precedence,
+}
+
+impl ParseRule {
+    fn new(prefix: Option<ParseFn>, infix: Option<ParseFn>, prec: Precedence) {
+        ParseRule { prefix, infix, precedence: prec }
+    }
+}
+
 pub struct Parser<'src> {
     pub chunk: Chunk,
     scanner: Scanner<'src>,
@@ -41,6 +56,7 @@ pub struct Parser<'src> {
     previous: Token<'src>,
     had_error: bool,
     panic_mode: bool,
+    rules: HashMap<TokenType, ParseRule>,
 }
 
 impl<'src> Parser<'src> {
@@ -53,7 +69,51 @@ impl<'src> Parser<'src> {
             previous: Token::default(),
             had_error: false,
             panic_mode: false,
+            rules: Parser::init_rules(),
         }
+    }
+
+    fn init_rules() -> HashMap<TokenType, ParseRule> {
+        let mut buffer = HashMap::new();
+        buffer.insert(TokenType::LeftParen, ParseRule::new(Some(Parser::grouping), None, Precedence::None));
+        buffer.insert(TokenType::RightParen, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::LeftBrace, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::RightBrace, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Comma, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Dot, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Minus, ParseRule::new(Some(Parser::Unary), Some(Parser::Binary), Precedence::Term));
+        buffer.insert(TokenType::Plus, ParseRule::new(None, Some(Parser::binary) Precedence::Term));
+        buffer.insert(TokenType::Semicolon, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Slash, ParseRule::new(None, Some(Parser::binary), Precedence::Factor));
+        buffer.insert(TokenType::Star, ParseRule::new(None, Some(Parser::binary), Precedence::Factor));
+        buffer.insert(TokenType::Bang, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::BangEqual, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Equal, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::EqualEqual, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Greater, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::GreaterEqual, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Less, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::LessEqual, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Identifier, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::String, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Number, ParseRule::new(Some(Parser::number), None, Precedence::None));
+        buffer.insert(TokenType::And, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Class, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Else, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::False, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::For, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Fun, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::If, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Nil, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Or, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Print, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Return, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::True, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Var, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::While, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Error, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Eof, ParseRule::new(None, None, Precedence::None));
+        buffer
     }
         
     pub fn compile(&mut self) -> bool {
@@ -87,6 +147,10 @@ impl<'src> Parser<'src> {
         } else {
             self.error_at_current(message);
         }
+    }
+
+    fn get_rule(&self, kind: TokenType) -> &ParseRule {
+        self.rules.get(kind).unwrap()
     }
 
     // NOTE Parsing functions

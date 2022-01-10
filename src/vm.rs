@@ -2,21 +2,21 @@ use crate::chunk::{Chunk, Opcode};
 use crate::value::Value;
 use crate::compiler::{Parser};
 
-macro_rules! debug_instruction {
-    ( $chunk:ident, $instruction:expr ) => {{
-        use crate::debug;
-        for ele in &$chunk.stack {
-            print!("[ {} ]", ele);
-        }
-        println!();
-        debug::disassemble(&$chunk.chunk, &$chunk.ip - 1, $instruction);
-    }};
-}
+// macro_rules! debug_instruction {
+//     ( $chunk:ident, $instruction:expr ) => {{
+//         use crate::debug;
+//         for ele in &$chunk.stack {
+//             print!("[ {} ]", ele);
+//         }
+//         println!();
+//         debug::disassemble(&$chunk.chunk, &$chunk.ip - 1, $instruction);
+//     }};
+// }
 
 pub enum InterpretResult {
     Ok,
     CompileError,
-    RuntimeError,
+    // RuntimeError,
 }
 
 pub struct VM {

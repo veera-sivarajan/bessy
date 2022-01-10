@@ -70,7 +70,7 @@ impl<'src> Scanner<'src> {
         self.start = self.current;
 
         if self.is_at_end() {
-            return self.make_token(TokenType::Eof);
+            self.make_token(TokenType::Eof)
         } else {
             match self.advance() {
                 b'(' => self.make_token(TokenType::LeftParen),

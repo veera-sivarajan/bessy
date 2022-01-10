@@ -38,8 +38,6 @@ impl Precedence {
     }
 }
 
-// type ParseFn = fn(&mut Parser);
-
 struct ParseRule<'src> {
     prefix: Option<fn(&mut Parser<'src>)>,
     infix: Option<fn(&mut Parser<'src>)>,
@@ -171,9 +169,8 @@ impl<'src> Parser<'src> {
     fn parse_precedence(&mut self, precedence: Precedence) {
         self.advance();
         let prefix_rule = self.get_rule(self.previous.kind).prefix;
-        if let None = prefix_rule {
+        if prefix_rule.is_none() {
             self.error("Expect expression.");
-            return;
         } else if let Some(rule) = prefix_rule {
             rule(self);
             while self.is_lower_precedence(precedence) {
@@ -201,7 +198,7 @@ impl<'src> Parser<'src> {
         let operator = self.previous.kind;
         self.parse_precedence(Precedence::Unary); // compile the operand
         match operator {
-            TokenType::Minus => self.emit_opcode(Opcode::Subtract),
+            TokenType::Minus => self.emit_opcode(Opcode::Negate),
             _ => unreachable!(),
         }
     }
@@ -228,22 +225,17 @@ impl<'src> Parser<'src> {
 
     fn emit_constant(&mut self, value: Value) {
         let index = self.chunk.add_constant(value);
-        if index > usize::MAX { 
-            self.error("Too many constants in one chunk.");
-            return;
-        } else {
-            self.emit_opcode(Opcode::Constant(index));
-        }
+        self.emit_opcode(Opcode::Constant(index));
     }
         
     fn emit_return(&mut self) {
         self.emit_opcode(Opcode::Return);
     }
     
-    fn emit_bytes(&mut self, ins_a: Opcode, ins_b: Opcode) {
-        self.emit_opcode(ins_a);
-        self.emit_opcode(ins_b);
-    }
+    // fn emit_bytes(&mut self, ins_a: Opcode, ins_b: Opcode) {
+    //     self.emit_opcode(ins_a);
+    //     self.emit_opcode(ins_b);
+    // }
 
     fn emit_opcode(&mut self, instruction: Opcode) {
         self.chunk.write_opcode(instruction, self.previous.line);
@@ -261,7 +253,6 @@ impl<'src> Parser<'src> {
 
     fn error_at(&mut self, token: Token, message: &str) {
         if self.panic_mode {
-            return;
         } else {
             self.panic_mode = true;
             eprint!("[line {}] Error", token.line);

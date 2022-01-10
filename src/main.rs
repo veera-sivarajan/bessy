@@ -6,8 +6,6 @@ mod compiler;
 mod scanner;
 mod token;
 
-use crate::chunk::{Chunk, Opcode};
-use crate::value::Value;
 use crate::vm::{InterpretResult, VM};
 use std::{fs, env, io::{stdout, Write}};
 
@@ -28,7 +26,7 @@ fn run_file(path: &str, mut vm: VM) {
     let result = vm.interpret(file_string.as_str()); // deref coericion
     match result {
         InterpretResult::CompileError => std::process::exit(65), 
-        InterpretResult::RuntimeError => std::process::exit(70), 
+        // InterpretResult::RuntimeError => std::process::exit(70), 
         InterpretResult::Ok => std::process::exit(0),
     }
 }

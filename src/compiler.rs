@@ -3,7 +3,7 @@ use crate::token::{Token, TokenType};
 use crate::chunk::{Chunk, Opcode};
 use crate::value::Value;
 use std::collections::HashMap;
-use crate::debug;
+use crate::debug::disassemble_chunk;
 
 #[derive(Copy, Clone)]
 enum Precedence {
@@ -34,7 +34,6 @@ impl Precedence {
             Precedence::Unary => Precedence::Call,
             Precedence::Call => Precedence::Primary,
             Precedence::Primary => Precedence::None,
-            
         }
     }
 }
@@ -124,11 +123,10 @@ impl<'src> Parser<'src> {
     pub fn compile(&mut self) -> bool {
         self.advance();
         self.expression();
-        self.consume(TokenType::Eof, "Expect end of expression."); // TODO
+        self.consume(TokenType::Eof, "Expect end of expression."); 
         self.emit_opcode(Opcode::Return);
         if !self.had_error {
-            // self.chunk.disassemble("code");
-            
+            disassemble_chunk(&self.chunk, "code");
         }
         self.end_compiler();
         !self.had_error

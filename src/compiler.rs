@@ -44,7 +44,8 @@ struct ParseRule {
 }
 
 impl ParseRule {
-    fn new(prefix: Option<ParseFn>, infix: Option<ParseFn>, prec: Precedence) {
+    fn new(prefix: Option<ParseFn>,
+           infix: Option<ParseFn>, prec: Precedence) -> ParseRule {
         ParseRule { prefix, infix, precedence: prec }
     }
 }
@@ -81,8 +82,8 @@ impl<'src> Parser<'src> {
         buffer.insert(TokenType::RightBrace, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Comma, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Dot, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::Minus, ParseRule::new(Some(Parser::Unary), Some(Parser::Binary), Precedence::Term));
-        buffer.insert(TokenType::Plus, ParseRule::new(None, Some(Parser::binary) Precedence::Term));
+        buffer.insert(TokenType::Minus, ParseRule::new(Some(Parser::unary), Some(Parser::binary), Precedence::Term));
+        buffer.insert(TokenType::Plus, ParseRule::new(None, Some(Parser::binary), Precedence::Term));
         buffer.insert(TokenType::Semicolon, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Slash, ParseRule::new(None, Some(Parser::binary), Precedence::Factor));
         buffer.insert(TokenType::Star, ParseRule::new(None, Some(Parser::binary), Precedence::Factor));
@@ -150,31 +151,50 @@ impl<'src> Parser<'src> {
     }
 
     fn get_rule(&self, kind: TokenType) -> &ParseRule {
-        self.rules.get(kind).unwrap()
+        self.rules.get(&kind).unwrap()
+    }
+
+    fn is_lower_precedence(&self, precedence: Precedence) -> bool {
+        let current_precedence = self.get_rule(parser.current.kind).precedence;
+        precedence as u8 <= current_precedence as u8
     }
 
     // NOTE Parsing functions
 
-    fn expression(&self) {
+    fn expression(&mut self) {
         self.parse_precedence(Precedence::Assignment)
     }
 
-    fn parse_precedence(&self, precedence: Precedence) {
-
+    fn parse_precedence(&mut self, precedence: Precedence) {
+        self.advance();
+        let prefix_rule = self.get_rule(self.previous.kind).prefix;
+        if let None = prefix_rule {
+            self.error("Expect expression.");
+            return;
+        } else if let Some(rule) = prefix_rule {
+            rule(self);
+            while self.is_lower_precedence(precedence) {
+                self.advance();
+                let infix_rule = self.get_rule(self.previous.kind).infix.unwrap();
+                infix_rule(self);
+            }
+        } else {
+            unreachable!();
+        }
     }
 
-    fn number(&self) {
+    fn number(&mut self) {
         let value: f64 = self.previous.lexeme
             .parse().expect("Failed to convert str to f64");
-        self.emit_constant(value);
+        self.emit_constant(Value::Number(value));
     }
 
-    fn grouping(&self) {
+    fn grouping(&mut self) {
         self.expression();
         self.consume(TokenType::RightParen, "Expect ')' after expression.");
     }
 
-    fn unary(&self) {
+    fn unary(&mut self) {
         let operator = self.previous.kind;
         self.parse_precedence(Precedence::Unary); // compile the operand
         match operator {
@@ -183,12 +203,12 @@ impl<'src> Parser<'src> {
         }
     }
 
-    fn binary(&self) {
+    fn binary(&mut self) {
         let operator = self.previous.kind;
         let rule = self.get_rule(operator); 
         self.parse_precedence(rule.precedence.next());
         match operator {
-            TokenType::Plus => self.emit_opcode(Opcode::Plus),
+            TokenType::Plus => self.emit_opcode(Opcode::Add),
             TokenType::Minus => self.emit_opcode(Opcode::Subtract),
             TokenType::Star => self.emit_opcode(Opcode::Multiply),
             TokenType::Slash => self.emit_opcode(Opcode::Divide),

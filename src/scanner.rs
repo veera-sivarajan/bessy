@@ -4,7 +4,7 @@ pub struct Scanner<'src> {
     source: &'src str,
     start: usize,
     current: usize,
-    line: u32,
+    line: usize,
 }
 
 impl<'src> Scanner<'src> {

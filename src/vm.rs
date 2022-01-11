@@ -123,32 +123,8 @@ impl VM {
                     let a = self.stack.pop().unwrap();
                     self.stack.push(Value::Boolean(a == b));
                 }
-                Opcode::Greater => {
-                    match self.evaluate_binary(instruction) {
-                        Ok(result) => {
-                            self.stack.push(result);
-                            continue;
-                        }
-                        Err(()) => {
-                            self.runtime_error("Operands should be number.");
-                            return InterpretResult::RuntimeError;
-                        }
-                    }
-                }
-                Opcode::Less => {
-                    match self.evaluate_binary(instruction) {
-                        Ok(result) => {
-                            self.stack.push(result);
-                            continue;
-                        }
-                        Err(()) => {
-                            self.runtime_error("Operands should be number.");
-                            return InterpretResult::RuntimeError;
-                        }
-                    }
-                }
-                Opcode::Add | Opcode::Subtract |
-                Opcode::Multiply | Opcode::Divide => {
+                Opcode::Add | Opcode::Subtract | Opcode::Greater |
+                Opcode::Less| Opcode::Multiply | Opcode::Divide => {
                     match self.evaluate_binary(instruction) {
                         Ok(result) => {
                             self.stack.push(result);

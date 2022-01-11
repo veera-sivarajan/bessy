@@ -90,13 +90,13 @@ impl<'src> Parser<'src> {
         buffer.insert(TokenType::Slash, ParseRule::new(None, Some(Parser::binary), Precedence::Factor));
         buffer.insert(TokenType::Star, ParseRule::new(None, Some(Parser::binary), Precedence::Factor));
         buffer.insert(TokenType::Bang, ParseRule::new(Some(Parser::unary), None, Precedence::None));
-        buffer.insert(TokenType::BangEqual, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::BangEqual, ParseRule::new(None, Some(Parser::binary), Precedence::Equality));
         buffer.insert(TokenType::Equal, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::EqualEqual, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::Greater, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::GreaterEqual, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::Less, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::LessEqual, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::EqualEqual, ParseRule::new(None, Some(Parser::binary), Precedence::Equality));
+        buffer.insert(TokenType::Greater, ParseRule::new(None, Some(Parser::binary), Precedence::Equality));
+        buffer.insert(TokenType::GreaterEqual, ParseRule::new(None, Some(Parser::binary), Precedence::Equality));
+        buffer.insert(TokenType::Less, ParseRule::new(None, Some(Parser::binary), Precedence::Equality));
+        buffer.insert(TokenType::LessEqual, ParseRule::new(None, Some(Parser::binary), Precedence::Equality));
         buffer.insert(TokenType::Identifier, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::String, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Number, ParseRule::new(Some(Parser::number), None, Precedence::None));
@@ -225,6 +225,12 @@ impl<'src> Parser<'src> {
             TokenType::Minus => self.emit_opcode(Opcode::Subtract),
             TokenType::Star => self.emit_opcode(Opcode::Multiply),
             TokenType::Slash => self.emit_opcode(Opcode::Divide),
+            TokenType::BangEqual => self.emit_opcodes(Opcode::Equal, Opcode::Not),
+            TokenType::EqualEqual => self.emit_opcode(Opcode::Equal),
+            TokenType::Greater => self.emit_opcode(Opcode::Greater),
+            TokenType::GreaterEqual => self.emit_opcodes(Opcode::Less, Opcode::Not),
+            TokenType::Less => self.emit_opcode(Opcode::Less),
+            TokenType::LessEqual => self.emit_opcodes(Opcode::Greater, Opcode::Not),
             _ => unreachable!(),
         }
     }
@@ -244,10 +250,10 @@ impl<'src> Parser<'src> {
         self.emit_opcode(Opcode::Return);
     }
     
-    // fn emit_bytes(&mut self, ins_a: Opcode, ins_b: Opcode) {
-    //     self.emit_opcode(ins_a);
-    //     self.emit_opcode(ins_b);
-    // }
+    fn emit_opcodes(&mut self, ins_a: Opcode, ins_b: Opcode) {
+        self.emit_opcode(ins_a);
+        self.emit_opcode(ins_b);
+    }
 
     fn emit_opcode(&mut self, instruction: Opcode) {
         self.chunk.write_opcode(instruction, self.previous.line);

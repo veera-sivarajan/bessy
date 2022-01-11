@@ -116,6 +116,13 @@ impl VM {
                         }
                     }
                 }
+                Opcode::Equal => {
+                    let b = self.stack.pop().unwrap();
+                    let a = self.stack.pop().unwrap();
+                    self.stack.push(Value::Boolean(a == b));
+                }
+                Opcode::Greater => continue,
+                Opcode::Less => continue,
                 Opcode::Add | Opcode::Subtract |
                 Opcode::Multiply | Opcode::Divide => {
                     match self.evaluate_binary(instruction) {

@@ -22,6 +22,9 @@ pub fn disassemble(chunk: &Chunk, offset: usize, instruction: Opcode) {
         Opcode::True => println!("OP_TRUE"),
         Opcode::False => println!("OP_FALSE"),
         Opcode::Not => println!("OP_NOT"),
+        Opcode::Equal => println!("OP_EQUAL"),
+        Opcode::Greater => println!("OP_GREATER"),
+        Opcode::Less => println!("OP_LESS"),
     }
 }
 

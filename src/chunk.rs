@@ -13,6 +13,10 @@ pub enum Opcode {
     Subtract,
     Multiply,
     Divide,
+    // Comparison operators
+    Equal,
+    Greater,
+    Less,
 
     // unary operators
     Negate,

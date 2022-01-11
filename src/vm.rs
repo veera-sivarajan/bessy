@@ -74,6 +74,8 @@ impl VM {
                 Opcode::Subtract => Value::Number(a - b),
                 Opcode::Multiply => Value::Number(a * b),
                 Opcode::Divide => Value::Number(a / b),
+                Opcode::Greater => Value::Boolean(a > b),
+                Opcode::Less => Value::Boolean(a < b),
                 _ => unreachable!(),
             };
             Ok(result)
@@ -121,8 +123,30 @@ impl VM {
                     let a = self.stack.pop().unwrap();
                     self.stack.push(Value::Boolean(a == b));
                 }
-                Opcode::Greater => continue,
-                Opcode::Less => continue,
+                Opcode::Greater => {
+                    match self.evaluate_binary(instruction) {
+                        Ok(result) => {
+                            self.stack.push(result);
+                            continue;
+                        }
+                        Err(()) => {
+                            self.runtime_error("Operands should be number.");
+                            return InterpretResult::RuntimeError;
+                        }
+                    }
+                }
+                Opcode::Less => {
+                    match self.evaluate_binary(instruction) {
+                        Ok(result) => {
+                            self.stack.push(result);
+                            continue;
+                        }
+                        Err(()) => {
+                            self.runtime_error("Operands should be number.");
+                            return InterpretResult::RuntimeError;
+                        }
+                    }
+                }
                 Opcode::Add | Opcode::Subtract |
                 Opcode::Multiply | Opcode::Divide => {
                     match self.evaluate_binary(instruction) {

@@ -99,13 +99,21 @@ impl VM {
                 Opcode::Nil => self.stack.push(Value::Nil),
                 Opcode::True => self.stack.push(Value::Boolean(true)),
                 Opcode::False => self.stack.push(Value::Boolean(false)),
+                Opcode::Not => {
+                    let value = self.stack.pop().unwrap();
+                    self.stack.push(Value::Boolean(value.is_falsey()));
+                }
                 Opcode::Negate => {
                     match self.peek(0) {
                         Value::Number(top) => {
+                            self.stack.pop();
                             self.stack.push(Value::Number(-top));
                             continue;
                         }
-                        _ => return InterpretResult::RuntimeError,
+                        _ => {
+                            self.runtime_error("Operand should be a number.");
+                            return InterpretResult::RuntimeError;
+                        }
                     }
                 }
                 Opcode::Add | Opcode::Subtract |

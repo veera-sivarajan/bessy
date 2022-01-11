@@ -21,6 +21,7 @@ pub fn disassemble(chunk: &Chunk, offset: usize, instruction: Opcode) {
         Opcode::Nil => println!("OP_NIL"),
         Opcode::True => println!("OP_TRUE"),
         Opcode::False => println!("OP_FALSE"),
+        Opcode::Not => println!("OP_NOT"),
     }
 }
 

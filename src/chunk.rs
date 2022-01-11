@@ -5,7 +5,6 @@ use crate::value::Value;
 pub enum Opcode {
     Constant(usize), // Constant opcode followed by index to the constant
     Return,
-    Negate,
     Nil,
     True,
     False,
@@ -14,6 +13,10 @@ pub enum Opcode {
     Subtract,
     Multiply,
     Divide,
+
+    // unary operators
+    Negate,
+    Not,
 }
 
 #[derive(Clone)]

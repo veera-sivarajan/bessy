@@ -89,7 +89,7 @@ impl<'src> Parser<'src> {
         buffer.insert(TokenType::Semicolon, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Slash, ParseRule::new(None, Some(Parser::binary), Precedence::Factor));
         buffer.insert(TokenType::Star, ParseRule::new(None, Some(Parser::binary), Precedence::Factor));
-        buffer.insert(TokenType::Bang, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Bang, ParseRule::new(Some(Parser::unary), None, Precedence::None));
         buffer.insert(TokenType::BangEqual, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Equal, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::EqualEqual, ParseRule::new(None, None, Precedence::None));
@@ -210,6 +210,7 @@ impl<'src> Parser<'src> {
         self.parse_precedence(Precedence::Unary); // compile the operand
         match operator {
             TokenType::Minus => self.emit_opcode(Opcode::Negate),
+            TokenType::Bang => self.emit_opcode(Opcode::Not),
             _ => unreachable!(),
         }
     }

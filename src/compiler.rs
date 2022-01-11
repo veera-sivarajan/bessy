@@ -46,7 +46,8 @@ struct ParseRule<'src> {
 
 impl<'src> ParseRule<'src> {
     fn new(prefix: Option<fn(&mut Parser<'src>)>,
-           infix: Option<fn(&mut Parser<'src>)>, prec: Precedence) -> ParseRule<'src> {
+           infix: Option<fn(&mut Parser<'src>)>,
+           prec: Precedence) -> ParseRule<'src> {
         ParseRule { prefix, infix, precedence: prec }
     }
 }

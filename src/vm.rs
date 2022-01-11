@@ -17,7 +17,7 @@ use crate::compiler::{Parser};
 pub enum InterpretResult {
     Ok,
     CompileError,
-    // RuntimeError,
+    RuntimeError,
 }
 
 pub struct VM {
@@ -57,15 +57,28 @@ impl VM {
         self.chunk.code[index]
     }
 
-    fn evaluate_binary(&mut self, operation: Opcode) -> Value {
-        let Value::Number(b) = self.stack.pop().unwrap();
-        let Value::Number(a) = self.stack.pop().unwrap();
-        match operation {
-            Opcode::Add => Value::Number(a + b),
-            Opcode::Subtract => Value::Number(a - b),
-            Opcode::Multiply => Value::Number(a * b),
-            Opcode::Divide => Value::Number(a / b),
-            _ => unreachable!(),
+    fn runtime_error(&self, message: &str) {
+        eprintln!("[line {}] runtime error: {}",
+                  self.chunk.lines[self.ip - 1], message)
+    }
+
+    fn peek(&self, distance: usize) -> Value {
+        let top = self.stack.len() - 1;
+        *self.stack.get(top - distance).expect("Tried to peek into empty stack.")
+    }
+
+    fn evaluate_binary(&mut self, operation: Opcode) -> Result<Value, ()> {
+        if let (Value::Number(b), Value::Number(a)) = (self.peek(0), self.peek(1)) {
+            let result = match operation {
+                Opcode::Add => Value::Number(a + b),
+                Opcode::Subtract => Value::Number(a - b),
+                Opcode::Multiply => Value::Number(a * b),
+                Opcode::Divide => Value::Number(a / b),
+                _ => unreachable!(),
+            };
+            Ok(result)
+        } else {
+            Err(())
         }
     }
 
@@ -84,13 +97,26 @@ impl VM {
                     continue;
                 }
                 Opcode::Negate => {
-                    let Value::Number(top) = self.stack.pop().unwrap();
-                    self.stack.push(Value::Number(-top));
+                    match self.peek(0) {
+                        Value::Number(top) => {
+                            self.stack.push(Value::Number(-top));
+                            continue;
+                        }
+                        _ => return InterpretResult::RuntimeError,
+                    }
                 }
                 Opcode::Add | Opcode::Subtract |
                 Opcode::Multiply | Opcode::Divide => {
-                    let result = self.evaluate_binary(instruction);
-                    self.stack.push(result);
+                    match self.evaluate_binary(instruction) {
+                        Ok(result) => {
+                            self.stack.push(result);
+                            continue;
+                        }
+                        Err(()) => {
+                            self.runtime_error("Operands should be number.");
+                            return InterpretResult::RuntimeError;
+                        }
+                    }
                 }
             }
         }

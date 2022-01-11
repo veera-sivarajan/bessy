@@ -18,6 +18,9 @@ pub fn disassemble(chunk: &Chunk, offset: usize, instruction: Opcode) {
         Opcode::Subtract => println!("OP_SUBTRACT"),
         Opcode::Multiply => println!("OP_MULTIPLY"),
         Opcode::Divide => println!("OP_DIVIDE"),
+        Opcode::Nil => println!("OP_NIL"),
+        Opcode::True => println!("OP_TRUE"),
+        Opcode::False => println!("OP_FALSE"),
     }
 }
 

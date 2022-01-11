@@ -96,6 +96,9 @@ impl VM {
                     self.stack.push(constant_value);
                     continue;
                 }
+                Opcode::Nil => self.stack.push(Value::Nil),
+                Opcode::True => self.stack.push(Value::Boolean(true)),
+                Opcode::False => self.stack.push(Value::Boolean(false)),
                 Opcode::Negate => {
                     match self.peek(0) {
                         Value::Number(top) => {

@@ -103,15 +103,15 @@ impl<'src> Parser<'src> {
         buffer.insert(TokenType::And, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Class, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Else, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::False, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::False, ParseRule::new(Some(Parser::literal), None, Precedence::None));
         buffer.insert(TokenType::For, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Fun, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::If, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::Nil, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::Nil, ParseRule::new(Some(Parser::literal), None, Precedence::None));
         buffer.insert(TokenType::Or, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Print, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Return, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::True, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::True, ParseRule::new(Some(Parser::literal), None, Precedence::None));
         buffer.insert(TokenType::Var, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::While, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Error, ParseRule::new(None, None, Precedence::None));
@@ -189,6 +189,15 @@ impl<'src> Parser<'src> {
         let value: f64 = self.previous.lexeme
             .parse().expect("Failed to convert str to f64");
         self.emit_constant(Value::Number(value));
+    }
+
+    fn literal(&mut self) {
+        match self.previous.kind {
+            TokenType::False => self.emit_opcode(Opcode::False),
+            TokenType::True => self.emit_opcode(Opcode::True),
+            TokenType::Nil => self.emit_opcode(Opcode::Nil),
+            _ => unreachable!(),
+        }
     }
 
     fn grouping(&mut self) {

@@ -5,8 +5,10 @@ use crate::value::Value;
 pub enum Opcode {
     Constant(usize), // Constant opcode followed by index to the constant
     Return,
-    // unary operator
     Negate,
+    Nil,
+    True,
+    False,
     // Binary operators
     Add,
     Subtract,

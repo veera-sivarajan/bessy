@@ -67,25 +67,24 @@ impl VM {
         self.stack[top - distance].clone()
     }
 
-    fn evaluate_binary(&mut self, operation: Opcode) -> Result<Value, ()> {
+    fn evaluate_binary(&mut self, operation: Opcode) -> Result<Value, &'static str> {
         if let (Value::Number(b), Value::Number(a)) = (self.peek(0), self.peek(1)) {
-            let result = match operation {
-                Opcode::Add => Value::Number(a + b),
-                Opcode::Subtract => Value::Number(a - b),
-                Opcode::Multiply => Value::Number(a * b),
-                Opcode::Divide => Value::Number(a / b),
-                Opcode::Greater => Value::Boolean(a > b),
-                Opcode::Less => Value::Boolean(a < b),
-                _ => unreachable!(),
-            };
-            Ok(result)
+             match operation {
+                Opcode::Add => Ok(Value::Number(a + b)),
+                Opcode::Subtract => Ok(Value::Number(a - b)),
+                Opcode::Multiply => Ok(Value::Number(a * b)),
+                Opcode::Divide => Ok(Value::Number(a / b)),
+                Opcode::Greater => Ok(Value::Boolean(a > b)),
+                Opcode::Less => Ok(Value::Boolean(a < b)),
+                _ => Err("Unknown binary operation for numbers."), 
+            }
         } else if let (Value::String(b), Value::String(a)) = (self.peek(0), self.peek(1)) {
             match operation {
                 Opcode::Add => Ok(Value::String(format!("{}{}", a, b))),
-                _ => Err(()),
+                _ => Err("Unknown binary operation for strings."),
             }
         } else {
-            Err(())
+            Err("Operands should be of type numbers or strings.")
         }
     }
 
@@ -135,8 +134,8 @@ impl VM {
                             self.stack.push(result);
                             continue;
                         }
-                        Err(()) => {
-                            self.runtime_error("Operands should be number.");
+                        Err(message) => {
+                            self.runtime_error(message);
                             return InterpretResult::RuntimeError;
                         }
                     }

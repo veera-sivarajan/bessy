@@ -79,6 +79,11 @@ impl VM {
                 _ => unreachable!(),
             };
             Ok(result)
+        } else if let (Value::String(b), Value::String(a)) = (self.peek(0), self.peek(1)) {
+            match operation {
+                Opcode::Add => Ok(Value::String(format!("{}{}", a, b))),
+                _ => Err(()),
+            }
         } else {
             Err(())
         }

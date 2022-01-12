@@ -98,7 +98,7 @@ impl<'src> Parser<'src> {
         buffer.insert(TokenType::Less, ParseRule::new(None, Some(Parser::binary), Precedence::Equality));
         buffer.insert(TokenType::LessEqual, ParseRule::new(None, Some(Parser::binary), Precedence::Equality));
         buffer.insert(TokenType::Identifier, ParseRule::new(None, None, Precedence::None));
-        buffer.insert(TokenType::String, ParseRule::new(None, None, Precedence::None));
+        buffer.insert(TokenType::String, ParseRule::new(Some(Parser::string), None, Precedence::None));
         buffer.insert(TokenType::Number, ParseRule::new(Some(Parser::number), None, Precedence::None));
         buffer.insert(TokenType::And, ParseRule::new(None, None, Precedence::None));
         buffer.insert(TokenType::Class, ParseRule::new(None, None, Precedence::None));
@@ -183,6 +183,12 @@ impl<'src> Parser<'src> {
         } else {
             unreachable!();
         }
+    }
+
+    fn string(&mut self) {
+        let lexeme = self.previous.lexeme;
+        let trimmed_lexeme = &self.previous.lexeme[1..(lexeme.len() - 1)];
+        self.emit_constant(Value::String(String::from(trimmed_lexeme)));
     }
 
     fn number(&mut self) {

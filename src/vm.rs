@@ -64,7 +64,7 @@ impl VM {
 
     fn peek(&self, distance: usize) -> Value {
         let top = self.stack.len() - 1;
-        *self.stack.get(top - distance).expect("Tried to peek into empty stack.")
+        self.stack[top - distance].clone()
     }
 
     fn evaluate_binary(&mut self, operation: Opcode) -> Result<Value, ()> {

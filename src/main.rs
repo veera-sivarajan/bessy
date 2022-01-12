@@ -40,14 +40,12 @@ fn main() {
             if input == "exit" {
                 std::process::exit(0);
             } else if !input.is_empty() {
-                // TODO
                 vm.interpret(input.as_str()); // deref coercion 
             } else {
                 continue;
             }
         }
     } else if args.len() == 2 {
-        // TODO
         run_file(&args[1], vm);
     } else {
         eprintln!("Usage: bessy [path]");
@@ -85,6 +83,6 @@ mod tests {
     #[test]
     fn parse_string_error() {
         let mut vm = VM::new();
-        assert_eq!(vm::InterpretResult::CompileError, vm.interpret("\"hello\""));
+        assert_eq!(vm::InterpretResult::Ok, vm.interpret("\"hello\""));
     }
 }

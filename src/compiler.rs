@@ -295,8 +295,14 @@ impl<'src> Parser<'src> {
 mod tests {
     use super::*;
     #[test]
-    fn compiles_successfully() {
+    fn compile_numbers() {
         let mut parser = Parser::new("1");
+        assert_eq!(true, parser.compile());
+    }
+
+    #[test]
+    fn compile_strings() {
+        let mut parser = Parser::new("\"Hello, World\"");
         assert_eq!(true, parser.compile());
     }
 

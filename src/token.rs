@@ -48,7 +48,7 @@ pub enum TokenType {
     Eof,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Token<'src> {
     pub kind: TokenType,
     pub lexeme: &'src str,

@@ -100,7 +100,6 @@ impl VM {
                 Opcode::Constant(index) => {
                     let constant_value = self.chunk.get_constant(index);
                     self.stack.push(constant_value);
-                    continue;
                 }
                 Opcode::Nil => self.stack.push(Value::Nil),
                 Opcode::True => self.stack.push(Value::Boolean(true)),
@@ -109,18 +108,13 @@ impl VM {
                     let value = self.stack.pop().unwrap();
                     self.stack.push(Value::Boolean(value.is_falsey()));
                 }
-                Opcode::Negate => {
-                    match self.peek(0) {
-                        Value::Number(top) => {
-                            self.stack.pop();
-                            self.stack.push(Value::Number(-top));
-                            continue;
-                        }
-                        _ => {
-                            self.runtime_error("Operand should be a number.");
-                            return InterpretResult::RuntimeError;
-                        }
-                    }
+                Opcode::Negate => if let Value::Number(top) = self.peek(0) {
+                    self.stack.pop();
+                    self.stack.push(Value::Number(-top));
+                } else {
+                    let error_message = format!("{:?} type cannot be negated.", self.peek(0));
+                    self.runtime_error(error_message.as_str());
+                    return InterpretResult::RuntimeError;
                 }
                 Opcode::Equal => {
                     let b = self.stack.pop().unwrap();
@@ -130,10 +124,7 @@ impl VM {
                 Opcode::Add | Opcode::Subtract | Opcode::Greater |
                 Opcode::Less| Opcode::Multiply | Opcode::Divide => {
                     match self.evaluate_binary(instruction) {
-                        Ok(result) => {
-                            self.stack.push(result);
-                            continue;
-                        }
+                        Ok(result) => self.stack.push(result),
                         Err(message) => {
                             self.runtime_error(message);
                             return InterpretResult::RuntimeError;

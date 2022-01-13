@@ -176,13 +176,11 @@ impl<'src> Scanner<'src> {
             b'v' => self.check_rest(1, 2, "ar", TokenType::Var),
             b'w' => self.check_rest(1, 4, "hile", TokenType::While),
             b't' => self.check_rest(1, 3, "rue", TokenType::True),
-            b'f' => {
-                match self.source.as_bytes()[self.start + 1] {
+            b'f' => match self.source.as_bytes()[self.start + 1] {
                     b'a' => self.check_rest(2, 3, "lse", TokenType::False),
                     b'o' => self.check_rest(2, 1, "r", TokenType::For),
                     b'u' => self.check_rest(2, 1, "n", TokenType::Fun),
                     _ => TokenType::Identifier,
-                }
             },
             _ => TokenType::Identifier,
         }

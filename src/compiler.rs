@@ -5,6 +5,8 @@ use crate::value::Value;
 use std::collections::HashMap;
 use crate::debug::disassemble_chunk;
 
+const DEBUG_MODE: bool = false;
+
 #[derive(Copy, Clone)]
 enum Precedence {
     None, // lowest precedence
@@ -124,8 +126,8 @@ impl<'src> Parser<'src> {
         self.expression();
         self.consume(TokenType::Eof, "Expect end of expression."); 
         self.emit_opcode(Opcode::Return);
-        if !self.had_error {
-            disassemble_chunk(&self.chunk, "code");
+        if !self.had_error && DEBUG_MODE {
+            disassemble_chunk(&self.chunk, "BYTECODE");
         }
         self.end_compiler();
         !self.had_error
@@ -135,7 +137,7 @@ impl<'src> Parser<'src> {
         self.previous = self.current;
         
         loop {
-            self.current = self.scanner.scan_token();
+            self.current = self.scanner.scan_token(); // scan on demand
             if self.current.kind != TokenType::Error {
                 break;
             } else {

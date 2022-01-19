@@ -5,7 +5,7 @@ use crate::value::Value;
 use std::collections::HashMap;
 use crate::debug::disassemble_chunk;
 
-const DEBUG_MODE: bool = false;
+const DEBUG_MODE: bool = true;
 
 #[derive(Copy, Clone)]
 enum Precedence {
@@ -123,14 +123,27 @@ impl<'src> Parser<'src> {
         
     pub fn compile(&mut self) -> bool {
         self.advance();
-        self.expression();
-        self.consume(TokenType::Eof, "Expect end of expression."); 
-        self.emit_opcode(Opcode::Return);
+        while !self.matches(TokenType::Eof) {
+            self.declaration();
+        }
+        self.end_compiler();
         if !self.had_error && DEBUG_MODE {
             disassemble_chunk(&self.chunk, "BYTECODE");
         }
-        self.end_compiler();
         !self.had_error
+    }
+
+    fn matches(&mut self, kind: TokenType) -> bool {
+        if !self.check(kind) {
+            false
+        } else {
+            self.advance();
+            true
+        }
+    }
+
+    fn check(&self, kind: TokenType) -> bool {
+        self.current.kind == kind
     }
 
     fn advance(&mut self) {
@@ -164,6 +177,22 @@ impl<'src> Parser<'src> {
     }
 
     // NOTE Parsing functions
+
+    fn declaration(&mut self) {
+        self.statement()
+    }
+
+    fn statement(&mut self) {
+        if self.matches(TokenType::Print) {
+            self.print_statement()
+        }
+    }
+
+    fn print_statement(&mut self) {
+        self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after value.");
+        self.emit_opcode(Opcode::Print);
+    }
 
     fn expression(&mut self) {
         self.parse_precedence(Precedence::Assignment)

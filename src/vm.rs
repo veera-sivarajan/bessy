@@ -97,8 +97,9 @@ impl VM {
             let instruction = self.next_instruction();
             // debug_instruction!(self, instruction);
             match instruction {
+                Opcode::Print => println!("{}", self.stack.pop().unwrap()),
                 Opcode::Return => {
-                    println!("{}", self.stack.pop().unwrap());
+                    // println!("{}", self.stack.pop().unwrap());
                     return InterpretResult::Ok;
                 }
                 Opcode::Constant(index) => {

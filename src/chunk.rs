@@ -21,6 +21,9 @@ pub enum Opcode {
     // unary operators
     Negate,
     Not,
+
+    // statements
+    Print,
 }
 
 #[derive(Clone)]

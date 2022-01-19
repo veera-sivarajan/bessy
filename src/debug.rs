@@ -25,6 +25,7 @@ pub fn disassemble(chunk: &Chunk, offset: usize, instruction: Opcode) {
         Opcode::Equal => println!("OP_EQUAL"),
         Opcode::Greater => println!("OP_GREATER"),
         Opcode::Less => println!("OP_LESS"),
+        Opcode::Print => println!("OP_PRINT"),
     }
 }
 

@@ -69,7 +69,9 @@ impl VM {
 
     fn evaluate_binary(&mut self, operation: Opcode) -> Result<Value, &'static str> {
         if let (Value::Number(b), Value::Number(a)) = (self.peek(0), self.peek(1)) {
-             match operation {
+            self.stack.pop();
+            self.stack.pop();
+            match operation {
                 Opcode::Add => Ok(Value::Number(a + b)),
                 Opcode::Subtract => Ok(Value::Number(a - b)),
                 Opcode::Multiply => Ok(Value::Number(a * b)),
@@ -79,6 +81,8 @@ impl VM {
                 _ => Err("Unknown binary operation for numbers."), 
             }
         } else if let (Value::String(b), Value::String(a)) = (self.peek(0), self.peek(1)) {
+            self.stack.pop();
+            self.stack.pop();
             match operation {
                 Opcode::Add => Ok(Value::String(format!("{}{}", a, b))),
                 _ => Err("Unknown binary operation for strings."),
@@ -122,13 +126,11 @@ impl VM {
                     self.stack.push(Value::Boolean(a == b));
                 }
                 Opcode::Add | Opcode::Subtract | Opcode::Greater |
-                Opcode::Less| Opcode::Multiply | Opcode::Divide => {
-                    match self.evaluate_binary(instruction) {
-                        Ok(result) => self.stack.push(result),
-                        Err(message) => {
-                            self.runtime_error(message);
-                            return InterpretResult::RuntimeError;
-                        }
+                Opcode::Less| Opcode::Multiply | Opcode::Divide => match self.evaluate_binary(instruction) {
+                    Ok(result) => self.stack.push(result),
+                    Err(message) => {
+                        self.runtime_error(message);
+                        return InterpretResult::RuntimeError;
                     }
                 }
             }

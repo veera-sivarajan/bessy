@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -38,7 +39,14 @@ pub enum TokenType {
     Return,
 }
 
+#[derive(Debug)]
 pub struct Token {
     pub kind: TokenType,
-    pub line: u32,
+    pub line: u16,
+}
+
+impl Token {
+    pub fn new(kind: TokenType, line: u16) -> Self {
+        Token { kind, line }
+    }
 }

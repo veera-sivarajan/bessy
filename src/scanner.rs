@@ -1,7 +1,5 @@
 use crate::token::{Token, TokenType};
 use crate::error::BessyError;
-use std::iter::SkipWhile;
-use std::str::Bytes;
 
 // Takes a heap allocated string and generates tokens on demand. 
 
@@ -14,29 +12,25 @@ pub struct Scanner<'a> {
     line: u16,
 }
 
-trait Needless {
-    fn is_needless(&self) -> bool;
-}
-
-impl Needless for u8 {
-    fn is_needless(&self) -> bool {
-        match self {
-            b' '|b'\r'|b'\t' => true,
-            _ => false,
-        }
-    }
-}
-        
-
 impl<'a> Iterator for Scanner<'a> {
     type Item = u8;
 
+    // while this method is supposed to iterate though a collection,
+    // here, it also skips unnecessary characters. 
     fn next(&mut self) -> Option<Self::Item> {
-        if !self.is_at_end() {
-            self.current += 1;
-            Some(self.source.as_bytes()[self.current - 1])
-        } else {
+        if self.is_at_end() {
             None
+        } else {
+            let c = self.source.as_bytes()[self.current];
+            self.current += 1;
+            match c {
+                b' '|b'\r'|b'\t' => self.next(),
+                b'\n' => {
+                    self.line += 1;
+                    self.next()
+                },
+                _ => Some(c),
+            }
         }
     }
 }
@@ -57,10 +51,8 @@ impl<'a> Scanner<'a> {
     pub fn scan_token(&mut self) -> Result<Token> {
         self.start = self.current;
 
-        if self.is_at_end() {
-            Ok(Token::new(TokenType::Eof, self.line))
-        } else {
-            match self.skip_while(|c| c.is_needless()).next().unwrap() {
+        if let Some(c) = self.next() {
+            match c {
                 b'(' => Ok(Token::new(TokenType::LeftParen, self.line)),
                 b')' => Ok(Token::new(TokenType::RightParen, self.line)),
                 b'{' => Ok(Token::new(TokenType::LeftBrace, self.line)),
@@ -102,6 +94,8 @@ impl<'a> Scanner<'a> {
                 },
                 _ => scan_error!()
             }
+        } else {
+            Ok(Token::new(TokenType::Eof, self.line))
         }
     }
 }

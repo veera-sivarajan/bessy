@@ -29,6 +29,14 @@ impl<'a> Iterator for Scanner<'a> {
                     self.line += 1;
                     self.next()
                 },
+                b'/' => {
+                    // peekable does not have double peek method
+                    if self.source.as_bytes()[self.current] == b'/' {
+                        self.skip_while(|c| *c != b'\n').next()
+                    } else {
+                        Some(c)
+                    }
+                }
                 _ => Some(c),
             }
         }

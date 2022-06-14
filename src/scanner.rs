@@ -40,6 +40,8 @@ impl<'a> Scanner<'a> {
             match self.next().unwrap() {
                 b'(' => Token::new(TokenType::LeftParen, self.line),
                 b')' => Token::new(TokenType::LeftParen, self.line),
+                b'{' => Token::new(TokenType::LeftBrace, self.line),
+                b'}' => Token::new(TokenType::RightBrace, self.line),
                 _ => Token::new(TokenType::Unknown, self.line),
             }
         }

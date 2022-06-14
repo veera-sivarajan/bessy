@@ -9,19 +9,6 @@ pub struct Scanner<'a> {
     line: u16,
 }
 
-impl<'a> Iterator for Scanner<'a> {
-    type Item = u8;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if !self.is_at_end() {
-            self.current += 1;
-            Some(self.source.as_bytes()[self.current - 1])
-        } else {
-            None
-        }
-    }
-}
-
 impl<'a> Scanner<'a> {
     pub fn new(source: &'a str) -> Self {
         Scanner { source, start: 0, current: 0, line: 1 }
@@ -31,13 +18,18 @@ impl<'a> Scanner<'a> {
         self.current >= self.source.len()
     }
 
+    fn advance(&mut self) -> u8 {
+        self.current += 1;
+        self.source.as_bytes()[self.current - 1]
+    }
+
     pub fn scan_token(&mut self) -> Token {
         self.start = self.current;
 
         if self.is_at_end() {
             Token::new(TokenType::Eof, self.line)
         } else {
-            match self.next().unwrap() {
+            match self.advance() {
                 b'(' => Token::new(TokenType::LeftParen, self.line),
                 b')' => Token::new(TokenType::LeftParen, self.line),
                 b'{' => Token::new(TokenType::LeftBrace, self.line),

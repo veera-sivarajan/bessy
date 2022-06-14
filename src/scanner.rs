@@ -32,6 +32,7 @@ impl<'a> Iterator for Scanner<'a> {
                 b'/' => {
                     // peekable does not have double peek method
                     if self.source.as_bytes()[self.current] == b'/' {
+                        // skip until newline and return next character
                         self.skip_while(|c| *c != b'\n').next()
                     } else {
                         Some(c)
@@ -100,11 +101,32 @@ impl<'a> Scanner<'a> {
                         Ok(Token::new(TokenType::Greater, self.line))
                     }
                 },
+                b'"' => self.scan_string(),
+                // b'0'..=b'9' => self.scan_number(),
                 _ => scan_error!()
             }
         } else {
             Ok(Token::new(TokenType::Eof, self.line))
         }
     }
+
+    // fn scan_number(&mut self) -> Result<Token> {
+    //     let non_digit = self.find(|n| !n.is_digit());
+        
+    //     todo!()
+    // }
+
+    fn scan_string(&mut self) -> Result<Token> {
+        // .next() consumes the closing quote
+        // let c = self.skip_while(|c| *c != b'"').next();
+        let c = self.find(|c| *c == b'"');
+        if c == None { // eof reached before terminating string
+            scan_error!()
+        } else {
+            // TODO slice the lexeme and store it in token
+            Ok(Token::new(TokenType::StrLit, self.line))
+        }
+    }
+        
 }
         

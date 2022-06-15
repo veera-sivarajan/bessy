@@ -136,15 +136,19 @@ impl<'a> Scanner<'a> {
         }
     }
 
+    fn dnext_is_number(&self) -> bool {
+        self.double_peek().map_or(false, |c| c.is_ascii_digit())
+    }
+
     fn next_is_number(&self) -> bool {
         self.peek().map_or(false, |c| c.is_ascii_digit())
     }
-
+    
     fn scan_number(&mut self) -> Result<Token> {
         while self.next_is_number() { 
             self.advance();
         }
-        if self.peek().map_or(false, |c| c == b'.') && self.next_is_number() {
+        if self.peek().map_or(false, |c| c == b'.') && self.dnext_is_number() {
                 self.advance();
                 while self.next_is_number() { 
                     self.advance();

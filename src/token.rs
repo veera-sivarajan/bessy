@@ -22,7 +22,7 @@ pub enum TokenType {
     Less,
     LessEqual,
 
-    Number,
+    Number(i64),
     True,
     False,
     Unknown,
@@ -40,13 +40,14 @@ pub enum TokenType {
 }
 
 #[derive(Debug)]
-pub struct Token {
+pub struct Token<'a> {
     pub kind: TokenType,
     pub line: u16,
+    pub lexeme: &'a str,
 }
 
-impl Token {
-    pub fn new(kind: TokenType, line: u16) -> Self {
-        Token { kind, line }
+impl<'a> Token<'a> {
+    pub fn new(kind: TokenType, line: u16, lexeme: &'a str) -> Self {
+        Token { kind, line, lexeme }
     }
 }

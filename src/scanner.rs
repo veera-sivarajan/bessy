@@ -12,38 +12,6 @@ pub struct Scanner<'a> {
     line: u16,
 }
 
-impl<'a> Iterator for Scanner<'a> {
-    type Item = u8;
-
-    // while this method is supposed to iterate though a collection,
-    // here, it also skips unnecessary characters. 
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.is_at_end() {
-            None
-        } else {
-            let c = self.source.as_bytes()[self.current];
-            self.current += 1;
-            match c {
-                b' '|b'\r'|b'\t' => self.next(),
-                b'\n' => {
-                    self.line += 1;
-                    self.next()
-                },
-                b'/' => {
-                    // peekable does not have double peek method
-                    if self.source.as_bytes()[self.current] == b'/' {
-                        // skip until newline and return next character
-                        self.skip_while(|c| *c != b'\n').next()
-                    } else {
-                        Some(c)
-                    }
-                }
-                _ => Some(c),
-            }
-        }
-    }
-}
-
 impl<'a> Scanner<'a> {
     pub fn new(source: &'a str) -> Self {
         Scanner { source, start: 0, current: 0, line: 1 }
@@ -53,79 +21,134 @@ impl<'a> Scanner<'a> {
         self.current >= self.source.len()
     }
 
+    fn advance(&mut self) -> Option<u8> {
+        let c = self.peek();
+        self.current += 1;
+        c
+    }
+
+    fn peek(&self) -> Option<u8> {
+        if !self.is_at_end() {
+            Some(self.source.as_bytes()[self.current])
+        } else {
+            None
+        }
+    }
+
+    fn double_peek(&self) -> Option<u8> {
+        if (self.current + 1) < self.source.len() {
+            Some(self.source.as_bytes()[self.current + 1])
+        } else {
+            None
+        }
+    }
+
     fn next_eq(&mut self, expected: u8) -> bool {
-        self.peekable().next_if_eq(&expected).is_some()
+        if let Some(c) = self.peek() {
+            self.advance();
+            c == expected
+        } else {
+            false
+        }
+    }
+
+    fn make_token(&self, kind: TokenType) -> Result<Token> {
+        let lexeme = &self.source[self.start..self.current];
+        println!("Lexeme: {}", lexeme);
+        Ok(Token::new(kind, self.line, lexeme))
+    }
+
+    fn skip_needless(&mut self) {
+        loop {
+            if let Some(c) = self.peek() {
+                match c {
+                    b' '|b'\r'|b'\t' => {self.advance();}
+                    b'\n' => {
+                        self.advance();
+                        self.line += 1;
+                    }
+                    b'/' if let Some(b'/') = self.double_peek() => {
+                        while let Some(c) = self.peek() && c != b'\n' {
+                            self.advance();
+                        }
+                    }
+                    _ => return,
+                }
+            }
+        }
     }
 
     pub fn scan_token(&mut self) -> Result<Token> {
+        self.skip_needless();
+        println!("Current: {}", self.current);
         self.start = self.current;
-
-        if let Some(c) = self.next() {
+        
+        if let Some(c) = self.advance() {
             match c {
-                b'(' => Ok(Token::new(TokenType::LeftParen, self.line)),
-                b')' => Ok(Token::new(TokenType::RightParen, self.line)),
-                b'{' => Ok(Token::new(TokenType::LeftBrace, self.line)),
-                b'}' => Ok(Token::new(TokenType::RightBrace, self.line)),
-                b';' => Ok(Token::new(TokenType::Semicolon, self.line)),
-                b',' => Ok(Token::new(TokenType::Comma, self.line)),
-                b'.' => Ok(Token::new(TokenType::Dot, self.line)),
-                b'-' => Ok(Token::new(TokenType::Minus, self.line)),
-                b'+' => Ok(Token::new(TokenType::Plus, self.line)),
-                b'/' => Ok(Token::new(TokenType::Slash, self.line)),
-                b'*' => Ok(Token::new(TokenType::Star, self.line)),
+                b'(' => self.make_token(TokenType::LeftParen), 
+                b')' => self.make_token(TokenType::RightParen),
+                b'{' => self.make_token(TokenType::LeftBrace),
+                b'}' => self.make_token(TokenType::RightBrace),
+                b';' => self.make_token(TokenType::Semicolon),
+                b',' => self.make_token(TokenType::Comma),
+                b'.' => self.make_token(TokenType::Dot),
+                b'-' => self.make_token(TokenType::Minus),
+                b'+' => self.make_token(TokenType::Plus),
+                b'/' => self.make_token(TokenType::Slash),
+                b'*' => self.make_token(TokenType::Star),
                 b'!' => {
                     if self.next_eq(b'=') {
-                        Ok(Token::new(TokenType::BangEqual, self.line))
+                        self.make_token(TokenType::BangEqual)
                     } else {
-                        Ok(Token::new(TokenType::Bang, self.line))
+                        self.make_token(TokenType::Bang)
                     }
                 },
                 b'=' => {
                     if self.next_eq(b'=') {
-                        Ok(Token::new(TokenType::EqualEqual, self.line))
+                        self.make_token(TokenType::EqualEqual)
                     } else {
-                        Ok(Token::new(TokenType::Equal, self.line))
+                        self.make_token(TokenType::Equal)
                     }
                 },
                 b'<' => {
                     if self.next_eq(b'=') {
-                        Ok(Token::new(TokenType::LessEqual, self.line))
+                        self.make_token(TokenType::LessEqual)
                     } else {
-                        Ok(Token::new(TokenType::Less, self.line))
+                        self.make_token(TokenType::Less)
                     }
                 },
                 b'>' => {
                     if self.next_eq(b'=') {
-                        Ok(Token::new(TokenType::GreaterEqual, self.line))
+                        self.make_token(TokenType::GreaterEqual)
                     } else {
-                        Ok(Token::new(TokenType::Greater, self.line))
+                        self.make_token(TokenType::Greater)
                     }
                 },
                 b'"' => self.scan_string(),
-                // b'0'..=b'9' => self.scan_number(),
-                _ => scan_error!()
+                n if n.is_ascii_digit() => self.scan_number(),
+                _ => {
+                    eprintln!("Unknown character!");
+                    scan_error!()
+                }
             }
         } else {
-            Ok(Token::new(TokenType::Eof, self.line))
+            self.make_token(TokenType::Eof)
         }
     }
 
-    // fn scan_number(&mut self) -> Result<Token> {
-    //     let non_digit = self.find(|n| !n.is_digit());
-        
-    //     todo!()
-    // }
+    fn scan_number(&mut self) -> Result<Token> {
+        while self.peek().unwrap().is_ascii_digit() {
+            self.advance();
+        }
+        self.make_token(TokenType::Number(1))
+    }
 
     fn scan_string(&mut self) -> Result<Token> {
-        // .next() consumes the closing quote
-        // let c = self.skip_while(|c| *c != b'"').next();
-        let c = self.find(|c| *c == b'"');
-        if c == None { // eof reached before terminating string
-            scan_error!()
-        } else {
-            // TODO slice the lexeme and store it in token
-            Ok(Token::new(TokenType::StrLit, self.line))
+        while self.peek().unwrap() != b'"' {
+            self.advance();
         }
+        self.advance();
+        self.make_token(TokenType::StrLit)
     }
         
 }

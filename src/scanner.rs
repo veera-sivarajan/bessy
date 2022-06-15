@@ -65,8 +65,11 @@ impl<'a> Scanner<'a> {
                         self.advance();
                         self.line += 1;
                     }
-                    b'/' if let Some(b'/') = self.double_peek() => {
-                        while let Some(c) = self.peek() && c != b'\n' {
+                    // NOTE: next two lines use experimental and unstable
+                    // features of the language and it might cause this
+                    // program to not compile in the future. 
+                    b'/' if let Some(b'/') = self.double_peek() => { 
+                        while let Some(c) = self.peek() && c != b'\n' { 
                             self.advance();
                         }
                     }

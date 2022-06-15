@@ -136,12 +136,22 @@ impl<'a> Scanner<'a> {
         }
     }
 
+    fn next_is_number(&self) -> bool {
+        self.peek().map_or(false, |c| c.is_ascii_digit())
+    }
+
     fn scan_number(&mut self) -> Result<Token> {
-        while self.peek().map_or(false, |c| c.is_ascii_digit()) {
+        while self.next_is_number() { 
             self.advance();
         }
+        if self.peek().map_or(false, |c| c == b'.') && self.next_is_number() {
+                self.advance();
+                while self.next_is_number() { 
+                    self.advance();
+                }
+        }
         let number = &self.source[self.start..self.current];
-        if let Ok(n) = number.parse::<i64>() {
+        if let Ok(n) = number.parse::<f64>() {
             self.make_token(TokenType::Number(n))
         } else {
             scan_error!()

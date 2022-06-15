@@ -44,18 +44,16 @@ impl<'a> Scanner<'a> {
     }
 
     fn next_eq(&mut self, expected: u8) -> bool {
-        if let Some(c) = self.peek() {
+        if let Some(expected) = self.peek() { 
             self.advance();
-            c == expected
+            true
         } else {
             false
         }
     }
 
     fn make_token(&self, kind: TokenType) -> Result<Token> {
-        let lexeme = &self.source[self.start..self.current];
-        println!("Lexeme: {}", lexeme);
-        Ok(Token::new(kind, self.line, lexeme))
+        Ok(Token::new(kind, self.line))
     }
 
     fn skip_needless(&mut self) {
@@ -72,18 +70,20 @@ impl<'a> Scanner<'a> {
                             self.advance();
                         }
                     }
-                    _ => return,
+                    _ => break,
                 }
+            } else {
+                break;
             }
         }
     }
 
     pub fn scan_token(&mut self) -> Result<Token> {
         self.skip_needless();
-        println!("Current: {}", self.current);
         self.start = self.current;
         
-        if let Some(c) = self.advance() {
+        let a = self.advance();
+        if let Some(c) = a {
             match c {
                 b'(' => self.make_token(TokenType::LeftParen), 
                 b')' => self.make_token(TokenType::RightParen),
@@ -150,6 +150,5 @@ impl<'a> Scanner<'a> {
         self.advance();
         self.make_token(TokenType::StrLit)
     }
-        
 }
         

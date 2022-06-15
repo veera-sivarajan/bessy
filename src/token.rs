@@ -22,7 +22,7 @@ pub enum TokenType {
     Less,
     LessEqual,
 
-    Number(i64),
+    Number(f64),
     True,
     False,
     Unknown,

@@ -137,10 +137,15 @@ impl<'a> Scanner<'a> {
     }
 
     fn scan_number(&mut self) -> Result<Token> {
-        while self.peek().unwrap().is_ascii_digit() {
+        while self.peek().map_or(false, |c| c.is_ascii_digit()) {
             self.advance();
         }
-        self.make_token(TokenType::Number(1))
+        let number = &self.source[self.start..self.current];
+        if let Ok(n) = number.parse::<i64>() {
+            self.make_token(TokenType::Number(n))
+        } else {
+            scan_error!()
+        }
     }
 
     fn scan_string(&mut self) -> Result<Token> {

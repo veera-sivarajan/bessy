@@ -1,12 +1,12 @@
-use crate::token::{Token, TokenType};
 use crate::error::BessyError;
+use crate::token::{Token, TokenType};
 
-// Takes a heap allocated string and generates tokens on demand. 
+// Takes a heap allocated string and generates tokens on demand.
 
 type Result<T> = std::result::Result<T, BessyError>;
 
 pub struct Lexer<'a> {
-    source: &'a str, 
+    source: &'a str,
     start: usize,
     current: usize,
     line: u16,
@@ -14,7 +14,12 @@ pub struct Lexer<'a> {
 
 impl<'a> Lexer<'a> {
     pub fn new(source: &'a str) -> Self {
-        Lexer { source, start: 0, current: 0, line: 1 }
+        Lexer {
+            source,
+            start: 0,
+            current: 0,
+            line: 1,
+        }
     }
 
     fn is_at_end(&self) -> bool {
@@ -44,7 +49,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn next_eq(&mut self, expected: u8) -> bool {
-        if let Some(expected) = self.peek() { 
+        if let Some(expected) = self.peek() {
             self.advance();
             true
         } else {
@@ -52,8 +57,9 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn peek_eq(&self, check_fn: fn(u8) -> bool) -> bool {
-        self.peek().map_or(false, check_fn)
+    // fn peek_eq(&self, check_fn: fn(u8) -> bool) -> bool {
+    fn peek_eq(&self, expected: u8) -> bool {
+        self.peek().map_or(false, |c| c == expected) 
     }
 
     fn make_token(&self, kind: TokenType) -> Result<Token> {
@@ -64,13 +70,15 @@ impl<'a> Lexer<'a> {
         loop {
             if let Some(c) = self.peek() {
                 match c {
-                    b' '|b'\r'|b'\t' => {self.advance();}
+                    b' ' | b'\r' | b'\t' => {
+                        self.advance();
+                    }
                     b'\n' => {
                         self.advance();
                         self.line += 1;
                     }
                     b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
-                        while self.peek_eq(|c| c != b'\n') { 
+                        while self.peek_eq(b'\n') {
                             self.advance();
                         }
                     }
@@ -85,11 +93,11 @@ impl<'a> Lexer<'a> {
     pub fn next_token(&mut self) -> Result<Token> {
         self.skip_needless();
         self.start = self.current;
-        
+
         let a = self.advance();
         if let Some(c) = a {
             match c {
-                b'(' => self.make_token(TokenType::LeftParen), 
+                b'(' => self.make_token(TokenType::LeftParen),
                 b')' => self.make_token(TokenType::RightParen),
                 b'{' => self.make_token(TokenType::LeftBrace),
                 b'}' => self.make_token(TokenType::RightBrace),
@@ -106,28 +114,28 @@ impl<'a> Lexer<'a> {
                     } else {
                         self.make_token(TokenType::Bang)
                     }
-                },
+                }
                 b'=' => {
                     if self.next_eq(b'=') {
                         self.make_token(TokenType::EqualEqual)
                     } else {
                         self.make_token(TokenType::Equal)
                     }
-                },
+                }
                 b'<' => {
                     if self.next_eq(b'=') {
                         self.make_token(TokenType::LessEqual)
                     } else {
                         self.make_token(TokenType::Less)
                     }
-                },
+                }
                 b'>' => {
                     if self.next_eq(b'=') {
                         self.make_token(TokenType::GreaterEqual)
                     } else {
                         self.make_token(TokenType::Greater)
                     }
-                },
+                }
                 b'"' => self.eat_string(),
                 n if n.is_ascii_digit() => self.eat_number(),
                 _ => {
@@ -147,16 +155,16 @@ impl<'a> Lexer<'a> {
     fn next_is_number(&self) -> bool {
         self.peek().map_or(false, |c| c.is_ascii_digit())
     }
-    
+
     fn eat_number(&mut self) -> Result<Token> {
         while self.next_is_number() {
             self.advance();
         }
-        if self.peek_eq(|c| c == b'.') && self.dnext_is_number() {
+        if self.peek_eq(b'.') && self.dnext_is_number() {
+            self.advance();
+            while self.next_is_number() {
                 self.advance();
-                while self.next_is_number() { 
-                    self.advance();
-                }
+            }
         }
         let number = &self.source[self.start..self.current];
         if let Ok(n) = number.parse::<f64>() {
@@ -166,8 +174,10 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    // NOTE: This commit stores string literals as heap allocated strings
+    // instead of references. This should be fixed soon.
     fn eat_string(&mut self) -> Result<Token> {
-        while self.peek_eq(|c| c != b'"') {
+        while self.peek_eq(b'"') {
             self.advance();
         }
         self.advance();
@@ -177,4 +187,3 @@ impl<'a> Lexer<'a> {
         self.make_token(TokenType::StrLit(second.to_owned()))
     }
 }
-        

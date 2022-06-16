@@ -7,7 +7,6 @@ macro_rules! lex_error {
     };
 }
 
-
 #[derive(Debug)]
 pub enum BessyError {
     Lex,
@@ -22,5 +21,3 @@ impl fmt::Display for BessyError {
         }
     }
 }
-    
-    

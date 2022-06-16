@@ -52,6 +52,10 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    fn peek_eq(&self, check_fn: fn(u8) -> bool) -> bool {
+        self.peek().map_or(false, check_fn)
+    }
+
     fn make_token(&self, kind: TokenType) -> Result<Token> {
         Ok(Token::new(kind, self.line))
     }
@@ -66,7 +70,7 @@ impl<'a> Lexer<'a> {
                         self.line += 1;
                     }
                     b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
-                        while self.peek().map_or(false, |c| c != b'\n') {
+                        while self.peek_eq(|c| c != b'\n') { 
                             self.advance();
                         }
                     }
@@ -145,10 +149,10 @@ impl<'a> Lexer<'a> {
     }
     
     fn eat_number(&mut self) -> Result<Token> {
-        while self.next_is_number() { 
+        while self.next_is_number() {
             self.advance();
         }
-        if self.peek().map_or(false, |c| c == b'.') && self.dnext_is_number() {
+        if self.peek_eq(|c| c == b'.') && self.dnext_is_number() {
                 self.advance();
                 while self.next_is_number() { 
                     self.advance();
@@ -163,7 +167,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn eat_string(&mut self) -> Result<Token> {
-        while self.peek().unwrap() != b'"' {
+        while self.peek_eq(|c| c != b'"') {
             self.advance();
         }
         self.advance();

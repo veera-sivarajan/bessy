@@ -1,5 +1,5 @@
 #[derive(Debug)]
-pub enum TokenType {
+pub enum TokenType<'a> {
     LeftParen,
     RightParen,
     Dot,
@@ -27,7 +27,7 @@ pub enum TokenType {
     False,
     Unknown,
     Identifier,
-    StrLit(String),
+    StrLit(&'a str),
     Print,
     Var,
     Nil,
@@ -40,13 +40,13 @@ pub enum TokenType {
 }
 
 #[derive(Debug)]
-pub struct Token {
-    pub kind: TokenType,
+pub struct Token<'a> {
+    pub kind: TokenType<'a>,
     pub line: u16,
 }
 
-impl Token {
-    pub fn new(kind: TokenType, line: u16) -> Self {
+impl<'a> Token<'a> {
+    pub fn new(kind: TokenType<'a>, line: u16) -> Self {
         Token { kind, line }
     }
 }

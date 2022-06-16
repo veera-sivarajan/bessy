@@ -62,7 +62,11 @@ impl<'a> Lexer<'a> {
         self.peek().map_or(false, |c| c == expected) 
     }
 
-    fn make_token(&self, kind: TokenType) -> Result<Token> {
+    fn peek_ne(&self, expected: u8) -> bool {
+        self.peek().map_or(false, |c| c != expected) 
+    }
+    
+    fn make_token(&self, kind: TokenType<'a>) -> Result<Token> {
         Ok(Token::new(kind, self.line))
     }
 
@@ -78,7 +82,7 @@ impl<'a> Lexer<'a> {
                         self.line += 1;
                     }
                     b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
-                        while self.peek_eq(b'\n') {
+                        while self.peek_ne(b'\n') {
                             self.advance();
                         }
                     }
@@ -174,16 +178,13 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    // NOTE: This commit stores string literals as heap allocated strings
-    // instead of references. This should be fixed soon.
     fn eat_string(&mut self) -> Result<Token> {
-        while self.peek_eq(b'"') {
+        while self.peek_ne(b'"') {
             self.advance();
         }
         self.advance();
-        let lexeme = &self.source[self.start..self.current].to_owned();
-        let first = lexeme.strip_prefix("\"").unwrap();
-        let second = first.strip_suffix("\"").unwrap();
-        self.make_token(TokenType::StrLit(second.to_owned()))
+        // slice without quotes
+        let lexeme = &self.source[self.start + 1..self.current - 1];
+        self.make_token(TokenType::StrLit(lexeme))
     }
 }

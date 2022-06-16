@@ -5,16 +5,16 @@ use crate::error::BessyError;
 
 type Result<T> = std::result::Result<T, BessyError>;
 
-pub struct Scanner<'a> {
+pub struct Lexer<'a> {
     source: &'a str, 
     start: usize,
     current: usize,
     line: u16,
 }
 
-impl<'a> Scanner<'a> {
+impl<'a> Lexer<'a> {
     pub fn new(source: &'a str) -> Self {
-        Scanner { source, start: 0, current: 0, line: 1 }
+        Lexer { source, start: 0, current: 0, line: 1 }
     }
 
     fn is_at_end(&self) -> bool {
@@ -78,7 +78,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    pub fn scan_token(&mut self) -> Result<Token> {
+    pub fn next_token(&mut self) -> Result<Token> {
         self.skip_needless();
         self.start = self.current;
         
@@ -124,11 +124,11 @@ impl<'a> Scanner<'a> {
                         self.make_token(TokenType::Greater)
                     }
                 },
-                b'"' => self.scan_string(),
-                n if n.is_ascii_digit() => self.scan_number(),
+                b'"' => self.eat_string(),
+                n if n.is_ascii_digit() => self.eat_number(),
                 _ => {
                     eprintln!("Unknown character!");
-                    scan_error!()
+                    lex_error!()
                 }
             }
         } else {
@@ -144,7 +144,7 @@ impl<'a> Scanner<'a> {
         self.peek().map_or(false, |c| c.is_ascii_digit())
     }
     
-    fn scan_number(&mut self) -> Result<Token> {
+    fn eat_number(&mut self) -> Result<Token> {
         while self.next_is_number() { 
             self.advance();
         }
@@ -158,11 +158,11 @@ impl<'a> Scanner<'a> {
         if let Ok(n) = number.parse::<f64>() {
             self.make_token(TokenType::Number(n))
         } else {
-            scan_error!()
+            lex_error!()
         }
     }
 
-    fn scan_string(&mut self) -> Result<Token> {
+    fn eat_string(&mut self) -> Result<Token> {
         while self.peek().unwrap() != b'"' {
             self.advance();
         }

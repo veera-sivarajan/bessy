@@ -1,16 +1,16 @@
 use std::error::Error;
 use std::fmt;
 
-macro_rules! scan_error {
+macro_rules! lex_error {
     () => {
-        Err(BessyError::Scan)
+        Err(BessyError::Lex)
     };
 }
 
 
 #[derive(Debug)]
 pub enum BessyError {
-    Scan,
+    Lex,
 }
 
 impl Error for BessyError {}
@@ -18,7 +18,7 @@ impl Error for BessyError {}
 impl fmt::Display for BessyError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BessyError::Scan => write!(f, "Scan error!"),
+            BessyError::Lex => write!(f, "Scan error!"),
         }
     }
 }

@@ -1,18 +1,18 @@
-#![feature(if_let_guard)]
-#![feature(let_chains)]
 #[macro_use]
 mod error;
 mod token;
-mod scanner;
+mod lexer;
 
 use std::fs;
 
 fn main() {
     let contents = fs::read_to_string("test/scan.lox").unwrap();
     // let contents = String::from("\"hello\"()");
-    let mut scanner = scanner::Scanner::new(&contents);
-    println!("{:?}", scanner.scan_token());
-    println!("{:?}", scanner.scan_token());
-    println!("{:?}", scanner.scan_token());
-    println!("{:?}", scanner.scan_token());
+    let mut scanner = lexer::Lexer::new(&contents);
+    println!("Token: {:?}", scanner.next_token());
+    println!("Token: {:?}", scanner.next_token());
+    println!("Token: {:?}", scanner.next_token());
+    println!("Token: {:?}", scanner.next_token());
+    println!("Token: {:?}", scanner.next_token());
+    println!("Token: {:?}", scanner.next_token());
 }

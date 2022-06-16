@@ -171,7 +171,10 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
         self.advance();
-        self.make_token(TokenType::StrLit)
+        let lexeme = &self.source[self.start..self.current].to_owned();
+        let first = lexeme.strip_prefix("\"").unwrap();
+        let second = first.strip_suffix("\"").unwrap();
+        self.make_token(TokenType::StrLit(second.to_owned()))
     }
 }
         

@@ -3,6 +3,11 @@ mod error;
 mod lexer;
 mod token;
 
+
+// code to compile project on buffer save 
+// (add-hook 'after-save-hook 'rust-compile) 
+// (setq compilation-scroll-output 'first-error) 
+
 use std::fs;
 
 fn main() {

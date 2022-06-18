@@ -25,7 +25,6 @@ pub enum TokenType<'a> {
     Number(f64),
     True,
     False,
-    Unknown,
     Identifier(&'a str),
     StrLit(&'a str),
     Print,
@@ -37,6 +36,11 @@ pub enum TokenType<'a> {
     For,
     Fun,
     Return,
+    And,
+    Or,
+    Class,
+    Super,
+    This,
 }
 
 #[derive(Debug)]

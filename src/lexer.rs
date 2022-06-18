@@ -194,6 +194,24 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
         let lexeme = &self.source[self.start..self.current];
-        self.make_token(TokenType::Identifier(lexeme))
+        match lexeme {
+            "and" => self.make_token(TokenType::And),
+            "class" => self.make_token(TokenType::Class),
+            "else" => self.make_token(TokenType::Else),
+            "false" => self.make_token(TokenType::False),
+            "for" => self.make_token(TokenType::For),
+            "fun" => self.make_token(TokenType::Fun),
+            "if" => self.make_token(TokenType::If),
+            "nil" => self.make_token(TokenType::Nil),
+            "or" => self.make_token(TokenType::Or),
+            "print" => self.make_token(TokenType::Print),
+            "return" => self.make_token(TokenType::Return),
+            "super" => self.make_token(TokenType::Super),
+            "this" => self.make_token(TokenType::This),
+            "true" => self.make_token(TokenType::True),
+            "var" => self.make_token(TokenType::Var),
+            "while" => self.make_token(TokenType::While),
+            _ => self.make_token(TokenType::Identifier(lexeme))
+        }
     }
 }

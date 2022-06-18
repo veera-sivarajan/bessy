@@ -14,12 +14,7 @@ fn main() {
     let contents = fs::read_to_string("test/scan.lox").unwrap();
     // let contents = String::from("\"hello\"()");
     let mut scanner = lexer::Lexer::new(&contents);
-    println!("Token: {:?}", scanner.next_token());
-    println!("Token: {:?}", scanner.next_token());
-    println!("Token: {:?}", scanner.next_token());
-    println!("Token: {:?}", scanner.next_token());
-    println!("Token: {:?}", scanner.next_token());
-    println!("Token: {:?}", scanner.next_token());
-    println!("Token: {:?}", scanner.next_token());
-    println!("Token: {:?}", scanner.next_token());
+    for _i in 0..15 {
+        println!("Token: {:?}", scanner.next_token());
+    }
 }

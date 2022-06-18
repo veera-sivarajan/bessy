@@ -92,8 +92,7 @@ impl<'a> Lexer<'a> {
         self.skip_needless();
         self.start = self.current;
 
-        let a = self.advance();
-        if let Some(c) = a {
+        if let Some(c) = self.advance() {
             match c {
                 b'(' => self.make_token(TokenType::LeftParen),
                 b')' => self.make_token(TokenType::RightParen),
@@ -137,9 +136,7 @@ impl<'a> Lexer<'a> {
                 b'"' => self.eat_string(),
                 n if n.is_ascii_digit() => self.eat_number(),
                 c if c.is_ascii_alphabetic() => self.eat_identifier(),
-                _ => {
-                    lex_error!("Unknown character.")
-                }
+                _ => lex_error!("Unknown character.")
             }
         } else {
             self.make_token(TokenType::Eof)

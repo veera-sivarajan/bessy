@@ -144,8 +144,7 @@ impl<'a> Lexer<'a> {
                 n if n.is_ascii_digit() => self.eat_number(),
                 c if c.is_ascii_alphabetic() => self.eat_identifier(),
                 _ => {
-                    eprintln!("Unknown character!");
-                    lex_error!()
+                    lex_error!("Unknown character.")
                 }
             }
         } else {
@@ -185,7 +184,7 @@ impl<'a> Lexer<'a> {
         if let Ok(n) = number.parse::<f64>() {
             self.make_token(TokenType::Number(n))
         } else {
-            lex_error!()
+            lex_error!("Unable to convert number lexeme to f64")
         }
     }
 

@@ -2,14 +2,14 @@ use std::error::Error;
 use std::fmt;
 
 macro_rules! lex_error {
-    () => {
-        Err(BessyError::Lex)
+    ($message:expr) => {
+        Err(BessyError::Lex($message))
     };
 }
 
 #[derive(Debug)]
 pub enum BessyError {
-    Lex,
+    Lex(&'static str),
 }
 
 impl Error for BessyError {}
@@ -17,7 +17,7 @@ impl Error for BessyError {}
 impl fmt::Display for BessyError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BessyError::Lex => write!(f, "Scan error!"),
+            BessyError::Lex(msg) => write!(f, "{}", format!("Lex error: {}", msg),)
         }
     }
 }

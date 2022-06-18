@@ -9,7 +9,7 @@ macro_rules! lex_error {
 
 #[derive(Debug)]
 pub enum BessyError {
-    Lex(&'static str),
+    Lex(&'static str), // static str because this err msg will never be mutated
 }
 
 impl Error for BessyError {}
@@ -17,7 +17,7 @@ impl Error for BessyError {}
 impl fmt::Display for BessyError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BessyError::Lex(msg) => write!(f, "{}", format!("Lex error: {}", msg),)
+            BessyError::Lex(msg) => write!(f, "Lex error: {}",  msg),
         }
     }
 }

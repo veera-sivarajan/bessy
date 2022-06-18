@@ -69,27 +69,23 @@ impl<'a> Lexer<'a> {
     }
 
     fn skip_needless(&mut self) {
-        loop {
-            if let Some(c) = self.peek() {
-                match c {
-                    b' ' | b'\r' | b'\t' => {
-                        self.advance();
-                    }
-                    b'\n' => {
-                        self.advance();
-                        self.line += 1;
-                    }
-                    b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
-                        while self.peek_ne(b'\n') {
-                            self.advance();
-                        }
-                    }
-                    _ => break,
-                }
-            } else {
-                break;
-            }
-        }
+       while let Some(c) = self.peek() {
+           match c {
+               b' ' | b'\r' | b'\t' => {
+                   self.advance();
+               }
+               b'\n' => {
+                   self.advance();
+                   self.line += 1;
+               }
+               b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
+                   while self.peek_ne(b'\n') {
+                       self.advance();
+                   }
+               }
+               _ => break,
+           }
+       }
     }
 
     pub fn next_token(&mut self) -> Result<Token> {
@@ -182,7 +178,7 @@ impl<'a> Lexer<'a> {
         if let Ok(n) = number.parse::<f64>() {
             self.make_token(TokenType::Number(n))
         } else {
-            lex_error!("Unable to convert number lexeme to f64")
+            lex_error!("Unable to convert number lexeme to f64.")
         }
     }
 

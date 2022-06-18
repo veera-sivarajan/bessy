@@ -49,12 +49,10 @@ impl<'a> Lexer<'a> {
     }
 
     fn next_eq(&mut self, expected: u8) -> bool {
-        if let Some(expected) = self.peek() {
+        self.peek().map_or(false, |c| {
             self.advance();
-            true
-        } else {
-            false
-        }
+            c == expected
+        })
     }
 
     // fn peek_eq(&self, check_fn: fn(u8) -> bool) -> bool {

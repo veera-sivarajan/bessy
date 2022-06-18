@@ -26,7 +26,7 @@ pub enum TokenType<'a> {
     True,
     False,
     Unknown,
-    Identifier,
+    Identifier(&'a str),
     StrLit(&'a str),
     Print,
     Var,

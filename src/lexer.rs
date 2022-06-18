@@ -142,6 +142,7 @@ impl<'a> Lexer<'a> {
                 }
                 b'"' => self.eat_string(),
                 n if n.is_ascii_digit() => self.eat_number(),
+                c if c.is_ascii_alphabetic() => self.eat_identifier(),
                 _ => {
                     eprintln!("Unknown character!");
                     lex_error!()
@@ -150,6 +151,16 @@ impl<'a> Lexer<'a> {
         } else {
             self.make_token(TokenType::Eof)
         }
+    }
+
+    fn eat_string(&mut self) -> Result<Token> {
+        while self.peek_ne(b'"') {
+            self.advance();
+        }
+        self.advance();
+        // slice without quotes
+        let lexeme = &self.source[self.start + 1..self.current - 1];
+        self.make_token(TokenType::StrLit(lexeme))
     }
 
     fn dnext_is_number(&self) -> bool {
@@ -178,13 +189,11 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn eat_string(&mut self) -> Result<Token> {
-        while self.peek_ne(b'"') {
+    fn eat_identifier(&mut self) -> Result<Token> {
+        while self.peek().map_or(false, |c| c.is_ascii_alphanumeric()) {
             self.advance();
         }
-        self.advance();
-        // slice without quotes
-        let lexeme = &self.source[self.start + 1..self.current - 1];
-        self.make_token(TokenType::StrLit(lexeme))
+        let lexeme = &self.source[self.start..self.current];
+        self.make_token(TokenType::Identifier(lexeme))
     }
 }

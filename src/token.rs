@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TokenType<'a> {
     LeftParen,
     RightParen,

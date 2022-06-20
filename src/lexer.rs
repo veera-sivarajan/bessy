@@ -205,3 +205,21 @@ impl<'a> Lexer<'a> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::lexer::Lexer;
+    use crate::token::TokenType;
+
+    #[test]
+    fn empty_input() {
+        let input = String::from("");
+        let mut scanner = Lexer::new(&input);
+        let output = scanner.next_token();
+        if output.map_or(false, |t| t.kind == TokenType::Eof) {
+            assert!(true);
+        } else {
+            assert!(false);
+        }
+    }
+}

@@ -3,13 +3,20 @@ use std::fmt;
 
 macro_rules! lex_error {
     ($message:expr) => {
-        Err(BessyError::Lex($message))
+        Err(BessyError::Lexer($message))
+    };
+}
+
+macro_rules! parse_error {
+    ($message:expr) => {
+        Err(BessyError::Parser($message))
     };
 }
 
 #[derive(Debug)]
 pub enum BessyError {
-    Lex(&'static str), // static str because this err msg will never be mutated
+    Lexer(&'static str), // static str because this err msg will never be mutated
+    Parser(&'static str),
 }
 
 impl Error for BessyError {}
@@ -17,7 +24,8 @@ impl Error for BessyError {}
 impl fmt::Display for BessyError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BessyError::Lex(msg) => write!(f, "Lex error: {}",  msg),
+            BessyError::Lexer(msg) => write!(f, "Lex error: {}",  msg),
+            BessyError::Parser(msg) => write!(f, "Parser error: {}",  msg),
         }
     }
 }

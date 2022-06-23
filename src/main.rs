@@ -2,6 +2,7 @@
 mod error;
 mod lexer;
 mod token;
+mod compiler;
 
 
 // code to compile project on buffer save 
@@ -18,3 +19,4 @@ fn main() {
         println!("Token: {:?}", scanner.next_token());
     }
 }
+

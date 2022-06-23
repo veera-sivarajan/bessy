@@ -1,5 +1,6 @@
 use crate::token::{Token, TokenType};
 use crate::error::BessyError;
+use crate::lexer::Lexer;
 
 
 enum Precedence {
@@ -37,16 +38,50 @@ impl Precedence {
 pub struct Compiler<'a> {
     current: Token<'a>,
     previous: Token<'a>,
+    lexer: Lexer<'a>,
 }
 
 struct ByteCode { }
+struct Chunk { }
 
 type ParseRule = (Option<fn() -> Result<ByteCode, BessyError>>,
                   Option<fn() -> Result<ByteCode, BessyError>>,
                   Precedence);
 
 impl<'a> Compiler<'a> {
-    fn get_rule(&self, kind: TokenType) -> ParseRule {
+    pub fn new(source: &'a str) -> Self {
+        Compiler {
+            current: Token::new(TokenType::Eof, 0),
+            previous: Token::new(TokenType::Eof, 0),
+            lexer: Lexer::new(source),
+        }
+    }
+
+    // driving function for the scanner
+    fn advance(&mut self) {
+        self.previous = self.current;
+        loop {
+            // self.current = self.lexer.next_token();
+            // if let Err(msg) = self.current {
+            //     eprintln!(msg);
+            // } else {
+            //     break;
+            // }
+            match self.lexer.next_token() {
+                Err(msg) => eprintln!("{}", msg),
+                Ok(t) => {
+                    self.current = t;
+                }
+            }
+        }
+    }
+    
+    // compiles the entire source code to a chunk
+    fn compile(&mut self) -> Result<Chunk, BessyError> {
+        todo!()
+    }
+
+    fn get_rule(&self, kind: TokenType<'a>) -> ParseRule {
         match kind {
             TokenType::LeftParen => (None, None, Precedence::None), 
             TokenType::RightParen => (None, None, Precedence::None),

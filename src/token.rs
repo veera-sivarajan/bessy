@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum TokenType<'a> {
     LeftParen,
     RightParen,
@@ -43,7 +43,7 @@ pub enum TokenType<'a> {
     This,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Token<'a> {
     pub kind: TokenType<'a>,
     pub line: u16,

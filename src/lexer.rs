@@ -64,7 +64,7 @@ impl<'a> Lexer<'a> {
         self.peek().map_or(false, |c| c != expected) 
     }
     
-    fn make_token(&self, kind: TokenType<'a>) -> Result<Token> {
+    fn make_token(&self, kind: TokenType<'a>) -> Result<Token<'a>> {
         Ok(Token::new(kind, self.line))
     }
 
@@ -88,7 +88,7 @@ impl<'a> Lexer<'a> {
        }
     }
 
-    pub fn next_token(&mut self) -> Result<Token> {
+    pub fn next_token(&mut self) -> Result<Token<'a>> {
         self.skip_needless();
         self.start = self.current;
 
@@ -136,14 +136,14 @@ impl<'a> Lexer<'a> {
                 b'"' => self.eat_string(),
                 n if n.is_ascii_digit() => self.eat_number(),
                 c if c.is_ascii_alphabetic() => self.eat_identifier(),
-                _ => lex_error!("Unknown character.")
+                _ => lex_error!("Unknown character.", self.line)
             }
         } else {
             self.make_token(TokenType::Eof)
         }
     }
 
-    fn eat_string(&mut self) -> Result<Token> {
+    fn eat_string(&mut self) -> Result<Token<'a>> {
         while self.peek_ne(b'"') {
             self.advance();
         }
@@ -161,7 +161,7 @@ impl<'a> Lexer<'a> {
         self.peek().map_or(false, |c| c.is_ascii_digit())
     }
 
-    fn eat_number(&mut self) -> Result<Token> {
+    fn eat_number(&mut self) -> Result<Token<'a>> {
         while self.next_is_number() {
             self.advance();
         }
@@ -175,11 +175,11 @@ impl<'a> Lexer<'a> {
         if let Ok(n) = number.parse::<f64>() {
             self.make_token(TokenType::Number(n))
         } else {
-            lex_error!("Unable to convert number lexeme to f64.")
+            lex_error!("Unable to convert number lexeme to f64.", self.line)
         }
     }
 
-    fn eat_identifier(&mut self) -> Result<Token> {
+    fn eat_identifier(&mut self) -> Result<Token<'a>> {
         while self.peek().map_or(false, |c| c.is_ascii_alphanumeric()) {
             self.advance();
         }

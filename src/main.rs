@@ -12,12 +12,14 @@ mod chunk;
 
 use std::fs;
 fn main() {
-    let contents = fs::read_to_string("test/scan.lox").unwrap();
-    // let contents = String::from("\"hello\"()");
+    // let contents = fs::read_to_string("test/scan.lox").unwrap();
+    let contents = String::from("1");
     // let mut scanner = lexer::Lexer::new(&contents);
     // for _i in 0..15 {
     //     println!("Token: {:?}", scanner.next_token());
     // }
-    let compiler = compiler::Compiler::new(&contents);
+    let mut compiler = compiler::Compiler::new(&contents);
+    let bytecode = compiler.compile().unwrap();
+    bytecode.print();
 }
 

@@ -1,11 +1,12 @@
 use crate::token::{Token, TokenType};
 use crate::error::BessyError;
 use crate::lexer::Lexer;
-use crate::chunk::Chunk;
+use crate::chunk::{Chunk, Value, OpCode};
 
 
 type Result<T> = std::result::Result<T, BessyError>;
 
+#[derive(PartialEq, PartialOrd)]
 enum Precedence {
     None,
     Assignment,
@@ -45,8 +46,8 @@ pub struct Compiler<'a> {
     chunk: Chunk,
 }
 
-type ParseRule = (Option<fn() -> Result<()>>,
-                  Option<fn() -> Result<()>>,
+type ParseRule<'a> = (Option<fn(&mut Compiler<'a>) -> Result<()>>,
+                  Option<fn(&mut Compiler<'a>) -> Result<()>>,
                   Precedence);
 
 impl<'a> Compiler<'a> {
@@ -75,14 +76,14 @@ impl<'a> Compiler<'a> {
     }
 
     // compiles the entire source code to a chunk
-    fn compile(&mut self) -> Result<Chunk> {
+    pub fn compile(&mut self) -> Result<&Chunk> {
         self.advance();
-        let chunk = self.expression()?;
+        self.expression()?;
         self.consume(TokenType::Eof, "Expect end of expression.")?;
-        Ok(chunk)
+        Ok(&self.chunk)
     }
 
-    fn expression(&mut self) -> Result<Chunk> {
+    fn expression(&mut self) -> Result<()> {
         self.parse_precedence(Precedence::Assignment)
     }
 
@@ -95,11 +96,36 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn parse_precedence(&mut self, bp: Precedence) -> Result<Chunk> {
-        todo!()
+    fn parse_precedence(&mut self, bp: Precedence) -> Result<()> {
+        self.advance();
+        // let prefix_rule = self.get_rule(self.previous.kind).0;
+        // if prefix_rule.is_none() {
+        //     parse_error!("Expected expression!", self.current.line)
+        // } else {
+        if let Some(p_rule) = self.get_rule(self.previous.kind).0 {
+            p_rule(self)?;
+            while bp <= self.get_rule(self.current.kind).2 {
+                self.advance();
+                let infix_rule = self.get_rule(self.previous.kind).1;
+                infix_rule.unwrap()(self)?;
+            }
+            Ok(())
+        } else {
+            parse_error!("Expected expression!", self.current.line)
+        }
     }
 
-    fn get_rule(&self, kind: TokenType<'a>) -> ParseRule {
+    fn number(&mut self) -> Result<()> {
+        if let TokenType::Number(value) = self.previous.kind {
+            let index = self.chunk.add_constant(Value::Number(value));
+            self.chunk.emit_byte(OpCode::Constant(index));
+            Ok(())
+        } else {
+            parse_error!("Expected Number!", self.current.line)
+        }
+    }
+
+    fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
             TokenType::LeftParen => (None, None, Precedence::None), 
             TokenType::RightParen => (None, None, Precedence::None),
@@ -123,7 +149,7 @@ impl<'a> Compiler<'a> {
             TokenType::Less => (None, None, Precedence::None),
             TokenType::LessEqual => (None, None, Precedence::None),
 
-            TokenType::Number(_) => (None, None, Precedence::None),
+            TokenType::Number(_) => (Some(Compiler::number), None, Precedence::None),
             TokenType::True => (None, None, Precedence::None),
             TokenType::False => (None, None, Precedence::None),
             TokenType::Identifier(_) => (None, None, Precedence::None),

@@ -80,6 +80,7 @@ impl<'a> Compiler<'a> {
         self.advance();
         self.expression()?;
         self.consume(TokenType::Eof, "Expect end of expression.")?;
+        self.chunk.emit_byte(OpCode::Return);
         Ok(&self.chunk)
     }
 
@@ -87,21 +88,17 @@ impl<'a> Compiler<'a> {
         self.parse_precedence(Precedence::Assignment)
     }
 
-    fn consume(&mut self, kind: TokenType<'a>, msg: &str) -> Result<()> {
+    fn consume(&mut self, kind: TokenType<'a>, msg: &'static str) -> Result<()> {
         if self.current.kind == kind {
             self.advance();
             Ok(())
         } else {
-            parse_error!("Unexpected token!", self.current.line)
+            parse_error!(msg, self.current.line)
         }
     }
 
     fn parse_precedence(&mut self, bp: Precedence) -> Result<()> {
         self.advance();
-        // let prefix_rule = self.get_rule(self.previous.kind).0;
-        // if prefix_rule.is_none() {
-        //     parse_error!("Expected expression!", self.current.line)
-        // } else {
         if let Some(p_rule) = self.get_rule(self.previous.kind).0 {
             p_rule(self)?;
             while bp <= self.get_rule(self.current.kind).2 {
@@ -125,15 +122,43 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    fn grouping(&mut self) -> Result<()> {
+        self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after expression")?;
+        Ok(())
+    }
+
+    fn unary(&mut self) -> Result<()> {
+        let operator = self.previous.kind;
+        self.expression()?;
+        match operator {
+            TokenType::Minus => Ok(self.chunk.emit_byte(OpCode::Negate)),
+            _ => Ok(())
+        }
+    }
+
+    fn binary(&mut self) -> Result<()> {
+        let operator = self.previous.kind;
+        let rule = self.get_rule(operator).2;
+        self.parse_precedence(rule.next())?;
+        match operator {
+            TokenType::Plus => Ok(self.chunk.emit_byte(OpCode::Add)),
+            TokenType::Minus => Ok(self.chunk.emit_byte(OpCode::Subtract)),
+            TokenType::Star => Ok(self.chunk.emit_byte(OpCode::Multiply)),
+            TokenType::Slash => Ok(self.chunk.emit_byte(OpCode::Divide)),
+            _ => Ok(()),
+        }
+    }
+
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
-            TokenType::LeftParen => (None, None, Precedence::None), 
+            TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None), 
             TokenType::RightParen => (None, None, Precedence::None),
             TokenType::Dot => (None, None, Precedence::None),
-            TokenType::Minus => (None, None, Precedence::None),
-            TokenType::Plus => (None, None, Precedence::None),
-            TokenType::Slash => (None, None, Precedence::None),
-            TokenType::Star => (None, None, Precedence::None),
+            TokenType::Minus => (Some(Compiler::unary), None, Precedence::Term),
+            TokenType::Plus => (None, Some(Compiler::binary), Precedence::Term),
+            TokenType::Slash => (None, Some(Compiler::binary), Precedence::Factor),
+            TokenType::Star => (None, Some(Compiler::binary), Precedence::Factor),
             TokenType::Semicolon => (None, None, Precedence::None),
             TokenType::Eof => (None, None, Precedence::None),
             TokenType::LeftBrace => (None, None, Precedence::None),

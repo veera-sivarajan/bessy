@@ -1,8 +1,7 @@
-use crate::token::{Token, TokenType};
+use crate::chunk::{Chunk, OpCode, Value};
 use crate::error::BessyError;
 use crate::lexer::Lexer;
-use crate::chunk::{Chunk, Value, OpCode};
-
+use crate::token::{Token, TokenType};
 
 type Result<T> = std::result::Result<T, BessyError>;
 
@@ -46,9 +45,11 @@ pub struct Compiler<'a> {
     chunk: Chunk,
 }
 
-type ParseRule<'a> = (Option<fn(&mut Compiler<'a>) -> Result<()>>,
-                  Option<fn(&mut Compiler<'a>) -> Result<()>>,
-                  Precedence);
+type ParseRule<'a> = (
+    Option<fn(&mut Compiler<'a>) -> Result<()>>,
+    Option<fn(&mut Compiler<'a>) -> Result<()>>,
+    Precedence,
+);
 
 impl<'a> Compiler<'a> {
     pub fn new(source: &'a str) -> Self {
@@ -136,7 +137,7 @@ impl<'a> Compiler<'a> {
         self.parse_precedence(Precedence::Unary)?;
         match operator {
             TokenType::Minus => Ok(self.emit_byte(OpCode::Negate)),
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 
@@ -155,19 +156,38 @@ impl<'a> Compiler<'a> {
 
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
-            TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None), 
+            TokenType::LeftParen => (
+                Some(Compiler::grouping),
+                None,
+                Precedence::None
+            ),
             TokenType::RightParen => (None, None, Precedence::None),
             TokenType::Dot => (None, None, Precedence::None),
-            TokenType::Minus => (Some(Compiler::unary), Some(Compiler::binary), Precedence::Term),
-            TokenType::Plus => (None, Some(Compiler::binary), Precedence::Term),
-            TokenType::Slash => (None, Some(Compiler::binary), Precedence::Factor),
-            TokenType::Star => (None, Some(Compiler::binary), Precedence::Factor),
+            TokenType::Minus => (
+                Some(Compiler::unary),
+                Some(Compiler::binary),
+                Precedence::Term,
+            ),
+            TokenType::Plus => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Term
+            ),
+            TokenType::Slash => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Factor
+            ),
+            TokenType::Star => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Factor
+            ),
             TokenType::Semicolon => (None, None, Precedence::None),
             TokenType::Eof => (None, None, Precedence::None),
             TokenType::LeftBrace => (None, None, Precedence::None),
             TokenType::RightBrace => (None, None, Precedence::None),
             TokenType::Comma => (None, None, Precedence::None),
-
             TokenType::Bang => (None, None, Precedence::None),
             TokenType::BangEqual => (None, None, Precedence::None),
             TokenType::Equal => (None, None, Precedence::None),
@@ -176,8 +196,11 @@ impl<'a> Compiler<'a> {
             TokenType::GreaterEqual => (None, None, Precedence::None),
             TokenType::Less => (None, None, Precedence::None),
             TokenType::LessEqual => (None, None, Precedence::None),
-
-            TokenType::Number(_) => (Some(Compiler::number), None, Precedence::None),
+            TokenType::Number(_) => (
+                Some(Compiler::number),
+                None,
+                Precedence::None
+            ),
             TokenType::True => (None, None, Precedence::None),
             TokenType::False => (None, None, Precedence::None),
             TokenType::Identifier(_) => (None, None, Precedence::None),
@@ -199,4 +222,3 @@ impl<'a> Compiler<'a> {
         }
     }
 }
-        

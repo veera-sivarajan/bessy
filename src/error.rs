@@ -24,8 +24,8 @@ impl Error for BessyError {}
 impl fmt::Display for BessyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BessyError::Lexer(msg, line) => write!(f, "[line {}] Lex error: {}",  line, msg),
-            BessyError::Parser(msg, line) => write!(f, "[line {}] Parser error: {}",  line, msg),
+            BessyError::Lexer(msg, line) => write!(f, "[line {}] Lex error: {}", line, msg),
+            BessyError::Parser(msg, line) => write!(f, "[line {}] Parser error: {}", line, msg),
         }
     }
 }

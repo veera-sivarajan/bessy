@@ -1,14 +1,14 @@
-#![deny(rust_2018_idioms)] 
+#![deny(rust_2018_idioms)]
 #[macro_use]
 mod error;
+mod chunk;
+mod compiler;
 mod lexer;
 mod token;
-mod compiler;
-mod chunk;
 
-// code to compile project on buffer save 
-// (add-hook 'after-save-hook 'rust-compile) 
-// (setq compilation-scroll-output 'first-error) 
+// code to compile project on buffer save
+// (add-hook 'after-save-hook 'rust-compile)
+// (setq compilation-scroll-output 'first-error)
 
 use std::fs;
 fn main() {
@@ -23,6 +23,4 @@ fn main() {
         Ok(c) => c.print(),
         Err(e) => eprintln!("{}", e),
     }
-    
 }
-

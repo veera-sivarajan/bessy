@@ -57,35 +57,35 @@ impl<'a> Lexer<'a> {
 
     // fn peek_eq(&self, check_fn: fn(u8) -> bool) -> bool {
     fn peek_eq(&self, expected: u8) -> bool {
-        self.peek().map_or(false, |c| c == expected) 
+        self.peek().map_or(false, |c| c == expected)
     }
 
     fn peek_ne(&self, expected: u8) -> bool {
-        self.peek().map_or(false, |c| c != expected) 
+        self.peek().map_or(false, |c| c != expected)
     }
-    
+
     fn make_token(&self, kind: TokenType<'a>) -> Result<Token<'a>> {
         Ok(Token::new(kind, self.line))
     }
 
     fn skip_needless(&mut self) {
-       while let Some(c) = self.peek() {
-           match c {
-               b' ' | b'\r' | b'\t' => {
-                   self.advance();
-               }
-               b'\n' => {
-                   self.advance();
-                   self.line += 1;
-               }
-               b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
-                   while self.peek_ne(b'\n') {
-                       self.advance();
-                   }
-               }
-               _ => break,
-           }
-       }
+        while let Some(c) = self.peek() {
+            match c {
+                b' ' | b'\r' | b'\t' => {
+                    self.advance();
+                }
+                b'\n' => {
+                    self.advance();
+                    self.line += 1;
+                }
+                b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
+                    while self.peek_ne(b'\n') {
+                        self.advance();
+                    }
+                }
+                _ => break,
+            }
+        }
     }
 
     pub fn next_token(&mut self) -> Result<Token<'a>> {
@@ -136,7 +136,7 @@ impl<'a> Lexer<'a> {
                 b'"' => self.eat_string(),
                 n if n.is_ascii_digit() => self.eat_number(),
                 c if c.is_ascii_alphabetic() => self.eat_identifier(),
-                _ => lex_error!("Unknown character.", self.line)
+                _ => lex_error!("Unknown character.", self.line),
             }
         } else {
             self.make_token(TokenType::Eof)
@@ -201,7 +201,7 @@ impl<'a> Lexer<'a> {
             "true" => self.make_token(TokenType::True),
             "var" => self.make_token(TokenType::Var),
             "while" => self.make_token(TokenType::While),
-            _ => self.make_token(TokenType::Identifier(lexeme))
+            _ => self.make_token(TokenType::Identifier(lexeme)),
         }
     }
 }

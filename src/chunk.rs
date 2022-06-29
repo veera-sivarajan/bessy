@@ -39,7 +39,7 @@ impl fmt::Display for Value {
 pub struct Chunk {
     code: Vec<OpCode>,
     constants: Vec<Value>,
-    lines: Vec<usize>,
+    lines: Vec<u16>,
 }
 
 impl Chunk {
@@ -56,19 +56,22 @@ impl Chunk {
         self.constants.len() - 1 // index of added element
     }
 
-    pub fn emit_byte(&mut self, code: OpCode) {
+    pub fn emit_byte(&mut self, code: OpCode, line: u16) {
         self.code.push(code);
+        self.lines.push(line);
     }
 
     pub fn print(&self) {
         let mut offset: usize = 0;
-        for i in &self.code {
-            if let OpCode::Constant(index) = i {
-                println!("{:04} {} {}", offset, i, self.constants[*index]);
+        println!("== BYTECODE ==");
+        for (index, code) in self.code.iter().enumerate() {
+            if let OpCode::Constant(i) = code {
+                println!("{offset:04} {} {code} {}", self.lines[index], self.constants[*i]);
             } else {
-                println!("{:04} {}", offset, i);
+                println!("{offset:04} {} {code}", self.lines[index]);
             }
             offset += 1;
         }
+        println!("== END ==");
     }
 }

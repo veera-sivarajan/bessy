@@ -75,12 +75,16 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    fn emit_byte(&mut self, op: OpCode) {
+        self.chunk.emit_byte(op, self.previous.line);
+    }
+
     // compiles the entire source code to a chunk
     pub fn compile(&mut self) -> Result<&Chunk> {
         self.advance();
         self.expression()?;
         self.consume(TokenType::Eof, "Expect end of expression.")?;
-        self.chunk.emit_byte(OpCode::Return);
+        self.emit_byte(OpCode::Return);
         Ok(&self.chunk)
     }
 
@@ -115,8 +119,7 @@ impl<'a> Compiler<'a> {
     fn number(&mut self) -> Result<()> {
         if let TokenType::Number(value) = self.previous.kind {
             let index = self.chunk.add_constant(Value::Number(value));
-            self.chunk.emit_byte(OpCode::Constant(index));
-            Ok(())
+            Ok(self.emit_byte(OpCode::Constant(index)))
         } else {
             parse_error!("Expected Number!", self.current.line)
         }
@@ -130,9 +133,9 @@ impl<'a> Compiler<'a> {
 
     fn unary(&mut self) -> Result<()> {
         let operator = self.previous.kind;
-        self.expression()?;
+        self.parse_precedence(Precedence::Unary)?;
         match operator {
-            TokenType::Minus => Ok(self.chunk.emit_byte(OpCode::Negate)),
+            TokenType::Minus => Ok(self.emit_byte(OpCode::Negate)),
             _ => Ok(())
         }
     }
@@ -142,10 +145,10 @@ impl<'a> Compiler<'a> {
         let rule = self.get_rule(operator).2;
         self.parse_precedence(rule.next())?;
         match operator {
-            TokenType::Plus => Ok(self.chunk.emit_byte(OpCode::Add)),
-            TokenType::Minus => Ok(self.chunk.emit_byte(OpCode::Subtract)),
-            TokenType::Star => Ok(self.chunk.emit_byte(OpCode::Multiply)),
-            TokenType::Slash => Ok(self.chunk.emit_byte(OpCode::Divide)),
+            TokenType::Plus => Ok(self.emit_byte(OpCode::Add)),
+            TokenType::Minus => Ok(self.emit_byte(OpCode::Subtract)),
+            TokenType::Star => Ok(self.emit_byte(OpCode::Multiply)),
+            TokenType::Slash => Ok(self.emit_byte(OpCode::Divide)),
             _ => Ok(()),
         }
     }
@@ -155,7 +158,7 @@ impl<'a> Compiler<'a> {
             TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None), 
             TokenType::RightParen => (None, None, Precedence::None),
             TokenType::Dot => (None, None, Precedence::None),
-            TokenType::Minus => (Some(Compiler::unary), None, Precedence::Term),
+            TokenType::Minus => (Some(Compiler::unary), Some(Compiler::binary), Precedence::Term),
             TokenType::Plus => (None, Some(Compiler::binary), Precedence::Term),
             TokenType::Slash => (None, Some(Compiler::binary), Precedence::Factor),
             TokenType::Star => (None, Some(Compiler::binary), Precedence::Factor),

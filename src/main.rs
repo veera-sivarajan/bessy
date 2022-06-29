@@ -18,8 +18,6 @@ fn main() {
     //     println!("Token: {:?}", scanner.next_token());
     // }
     let mut compiler = compiler::Compiler::new(&contents);
-    // let bytecode = compiler.compile().unwrap();
-    // bytecode.print();
     match compiler.compile() {
         Ok(c) => c.print(),
         Err(e) => eprintln!("{}", e),

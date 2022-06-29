@@ -1,7 +1,10 @@
 use crate::token::{Token, TokenType};
 use crate::error::BessyError;
 use crate::lexer::Lexer;
+use crate::chunk::Chunk;
 
+
+type Result<T> = std::result::Result<T, BessyError>;
 
 enum Precedence {
     None,
@@ -39,13 +42,11 @@ pub struct Compiler<'a> {
     current: Token<'a>,
     previous: Token<'a>,
     lexer: Lexer<'a>,
+    chunk: Chunk,
 }
 
-struct ByteCode { }
-struct Chunk { }
-
-type ParseRule = (Option<fn() -> Result<ByteCode, BessyError>>,
-                  Option<fn() -> Result<ByteCode, BessyError>>,
+type ParseRule = (Option<fn() -> Result<()>>,
+                  Option<fn() -> Result<()>>,
                   Precedence);
 
 impl<'a> Compiler<'a> {
@@ -54,30 +55,47 @@ impl<'a> Compiler<'a> {
             current: Token::new(TokenType::Eof, 0),
             previous: Token::new(TokenType::Eof, 0),
             lexer: Lexer::new(source),
+            chunk: Chunk::new(),
         }
     }
 
     // driving function for the scanner
+    // handles all errors from the scanner
     fn advance(&mut self) {
         self.previous = self.current;
         loop {
-            // self.current = self.lexer.next_token();
-            // if let Err(msg) = self.current {
-            //     eprintln!(msg);
-            // } else {
-            //     break;
-            // }
             match self.lexer.next_token() {
                 Err(msg) => eprintln!("{}", msg),
                 Ok(t) => {
                     self.current = t;
+                    break;
                 }
             }
         }
     }
-    
+
     // compiles the entire source code to a chunk
-    fn compile(&mut self) -> Result<Chunk, BessyError> {
+    fn compile(&mut self) -> Result<Chunk> {
+        self.advance();
+        let chunk = self.expression()?;
+        self.consume(TokenType::Eof, "Expect end of expression.")?;
+        Ok(chunk)
+    }
+
+    fn expression(&mut self) -> Result<Chunk> {
+        self.parse_precedence(Precedence::Assignment)
+    }
+
+    fn consume(&mut self, kind: TokenType<'a>, msg: &str) -> Result<()> {
+        if self.current.kind == kind {
+            self.advance();
+            Ok(())
+        } else {
+            parse_error!("Unexpected token!", self.current.line)
+        }
+    }
+
+    fn parse_precedence(&mut self, bp: Precedence) -> Result<Chunk> {
         todo!()
     }
 

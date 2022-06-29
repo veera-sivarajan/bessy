@@ -4,6 +4,7 @@ mod error;
 mod lexer;
 mod token;
 mod compiler;
+mod chunk;
 
 // code to compile project on buffer save 
 // (add-hook 'after-save-hook 'rust-compile) 

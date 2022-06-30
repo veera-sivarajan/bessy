@@ -14,12 +14,13 @@ mod vm;
 use std::fs;
 fn main() {
     // let contents = fs::read_to_string("test/scan.lox").unwrap();
-    let contents = String::from("-(1 + 2)");
+    let contents = String::from("-(1)");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
         Ok(c) => {
             c.print();
-            let _vm = vm::VM::new(c);
+            let mut vm = vm::VM::new(c);
+            vm.run();
         }
         Err(e) => eprintln!("{}", e),
     }

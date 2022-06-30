@@ -1,5 +1,6 @@
 use std::fmt;
 
+#[derive(Copy, Clone)]
 pub enum OpCode {
     Add,
     Negate,
@@ -24,6 +25,7 @@ impl fmt::Display for OpCode {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum Value {
     Number(f64),
 }
@@ -37,9 +39,9 @@ impl fmt::Display for Value {
 }
 
 pub struct Chunk {
-    code: Vec<OpCode>,
-    constants: Vec<Value>,
-    lines: Vec<u16>,
+    pub code: Vec<OpCode>,
+    pub constants: Vec<Value>,
+    pub lines: Vec<u16>,
 }
 
 impl Chunk {

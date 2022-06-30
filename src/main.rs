@@ -12,12 +12,8 @@ mod token;
 
 use std::fs;
 fn main() {
-    let contents = fs::read_to_string("test/scan.lox").unwrap();
-    // let contents = String::from("1 + ((-1 + -1) * 90)");
-    // let mut scanner = lexer::Lexer::new(&contents);
-    // for _i in 0..15 {
-    //     println!("Token: {:?}", scanner.next_token());
-    // }
+    // let contents = fs::read_to_string("test/scan.lox").unwrap();
+    let contents = String::from("-(1 + 2)");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
         Ok(c) => c.print(),

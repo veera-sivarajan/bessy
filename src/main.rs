@@ -5,6 +5,7 @@ mod chunk;
 mod compiler;
 mod lexer;
 mod token;
+mod vm;
 
 // code to compile project on buffer save
 // (add-hook 'after-save-hook 'rust-compile)
@@ -16,7 +17,10 @@ fn main() {
     let contents = String::from("-(1 + 2)");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
-        Ok(c) => c.print(),
+        Ok(c) => {
+            c.print();
+            let _vm = vm::VM::new(c);
+        }
         Err(e) => eprintln!("{}", e),
     }
 }

@@ -9,41 +9,11 @@ pub struct VM<'c> {
 
 
 impl Value {
-    pub fn is_number(&self) -> bool {
-        if let Value::Number(_) = self {
-            true
+    pub fn is_number(&self) -> Option<f64> {
+        if let Value::Number(n) = self {
+            Some(*n) 
         } else {
-            false
-        }
-    }
-
-    pub fn add(&self, other: Value) -> Value {
-        match (self, other) {
-            (Value::Number(l), Value::Number(r)) => Value::Number(l + r),
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn subtract(&self, other: Value) -> Value {
-        match (self, other) {
-            (Value::Number(l), Value::Number(r)) => Value::Number(l - r),
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn multiply(&self, other: Value) -> Value {
-        match (self, other) {
-            (Value::Number(l), Value::Number(r)) => Value::Number(l * r),
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn divide(&self, other: Value) -> Value {
-        match (self, other) {
-            (Value::Number(l), Value::Number(r)) => {
-                Value::Number(r)
-            }
-            _ => unreachable!(),
+            None
         }
     }
 }
@@ -57,45 +27,49 @@ impl<'c> VM<'c> {
         }
     }
 
+    fn pop(&mut self) -> Value {
+        self.stack.pop().expect("Tried to pop an empty stack.")
+    }
+
+    fn push(&mut self, value: Value) {
+        self.stack.push(value);
+    }
+
     pub fn run(&mut self) -> Result<(), BessyError> {
         loop {
             let instruction = self.chunk.code[self.ip];
             self.ip += 1;
             match instruction {
                 OpCode::Constant(index) => { 
-                    self.stack.push(self.chunk.constants[index]);
+                    self.push(self.chunk.constants[index]);
                 }
                 OpCode::Negate => {
-                    if let Some(Value::Number(n)) = self.stack.pop() {
-                        self.stack.push(Value::Number(-n));
+                    if let Some(n) = self.pop().is_number() {
+                        self.push(Value::Number(-n));
                     } else {
                         return runtime_error!("Operand to `-` should be a number.", self.chunk.lines[self.ip - 1]);
                     }
                 }
                 OpCode::Return => {
-                    if let Some(v) = self.stack.pop() {
-                        println!("Output: {}", v);
-                        return Ok(());
-                    } else {
-                        return runtime_error!("Expected a operand.", self.chunk.lines[self.ip - 1]);
-                    }
+                    let v = self.pop();
+                    println!("{}", v);
+                    return Ok(());
                 }
                 OpCode::Add | OpCode::Subtract |
                 OpCode::Multiply | OpCode::Divide => {
-                    let left = self.stack.pop().unwrap();
-                    let right = self.stack.pop().unwrap();
-                    if left.is_number() && right.is_number() {
+                    let left = self.pop().is_number();
+                    let right = self.pop().is_number();
+                    if let Some((l, r)) = left.zip(right) {
                         let result = match instruction {
-                            OpCode::Add => left.add(right),
-                            OpCode::Subtract => right.subtract(left),
-                            OpCode::Multiply => left.multiply(right),
-                            OpCode::Divide => right.divide(left),
+                            OpCode::Add => l + r,
+                            OpCode::Subtract => r - l,
+                            OpCode::Multiply => l * r,
+                            OpCode::Divide => r / l,
                             _ => unreachable!(),
                         };
-                        self.stack.push(result);
+                        self.push(Value::Number(result));
                     } else {
-                        return runtime_error!("Operands should be number.",
-                                       self.chunk.lines[self.ip - 1]);
+                        return runtime_error!("Operands should be number.", self.chunk.lines[self.ip - 1]);
                     }
                 }
                 _ => todo!()

@@ -7,6 +7,47 @@ pub struct VM<'c> {
     stack: Vec<Value>,
 }
 
+
+impl Value {
+    pub fn is_number(&self) -> bool {
+        if let Value::Number(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn add(&self, other: Value) -> Value {
+        match (self, other) {
+            (Value::Number(l), Value::Number(r)) => Value::Number(l + r),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn subtract(&self, other: Value) -> Value {
+        match (self, other) {
+            (Value::Number(l), Value::Number(r)) => Value::Number(l - r),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn multiply(&self, other: Value) -> Value {
+        match (self, other) {
+            (Value::Number(l), Value::Number(r)) => Value::Number(l * r),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn divide(&self, other: Value) -> Value {
+        match (self, other) {
+            (Value::Number(l), Value::Number(r)) => {
+                Value::Number(r)
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl<'c> VM<'c> {
     pub fn new(chunk: &'c Chunk) -> Self {
         VM {
@@ -37,6 +78,24 @@ impl<'c> VM<'c> {
                         return Ok(());
                     } else {
                         return runtime_error!("Expected a operand.", self.chunk.lines[self.ip - 1]);
+                    }
+                }
+                OpCode::Add | OpCode::Subtract |
+                OpCode::Multiply | OpCode::Divide => {
+                    let left = self.stack.pop().unwrap();
+                    let right = self.stack.pop().unwrap();
+                    if left.is_number() && right.is_number() {
+                        let result = match instruction {
+                            OpCode::Add => left.add(right),
+                            OpCode::Subtract => right.subtract(left),
+                            OpCode::Multiply => left.multiply(right),
+                            OpCode::Divide => right.divide(left),
+                            _ => unreachable!(),
+                        };
+                        self.stack.push(result);
+                    } else {
+                        return runtime_error!("Operands should be number.",
+                                       self.chunk.lines[self.ip - 1]);
                     }
                 }
                 _ => todo!()

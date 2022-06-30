@@ -30,6 +30,24 @@ pub enum Value {
     Number(f64),
 }
 
+// impl Value {
+//     pub fn is_number(&self) -> bool {
+//         if let Value::Number(_) = self {
+//             true
+//         } else {
+//             false
+//         }
+//     }
+
+//     pub fn add(&self, other: Value) -> Value {
+//         match (self, other) {
+//             (Value::Number(l), Value::Number(r)) => Value::Number(l + r),
+//             _ => unreachable!(),
+//         }
+//     }
+// }
+
+
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

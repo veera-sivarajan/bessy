@@ -44,7 +44,7 @@ impl<'c> VM<'c> {
                     self.push(self.chunk.constants[index]);
                 }
                 OpCode::Negate => {
-                    if let Some(n) = self.pop().is_number() {
+                    if let Value::Number(n) = self.pop() {
                         self.push(Value::Number(-n));
                     } else {
                         return runtime_error!("Operand to `-` should be a number.", self.chunk.lines[self.ip - 1]);
@@ -59,7 +59,7 @@ impl<'c> VM<'c> {
                 OpCode::Multiply | OpCode::Divide => {
                     let left = self.pop().is_number();
                     let right = self.pop().is_number();
-                    if let Some((l, r)) = left.zip(right) {
+                    if let Some((l, r)) = left.zip(right) { // using zip because if let chains are unstable
                         let result = match instruction {
                             OpCode::Add => l + r,
                             OpCode::Subtract => r - l,

@@ -57,38 +57,38 @@ impl<'a> Lexer<'a> {
 
     // fn peek_eq(&self, check_fn: fn(u8) -> bool) -> bool {
     fn peek_eq(&self, expected: u8) -> bool {
-        self.peek().map_or(false, |c| c == expected) 
+        self.peek().map_or(false, |c| c == expected)
     }
 
     fn peek_ne(&self, expected: u8) -> bool {
-        self.peek().map_or(false, |c| c != expected) 
+        self.peek().map_or(false, |c| c != expected)
     }
-    
-    fn make_token(&self, kind: TokenType<'a>) -> Result<Token> {
+
+    fn make_token(&self, kind: TokenType<'a>) -> Result<Token<'a>> {
         Ok(Token::new(kind, self.line))
     }
 
     fn skip_needless(&mut self) {
-       while let Some(c) = self.peek() {
-           match c {
-               b' ' | b'\r' | b'\t' => {
-                   self.advance();
-               }
-               b'\n' => {
-                   self.advance();
-                   self.line += 1;
-               }
-               b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
-                   while self.peek_ne(b'\n') {
-                       self.advance();
-                   }
-               }
-               _ => break,
-           }
-       }
+        while let Some(c) = self.peek() {
+            match c {
+                b' ' | b'\r' | b'\t' => {
+                    self.advance();
+                }
+                b'\n' => {
+                    self.advance();
+                    self.line += 1;
+                }
+                b'/' if self.double_peek().map_or(false, |c| c == b'/') => {
+                    while self.peek_ne(b'\n') {
+                        self.advance();
+                    }
+                }
+                _ => break,
+            }
+        }
     }
 
-    pub fn next_token(&mut self) -> Result<Token> {
+    pub fn next_token(&mut self) -> Result<Token<'a>> {
         self.skip_needless();
         self.start = self.current;
 
@@ -136,14 +136,14 @@ impl<'a> Lexer<'a> {
                 b'"' => self.eat_string(),
                 n if n.is_ascii_digit() => self.eat_number(),
                 c if c.is_ascii_alphabetic() => self.eat_identifier(),
-                _ => lex_error!("Unknown character.")
+                _ => lex_error!("Unknown character.", self.line),
             }
         } else {
             self.make_token(TokenType::Eof)
         }
     }
 
-    fn eat_string(&mut self) -> Result<Token> {
+    fn eat_string(&mut self) -> Result<Token<'a>> {
         while self.peek_ne(b'"') {
             self.advance();
         }
@@ -161,7 +161,7 @@ impl<'a> Lexer<'a> {
         self.peek().map_or(false, |c| c.is_ascii_digit())
     }
 
-    fn eat_number(&mut self) -> Result<Token> {
+    fn eat_number(&mut self) -> Result<Token<'a>> {
         while self.next_is_number() {
             self.advance();
         }
@@ -175,11 +175,11 @@ impl<'a> Lexer<'a> {
         if let Ok(n) = number.parse::<f64>() {
             self.make_token(TokenType::Number(n))
         } else {
-            lex_error!("Unable to convert number lexeme to f64.")
+            lex_error!("Unable to convert number lexeme to f64.", self.line)
         }
     }
 
-    fn eat_identifier(&mut self) -> Result<Token> {
+    fn eat_identifier(&mut self) -> Result<Token<'a>> {
         while self.peek().map_or(false, |c| c.is_ascii_alphanumeric()) {
             self.advance();
         }
@@ -201,7 +201,7 @@ impl<'a> Lexer<'a> {
             "true" => self.make_token(TokenType::True),
             "var" => self.make_token(TokenType::Var),
             "while" => self.make_token(TokenType::While),
-            _ => self.make_token(TokenType::Identifier(lexeme))
+            _ => self.make_token(TokenType::Identifier(lexeme)),
         }
     }
 }

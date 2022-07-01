@@ -79,20 +79,22 @@ impl<'c> VM<'c> {
                     println!("{}", v);
                     return Ok(());
                 }
-                OpCode::Add | OpCode::Subtract |
-                OpCode::Multiply | OpCode::Divide => {
+                OpCode::Add | OpCode::Subtract | OpCode::Multiply |
+                OpCode::Divide | OpCode::Greater | OpCode::Less => {
                     match (self.peek(0), self.peek(1)) {
                         (Value::Number(l), Value::Number(r)) => {
                             let result = match opcode {
-                                OpCode::Add => l + r,
-                                OpCode::Subtract => r - l,
-                                OpCode::Multiply => l * r,
-                                OpCode::Divide => r / l,
+                                OpCode::Add => Value::Number(l + r),
+                                OpCode::Subtract => Value::Number(r - l),
+                                OpCode::Multiply => Value::Number(l * r),
+                                OpCode::Divide => Value::Number(r / l),
+                                OpCode::Greater => Value::Bool(r > l),
+                                OpCode::Less => Value::Bool(r < l),
                                 _ => unreachable!(),
                             };
                             self.pop(); // pop the operands
                             self.pop();
-                            self.push(Value::Number(result));
+                            self.push(result);
                         }
                         _ => {
                             let msg = format!("Operands to '{}' should be of type number.", opcode);

@@ -28,7 +28,7 @@ impl fmt::Display for OpCode {
             OpCode::True => write!(f, "TRUE"),
             OpCode::False => write!(f, "FALSE"),
             OpCode::Nil => write!(f, "NIL"),
-            OpCode::Not => write!(f, "Not"),
+            OpCode::Not => write!(f, "NOT"),
         }
     }
 }

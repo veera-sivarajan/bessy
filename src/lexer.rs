@@ -50,8 +50,12 @@ impl<'a> Lexer<'a> {
 
     fn next_eq(&mut self, expected: u8) -> bool {
         self.peek().map_or(false, |c| {
-            self.advance();
-            c == expected
+            if c == expected {
+                self.advance();
+                true
+            } else {
+                false
+            }
         })
     }
 

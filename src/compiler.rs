@@ -215,8 +215,16 @@ impl<'a> Compiler<'a> {
                 None,
                 Precedence::None
             ),
-            TokenType::True => (Some(Compiler::literal), None, Precedence::None),
-            TokenType::False => (Some(Compiler::literal), None, Precedence::None),
+            TokenType::True => (
+                Some(Compiler::literal),
+                None,
+                Precedence::None
+            ),
+            TokenType::False => (
+                Some(Compiler::literal),
+                None,
+                Precedence::None
+            ),
             TokenType::Identifier(_) => (None, None, Precedence::None),
             TokenType::StrLit(_) => (None, None, Precedence::None),
             TokenType::Print => (None, None, Precedence::None),

@@ -45,6 +45,10 @@ impl<'c> VM<'c> {
         self.stack.push(value);
     }
 
+    fn peek(&self, depth: usize) -> &Value {
+        self.stack.get(self.stack.len() - (depth + 1)).expect("Tried to peek at an empty stack.")
+    }
+
     pub fn run(&mut self) -> Result<(), BessyError> {
         loop {
             let opcode = self.chunk.code[self.ip];
@@ -61,6 +65,10 @@ impl<'c> VM<'c> {
                         return runtime_error!("Operand to `-` should be a number.", self.chunk.lines[self.ip - 1]);
                     }
                 }
+                OpCode::Not => {
+                    let value = self.pop().is_falsey();
+                    self.push(Value::Bool(value));
+                }
                 OpCode::Return => {
                     let v = self.pop();
                     println!("{}", v);
@@ -68,9 +76,11 @@ impl<'c> VM<'c> {
                 }
                 OpCode::Add | OpCode::Subtract |
                 OpCode::Multiply | OpCode::Divide => {
-                    let left = self.pop().is_number(); // convert Value::Number(n) to Some(n) to use zip
-                    let right = self.pop().is_number();
+                    let left = self.peek(0).is_number(); // convert Value::Number(n) to Some(n) to use zip
+                    let right = self.peek(0).is_number();
                     if let Some((l, r)) = left.zip(right) { // using zip because if let chains are unstable
+                        self.pop();
+                        self.pop();
                         let result = match opcode {
                             OpCode::Add => l + r,
                             OpCode::Subtract => r - l,

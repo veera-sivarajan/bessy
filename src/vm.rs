@@ -37,9 +37,9 @@ impl<'c> VM<'c> {
 
     pub fn run(&mut self) -> Result<(), BessyError> {
         loop {
-            let instruction = self.chunk.code[self.ip];
+            let opcode = self.chunk.code[self.ip];
             self.ip += 1;
-            match instruction {
+            match opcode {
                 OpCode::Constant(index) => { 
                     self.push(self.chunk.constants[index]);
                 }
@@ -57,10 +57,10 @@ impl<'c> VM<'c> {
                 }
                 OpCode::Add | OpCode::Subtract |
                 OpCode::Multiply | OpCode::Divide => {
-                    let left = self.pop().is_number();
+                    let left = self.pop().is_number(); // convert Value::Number(n) to Some(n) to use zip
                     let right = self.pop().is_number();
                     if let Some((l, r)) = left.zip(right) { // using zip because if let chains are unstable
-                        let result = match instruction {
+                        let result = match opcode {
                             OpCode::Add => l + r,
                             OpCode::Subtract => r - l,
                             OpCode::Multiply => l * r,

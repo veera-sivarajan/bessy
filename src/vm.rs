@@ -9,14 +9,6 @@ pub struct VM<'c> {
 
 
 impl Value {
-    pub fn is_number(&self) -> Option<f64> {
-        if let Value::Number(n) = self {
-            Some(*n) 
-        } else {
-            None
-        }
-    }
-
     fn is_falsey(&self) -> bool {
         match self {
             Value::Nil => true,
@@ -89,21 +81,20 @@ impl<'c> VM<'c> {
                 }
                 OpCode::Add | OpCode::Subtract |
                 OpCode::Multiply | OpCode::Divide => {
-                    let left = self.peek(0).is_number(); // convert Value::Number(n) to Some(n) to use zip
-                    let right = self.peek(0).is_number();
-                    if let Some((l, r)) = left.zip(right) { // using zip because if let chains are unstable
-                        self.pop();
-                        self.pop();
-                        let result = match opcode {
-                            OpCode::Add => l + r,
-                            OpCode::Subtract => r - l,
-                            OpCode::Multiply => l * r,
-                            OpCode::Divide => r / l,
-                            _ => unreachable!(),
-                        };
-                        self.push(Value::Number(result));
-                    } else {
-                        return runtime_error!("Operands should be number.", self.chunk.lines[self.ip - 1]);
+                    match (self.peek(0), self.peek(1)) {
+                        (Value::Number(l), Value::Number(r)) => {
+                            let result = match opcode {
+                                OpCode::Add => l + r,
+                                OpCode::Subtract => r - l,
+                                OpCode::Multiply => l * r,
+                                OpCode::Divide => r / l,
+                                _ => unreachable!(),
+                            };
+                            self.pop(); // pop the operands
+                            self.pop();
+                            self.push(Value::Number(result));
+                        }
+                        _ => return runtime_error!("Operands should be number.", self.chunk.lines[self.ip - 1]),
                     }
                 }
                 _ => todo!()

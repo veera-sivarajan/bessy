@@ -48,7 +48,7 @@ impl<'c> VM<'c> {
         self.stack.get(self.stack.len() - (depth + 1)).expect("Tried to peek at an empty stack.")
     }
 
-    pub fn run(&mut self) -> Result<(), BessyError> {
+    pub fn run(&mut self) -> Result<Value, BessyError> {
         loop {
             let opcode = self.chunk.code[self.ip];
             self.ip += 1;
@@ -75,9 +75,10 @@ impl<'c> VM<'c> {
                     self.push(Value::Bool(result));
                 }
                 OpCode::Return => {
-                    let v = self.pop();
-                    println!("{}", v);
-                    return Ok(());
+                    // let v = self.pop();
+                    // println!("{}", v);
+                    // return Ok(());
+                    return Ok(self.pop());
                 }
                 OpCode::Add | OpCode::Subtract | OpCode::Multiply |
                 OpCode::Divide | OpCode::Greater | OpCode::Less => {

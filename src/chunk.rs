@@ -13,6 +13,9 @@ pub enum OpCode {
     False,
     Constant(usize), // usize holds the index to constants vector
     Not,
+    Equal,
+    Greater,
+    Less,
 }
 
 impl fmt::Display for OpCode {
@@ -29,6 +32,9 @@ impl fmt::Display for OpCode {
             OpCode::False => write!(f, "FALSE"),
             OpCode::Nil => write!(f, "NIL"),
             OpCode::Not => write!(f, "NOT"),
+            OpCode::Equal => write!(f, "EQUAL"),
+            OpCode::Greater => write!(f, "GREATER"),
+            OpCode::Less => write!(f, "LESS"),
         }
     }
 }

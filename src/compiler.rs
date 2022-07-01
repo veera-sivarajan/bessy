@@ -76,8 +76,13 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn emit_byte(&mut self, op: OpCode) {
+    fn emit(&mut self, op: OpCode) {
         self.chunk.emit_byte(op, self.previous.line);
+    }
+
+    fn emits(&mut self, a: OpCode, b: OpCode) {
+        self.emit(a);
+        self.emit(b);
     }
 
     // compiles the entire source code to a chunk
@@ -85,7 +90,7 @@ impl<'a> Compiler<'a> {
         self.advance();
         self.expression()?;
         self.consume(TokenType::Eof, "Expect end of expression.")?;
-        self.emit_byte(OpCode::Return);
+        self.emit(OpCode::Return);
         Ok(&self.chunk)
     }
 
@@ -120,7 +125,7 @@ impl<'a> Compiler<'a> {
     fn number(&mut self) -> Result<()> {
         if let TokenType::Number(value) = self.previous.kind {
             let index = self.chunk.add_constant(Value::Number(value));
-            Ok(self.emit_byte(OpCode::Constant(index)))
+            Ok(self.emit(OpCode::Constant(index)))
         } else {
             parse_error!("Expected Number!", self.current.line)
         }
@@ -136,8 +141,8 @@ impl<'a> Compiler<'a> {
         let operator = self.previous.kind;
         self.parse_precedence(Precedence::Unary)?;
         match operator {
-            TokenType::Minus => Ok(self.emit_byte(OpCode::Negate)),
-            TokenType::Bang => Ok(self.emit_byte(OpCode::Not)),
+            TokenType::Minus => Ok(self.emit(OpCode::Negate)),
+            TokenType::Bang => Ok(self.emit(OpCode::Not)),
             _ => Ok(()),
         }
     }
@@ -147,19 +152,25 @@ impl<'a> Compiler<'a> {
         let rule = self.get_rule(operator).2;
         self.parse_precedence(rule.next())?;
         match operator {
-            TokenType::Plus => Ok(self.emit_byte(OpCode::Add)),
-            TokenType::Minus => Ok(self.emit_byte(OpCode::Subtract)),
-            TokenType::Star => Ok(self.emit_byte(OpCode::Multiply)),
-            TokenType::Slash => Ok(self.emit_byte(OpCode::Divide)),
+            TokenType::Plus => Ok(self.emit(OpCode::Add)),
+            TokenType::Minus => Ok(self.emit(OpCode::Subtract)),
+            TokenType::Star => Ok(self.emit(OpCode::Multiply)),
+            TokenType::Slash => Ok(self.emit(OpCode::Divide)),
+            TokenType::BangEqual => Ok(self.emits(OpCode::Equal, OpCode::Not)),
+            TokenType::EqualEqual => Ok(self.emit(OpCode::Equal)),
+            TokenType::Greater => Ok(self.emit(OpCode::Greater)),
+            TokenType::GreaterEqual => Ok(self.emits(OpCode::Less, OpCode::Not)),
+            TokenType::Less => Ok(self.emit(OpCode::Less)),
+            TokenType::LessEqual => Ok(self.emits(OpCode::Greater, OpCode::Not)),
             _ => Ok(()),
         }
     }
 
     fn literal(&mut self) -> Result<()> {
         match self.previous.kind {
-            TokenType::False => Ok(self.emit_byte(OpCode::False)),
-            TokenType::True => Ok(self.emit_byte(OpCode::True)),
-            TokenType::Nil => Ok(self.emit_byte(OpCode::Nil)),
+            TokenType::False => Ok(self.emit(OpCode::False)),
+            TokenType::True => Ok(self.emit(OpCode::True)),
+            TokenType::Nil => Ok(self.emit(OpCode::Nil)),
             _ => unreachable!(),
         }
     }
@@ -203,13 +214,37 @@ impl<'a> Compiler<'a> {
                 None,
                 Precedence::None
             ),
-            TokenType::BangEqual => (None, None, Precedence::None),
+            TokenType::BangEqual => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Equality,
+            ),
             TokenType::Equal => (None, None, Precedence::None),
-            TokenType::EqualEqual => (None, None, Precedence::None),
-            TokenType::Greater => (None, None, Precedence::None),
-            TokenType::GreaterEqual => (None, None, Precedence::None),
-            TokenType::Less => (None, None, Precedence::None),
-            TokenType::LessEqual => (None, None, Precedence::None),
+            TokenType::EqualEqual => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Equality,
+            ),
+            TokenType::Greater => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Comparison,
+            ),
+            TokenType::GreaterEqual => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Comparison,
+            ),
+            TokenType::Less => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Comparison,
+            ),
+            TokenType::LessEqual => (
+                None,
+                Some(Compiler::binary),
+                Precedence::Comparison,
+            ),
             TokenType::Number(_) => (
                 Some(Compiler::number),
                 None,

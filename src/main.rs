@@ -14,7 +14,7 @@ mod vm;
 use std::fs;
 fn main() {
     // let contents = fs::read_to_string("test/scan.lox").unwrap();
-    let contents = String::from("1 * (80 - 5)");
+    let contents = String::from("1 + true");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
         Ok(c) => {

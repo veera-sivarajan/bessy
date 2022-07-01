@@ -3,27 +3,27 @@ use std::fmt;
 
 macro_rules! lex_error {
     ($message:expr, $line:expr) => {
-        Err(BessyError::Lexer($message, $line))
+        Err(BessyError::Lexer(String::from($message), $line))
     };
 }
 
 macro_rules! parse_error {
     ($message:expr, $line:expr) => {
-        Err(BessyError::Parser($message, $line))
+        Err(BessyError::Parser(String::from($message), $line))
     };
 }
 
 macro_rules! runtime_error {
     ($message:expr, $line:expr) => {
-        Err(BessyError::Runtime($message, $line))
+        Err(BessyError::Runtime(String::from($message), $line))
     };
 }
 
 #[derive(Debug)]
 pub enum BessyError {
-    Lexer(&'static str, u16), // static str because it will never be mutated
-    Parser(&'static str, u16),
-    Runtime(&'static str, u16),
+    Lexer(String, u16), // Error message and line number
+    Parser(String, u16),
+    Runtime(String, u16),
 }
 
 impl Error for BessyError {}

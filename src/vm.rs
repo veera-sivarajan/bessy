@@ -94,7 +94,10 @@ impl<'c> VM<'c> {
                             self.pop();
                             self.push(Value::Number(result));
                         }
-                        _ => return runtime_error!("Operands should be number.", self.chunk.lines[self.ip - 1]),
+                        _ => {
+                            let msg = format!("Operands to '{}' should be of type number.", opcode);
+                            return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
+                        }
                     }
                 }
                 _ => todo!()

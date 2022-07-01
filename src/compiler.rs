@@ -98,7 +98,7 @@ impl<'a> Compiler<'a> {
         self.parse_precedence(Precedence::Assignment)
     }
 
-    fn consume(&mut self, kind: TokenType<'a>, msg: &'static str) -> Result<()> {
+    fn consume(&mut self, kind: TokenType<'a>, msg: &str) -> Result<()> {
         if self.current.kind == kind {
             self.advance();
             Ok(())

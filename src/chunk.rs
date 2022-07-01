@@ -18,7 +18,7 @@ pub enum OpCode {
     Less,
 }
 
-impl fmt::Display for OpCode {
+impl fmt::Debug for OpCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             OpCode::Add => write!(f, "ADD"),
@@ -35,6 +35,28 @@ impl fmt::Display for OpCode {
             OpCode::Equal => write!(f, "EQUAL"),
             OpCode::Greater => write!(f, "GREATER"),
             OpCode::Less => write!(f, "LESS"),
+        }
+    }
+}
+
+
+impl fmt::Display for OpCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OpCode::Add => write!(f, "+"),
+            OpCode::Negate => write!(f, "-"),
+            OpCode::Multiply => write!(f, "*"),
+            OpCode::Divide => write!(f, "/"),
+            OpCode::Subtract => write!(f, "-"),
+            OpCode::Return => write!(f, "return"),
+            OpCode::Constant(index) => write!(f, "{}", index),
+            OpCode::True => write!(f, "true"),
+            OpCode::False => write!(f, "false"),
+            OpCode::Nil => write!(f, "nil"),
+            OpCode::Not => write!(f, "not"),
+            OpCode::Equal => write!(f, "equal"),
+            OpCode::Greater => write!(f, "greater"),
+            OpCode::Less => write!(f, "less"),
         }
     }
 }
@@ -91,11 +113,11 @@ impl Chunk {
         for (index, code) in self.code.iter().enumerate() {
             if let OpCode::Constant(i) = code {
                 println!(
-                    "{offset:04} {} {code} {}",
+                    "{offset:04} {} {code:?} {}",
                     self.lines[index], self.constants[*i]
                 );
             } else {
-                println!("{offset:04} {} {code}", self.lines[index]);
+                println!("{offset:04} {} {code:?}", self.lines[index]);
             }
             offset += 1;
         }

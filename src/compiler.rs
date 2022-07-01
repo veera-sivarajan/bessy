@@ -229,7 +229,11 @@ impl<'a> Compiler<'a> {
             TokenType::StrLit(_) => (None, None, Precedence::None),
             TokenType::Print => (None, None, Precedence::None),
             TokenType::Var => (None, None, Precedence::None),
-            TokenType::Nil => (None, None, Precedence::None),
+            TokenType::Nil => (
+                Some(Compiler::literal),
+                None,
+                Precedence::None
+            ),
             TokenType::If => (None, None, Precedence::None),
             TokenType::Else => (None, None, Precedence::None),
             TokenType::While => (None, None, Precedence::None),

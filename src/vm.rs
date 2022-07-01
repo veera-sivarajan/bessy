@@ -16,6 +16,16 @@ impl Value {
             None
         }
     }
+
+    fn is_falsey(&self) -> bool {
+        if let Value::Nil = self {
+            true
+        } else if let Value::Bool(b) = self {
+            !b
+        } else {
+            false
+        }
+    }
 }
 
 impl<'c> VM<'c> {
@@ -40,9 +50,10 @@ impl<'c> VM<'c> {
             let opcode = self.chunk.code[self.ip];
             self.ip += 1;
             match opcode {
-                OpCode::Constant(index) => { 
-                    self.push(self.chunk.constants[index]);
-                }
+                OpCode::Nil => self.push(Value::Nil),
+                OpCode::True => self.push(Value::Bool(true)),
+                OpCode::False => self.push(Value::Bool(false)),
+                OpCode::Constant(index) => self.push(self.chunk.constants[index]),
                 OpCode::Negate => {
                     if let Value::Number(n) = self.pop() {
                         self.push(Value::Number(-n));

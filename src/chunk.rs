@@ -8,7 +8,11 @@ pub enum OpCode {
     Multiply,
     Divide,
     Return,
+    Nil,
+    True,
+    False,
     Constant(usize), // usize holds the index to constants vector
+    Not,
 }
 
 impl fmt::Display for OpCode {
@@ -21,6 +25,10 @@ impl fmt::Display for OpCode {
             OpCode::Subtract => write!(f, "SUBTRACT"),
             OpCode::Return => write!(f, "RETURN"),
             OpCode::Constant(index) => write!(f, "CONSTANT({})", index),
+            OpCode::True => write!(f, "TRUE"),
+            OpCode::False => write!(f, "FALSE"),
+            OpCode::Nil => write!(f, "NIL"),
+            OpCode::Not => write!(f, "Not"),
         }
     }
 }
@@ -28,30 +36,20 @@ impl fmt::Display for OpCode {
 #[derive(Copy, Clone)]
 pub enum Value {
     Number(f64),
+    Bool(bool),
+    Nil,
 }
-
-// impl Value {
-//     pub fn is_number(&self) -> bool {
-//         if let Value::Number(_) = self {
-//             true
-//         } else {
-//             false
-//         }
-//     }
-
-//     pub fn add(&self, other: Value) -> Value {
-//         match (self, other) {
-//             (Value::Number(l), Value::Number(r)) => Value::Number(l + r),
-//             _ => unreachable!(),
-//         }
-//     }
-// }
-
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Value::Number(n) => write!(f, "{}", n),
+            Value::Nil => write!(f, "Nil"),
+            Value::Bool(b) => if *b {
+                write!(f, "True")
+            } else {
+                write!(f, "False")
+            }
         }
     }
 }

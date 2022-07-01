@@ -137,6 +137,7 @@ impl<'a> Compiler<'a> {
         self.parse_precedence(Precedence::Unary)?;
         match operator {
             TokenType::Minus => Ok(self.emit_byte(OpCode::Negate)),
+            TokenType::Bang => Ok(self.emit_byte(OpCode::Not)),
             _ => Ok(()),
         }
     }
@@ -151,6 +152,15 @@ impl<'a> Compiler<'a> {
             TokenType::Star => Ok(self.emit_byte(OpCode::Multiply)),
             TokenType::Slash => Ok(self.emit_byte(OpCode::Divide)),
             _ => Ok(()),
+        }
+    }
+
+    fn literal(&mut self) -> Result<()> {
+        match self.previous.kind {
+            TokenType::False => Ok(self.emit_byte(OpCode::False)),
+            TokenType::True => Ok(self.emit_byte(OpCode::True)),
+            TokenType::Nil => Ok(self.emit_byte(OpCode::Nil)),
+            _ => unreachable!(),
         }
     }
 
@@ -188,7 +198,11 @@ impl<'a> Compiler<'a> {
             TokenType::LeftBrace => (None, None, Precedence::None),
             TokenType::RightBrace => (None, None, Precedence::None),
             TokenType::Comma => (None, None, Precedence::None),
-            TokenType::Bang => (None, None, Precedence::None),
+            TokenType::Bang => (
+                Some(Compiler::unary),
+                None,
+                Precedence::None
+            ),
             TokenType::BangEqual => (None, None, Precedence::None),
             TokenType::Equal => (None, None, Precedence::None),
             TokenType::EqualEqual => (None, None, Precedence::None),
@@ -201,8 +215,8 @@ impl<'a> Compiler<'a> {
                 None,
                 Precedence::None
             ),
-            TokenType::True => (None, None, Precedence::None),
-            TokenType::False => (None, None, Precedence::None),
+            TokenType::True => (Some(Compiler::literal), None, Precedence::None),
+            TokenType::False => (Some(Compiler::literal), None, Precedence::None),
             TokenType::Identifier(_) => (None, None, Precedence::None),
             TokenType::StrLit(_) => (None, None, Precedence::None),
             TokenType::Print => (None, None, Precedence::None),

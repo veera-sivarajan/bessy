@@ -18,12 +18,19 @@ impl Value {
     }
 
     fn is_falsey(&self) -> bool {
-        if let Value::Nil = self {
-            true
-        } else if let Value::Bool(b) = self {
-            !b
-        } else {
-            false
+        match self {
+            Value::Nil => true,
+            Value::Bool(b) => !b,
+            _ => false,
+        }
+    }
+
+    fn equal(&self, other: Value) -> bool {
+        match (*self, other) {
+            (Value::Number(a), Value::Number(b)) => a == b,
+            (Value::Nil, Value::Nil) => true,
+            (Value::Bool(a), Value::Bool(b)) => a == b,
+            _ => false,
         }
     }
 }
@@ -68,6 +75,12 @@ impl<'c> VM<'c> {
                 OpCode::Not => {
                     let value = self.pop().is_falsey();
                     self.push(Value::Bool(value));
+                }
+                OpCode::Equal => {
+                    let b = self.pop();
+                    let a = self.pop();
+                    let result = a.equal(b);
+                    self.push(Value::Bool(result));
                 }
                 OpCode::Return => {
                     let v = self.pop();

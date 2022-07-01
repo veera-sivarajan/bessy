@@ -14,7 +14,7 @@ mod vm;
 use std::fs;
 fn main() {
     // let contents = fs::read_to_string("test/scan.lox").unwrap();
-    let contents = String::from("!nil");
+    let contents = String::from("1 != false");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
         Ok(c) => {

@@ -175,6 +175,16 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    fn string(&mut self) -> Result<()> {
+        if let TokenType::StrLit(lexeme) = self.previous.kind {
+            let index = self.chunk.add_constant(Value::String(String::from(lexeme)));
+            Ok(self.emit(OpCode::Constant(index)))
+        } else {
+            parse_error!("Expected String literal.", self.previous.line)
+        }
+    }
+                                            
+
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
             TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None),
@@ -205,7 +215,7 @@ impl<'a> Compiler<'a> {
             TokenType::True => (Some(Compiler::literal), None, Precedence::None),
             TokenType::False => (Some(Compiler::literal), None, Precedence::None),
             TokenType::Identifier(_) => (None, None, Precedence::None),
-            TokenType::StrLit(_) => (None, None, Precedence::None),
+            TokenType::StrLit(_) => (Some(Compiler::string), None, Precedence::None),
             TokenType::Print => (None, None, Precedence::None),
             TokenType::Var => (None, None, Precedence::None),
             TokenType::Nil => (Some(Compiler::literal), None, Precedence::None),

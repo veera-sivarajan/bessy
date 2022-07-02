@@ -17,10 +17,10 @@ impl Value {
     }
 
     fn equal(&self, other: Value) -> bool {
-        match (*self, other) {
-            (Value::Number(a), Value::Number(b)) => a == b,
+        match (self, other) {
+            (Value::Number(a), Value::Number(b)) => *a == b,
             (Value::Nil, Value::Nil) => true,
-            (Value::Bool(a), Value::Bool(b)) => a == b,
+            (Value::Bool(a), Value::Bool(b)) => *a == b,
             _ => false,
         }
     }
@@ -57,7 +57,7 @@ impl<'c> VM<'c> {
                 OpCode::Nil => self.push(Value::Nil),
                 OpCode::True => self.push(Value::Bool(true)),
                 OpCode::False => self.push(Value::Bool(false)),
-                OpCode::Constant(index) => self.push(self.chunk.constants[index]),
+                OpCode::Constant(index) => self.push(self.chunk.constants[index].clone()),
                 OpCode::Negate => {
                     if let Value::Number(n) = self.pop() {
                         self.push(Value::Number(-n));

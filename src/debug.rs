@@ -56,6 +56,7 @@ impl fmt::Display for Value {
                     write!(f, "False")
                 }
             }
+            Value::String(s) => write!(f, "{}", s),
         }
     }
 }

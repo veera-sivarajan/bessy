@@ -16,10 +16,11 @@ pub enum OpCode {
     Less,
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum Value {
     Number(f64),
     Bool(bool),
+    String(String),
     Nil,
 }
 

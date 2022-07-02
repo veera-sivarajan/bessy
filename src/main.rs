@@ -13,10 +13,10 @@ mod vm;
 // (setq compilation-scroll-output 'first-error)
 
 
-// use std::fs;
+use std::fs;
 fn main() {
-    // let contents = fs::read_to_string("test/scan.lox").unwrap();
-    let contents = String::from("-nil");
+    let contents = fs::read_to_string("test/scan.lox").unwrap();
+    // let contents = String::from("-nil");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
         Ok(c) => {

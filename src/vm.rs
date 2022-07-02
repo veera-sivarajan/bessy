@@ -61,7 +61,7 @@ impl<'c> VM<'c> {
                     if let Value::Number(n) = self.pop() {
                         self.push(Value::Number(-n));
                     } else {
-                        return runtime_error!("Operand to `-` should be a number.", self.chunk.lines[self.ip - 1]);
+                        return runtime_error!("Operand to '-' should be of type number.", self.chunk.lines[self.ip - 1]);
                     }
                 }
                 OpCode::Not => {

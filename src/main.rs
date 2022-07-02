@@ -14,7 +14,7 @@ mod vm;
 use std::fs;
 fn main() {
     // let contents = fs::read_to_string("test/scan.lox").unwrap();
-    let contents = String::from("!(5 - 4 > 3 * 2 == !nil)");
+    let contents = String::from("-nil");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
         Ok(c) => {
@@ -35,11 +35,19 @@ mod tests {
 
     fn test(input: &str, expected: chunk::Value) -> bool {
         let mut compiler = compiler::Compiler::new(input);
-        let code = compiler.compile();
-        assert!(code.is_ok());
-        let mut vm = vm::VM::new(code.unwrap());
-        let output = vm.run();
-        output.map_or(false, |v| v == expected)
+        if let Ok(code) = compiler.compile() {
+            let mut vm = vm::VM::new(code);
+            let output = vm.run();
+            output.map_or(false, |v| v == expected)
+        } else {
+            false
+        }
+    }
+
+    #[test]
+    fn empty_input() {
+        // errors
+        assert!(!test("", chunk::Value::Number(1.0)));
     }
     
     #[test]
@@ -55,7 +63,18 @@ mod tests {
     }
 
     #[test]
-    fn expression() {
+    fn expressions() {
+        assert!(test("1 + 2", chunk::Value::Number(3.0)));
         assert!(test("!(5 - 4 > 3 * 2 == !nil)", chunk::Value::Bool(true)));
+        assert!(test("!true", chunk::Value::Bool(false)));
+
+        // errors
+        assert!(!test("1 + true", chunk::Value::Number(1.0)));
+        assert!(!test("true > true", chunk::Value::Number(1.0)));
+    }
+
+    #[test]
+    fn unknown_chars() {
+        assert!(!test("`", chunk::Value::Number(1.0)))
     }
 }

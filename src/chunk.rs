@@ -39,7 +39,6 @@ impl fmt::Debug for OpCode {
     }
 }
 
-
 impl fmt::Display for OpCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -73,10 +72,12 @@ impl fmt::Display for Value {
         match self {
             Value::Number(n) => write!(f, "{}", n),
             Value::Nil => write!(f, "Nil"),
-            Value::Bool(b) => if *b {
-                write!(f, "True")
-            } else {
-                write!(f, "False")
+            Value::Bool(b) => {
+                if *b {
+                    write!(f, "True")
+                } else {
+                    write!(f, "False")
+                }
             }
         }
     }

@@ -49,7 +49,7 @@ mod tests {
         // errors
         assert!(!test("", chunk::Value::Number(1.0)));
     }
-    
+
     #[test]
     fn numbers() {
         assert!(test("1", chunk::Value::Number(1.0)))

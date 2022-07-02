@@ -177,11 +177,7 @@ impl<'a> Compiler<'a> {
 
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
-            TokenType::LeftParen => (
-                Some(Compiler::grouping),
-                None,
-                Precedence::None
-            ),
+            TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None),
             TokenType::RightParen => (None, None, Precedence::None),
             TokenType::Dot => (None, None, Precedence::None),
             TokenType::Minus => (
@@ -189,86 +185,30 @@ impl<'a> Compiler<'a> {
                 Some(Compiler::binary),
                 Precedence::Term,
             ),
-            TokenType::Plus => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Term
-            ),
-            TokenType::Slash => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Factor
-            ),
-            TokenType::Star => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Factor
-            ),
+            TokenType::Plus => (None, Some(Compiler::binary), Precedence::Term),
+            TokenType::Slash => (None, Some(Compiler::binary), Precedence::Factor),
+            TokenType::Star => (None, Some(Compiler::binary), Precedence::Factor),
             TokenType::Semicolon => (None, None, Precedence::None),
             TokenType::Eof => (None, None, Precedence::None),
             TokenType::LeftBrace => (None, None, Precedence::None),
             TokenType::RightBrace => (None, None, Precedence::None),
             TokenType::Comma => (None, None, Precedence::None),
-            TokenType::Bang => (
-                Some(Compiler::unary),
-                None,
-                Precedence::None
-            ),
-            TokenType::BangEqual => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Equality,
-            ),
+            TokenType::Bang => (Some(Compiler::unary), None, Precedence::None),
+            TokenType::BangEqual => (None, Some(Compiler::binary), Precedence::Equality),
             TokenType::Equal => (None, None, Precedence::None),
-            TokenType::EqualEqual => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Equality,
-            ),
-            TokenType::Greater => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Comparison,
-            ),
-            TokenType::GreaterEqual => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Comparison,
-            ),
-            TokenType::Less => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Comparison,
-            ),
-            TokenType::LessEqual => (
-                None,
-                Some(Compiler::binary),
-                Precedence::Comparison,
-            ),
-            TokenType::Number(_) => (
-                Some(Compiler::number),
-                None,
-                Precedence::None
-            ),
-            TokenType::True => (
-                Some(Compiler::literal),
-                None,
-                Precedence::None
-            ),
-            TokenType::False => (
-                Some(Compiler::literal),
-                None,
-                Precedence::None
-            ),
+            TokenType::EqualEqual => (None, Some(Compiler::binary), Precedence::Equality),
+            TokenType::Greater => (None, Some(Compiler::binary), Precedence::Comparison),
+            TokenType::GreaterEqual => (None, Some(Compiler::binary), Precedence::Comparison),
+            TokenType::Less => (None, Some(Compiler::binary), Precedence::Comparison),
+            TokenType::LessEqual => (None, Some(Compiler::binary), Precedence::Comparison),
+            TokenType::Number(_) => (Some(Compiler::number), None, Precedence::None),
+            TokenType::True => (Some(Compiler::literal), None, Precedence::None),
+            TokenType::False => (Some(Compiler::literal), None, Precedence::None),
             TokenType::Identifier(_) => (None, None, Precedence::None),
             TokenType::StrLit(_) => (None, None, Precedence::None),
             TokenType::Print => (None, None, Precedence::None),
             TokenType::Var => (None, None, Precedence::None),
-            TokenType::Nil => (
-                Some(Compiler::literal),
-                None,
-                Precedence::None
-            ),
+            TokenType::Nil => (Some(Compiler::literal), None, Precedence::None),
             TokenType::If => (None, None, Precedence::None),
             TokenType::Else => (None, None, Precedence::None),
             TokenType::While => (None, None, Precedence::None),

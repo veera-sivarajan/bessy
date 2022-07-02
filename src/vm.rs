@@ -1,4 +1,4 @@
-use crate::chunk::{Chunk, Value, OpCode};
+use crate::chunk::{Chunk, OpCode, Value};
 use crate::error::BessyError;
 
 pub struct VM<'c> {
@@ -6,7 +6,6 @@ pub struct VM<'c> {
     ip: usize,
     stack: Vec<Value>,
 }
-
 
 impl Value {
     fn is_falsey(&self) -> bool {
@@ -45,7 +44,9 @@ impl<'c> VM<'c> {
     }
 
     fn peek(&self, depth: usize) -> &Value {
-        self.stack.get(self.stack.len() - (depth + 1)).expect("Tried to peek at an empty stack.")
+        self.stack
+            .get(self.stack.len() - (depth + 1))
+            .expect("Tried to peek at an empty stack.")
     }
 
     pub fn run(&mut self) -> Result<Value, BessyError> {
@@ -61,7 +62,10 @@ impl<'c> VM<'c> {
                     if let Value::Number(n) = self.pop() {
                         self.push(Value::Number(-n));
                     } else {
-                        return runtime_error!("Operand to '-' should be of type number.", self.chunk.lines[self.ip - 1]);
+                        return runtime_error!(
+                            "Operand to '-' should be of type number.",
+                            self.chunk.lines[self.ip - 1]
+                        );
                     }
                 }
                 OpCode::Not => {
@@ -80,8 +84,12 @@ impl<'c> VM<'c> {
                     // return Ok(());
                     return Ok(self.pop());
                 }
-                OpCode::Add | OpCode::Subtract | OpCode::Multiply |
-                OpCode::Divide | OpCode::Greater | OpCode::Less => {
+                OpCode::Add
+                | OpCode::Subtract
+                | OpCode::Multiply
+                | OpCode::Divide
+                | OpCode::Greater
+                | OpCode::Less => {
                     match (self.peek(0), self.peek(1)) {
                         (Value::Number(l), Value::Number(r)) => {
                             let result = match opcode {
@@ -103,9 +111,8 @@ impl<'c> VM<'c> {
                         }
                     }
                 }
-                _ => todo!()
+                _ => todo!(),
             }
         }
     }
 }
-        

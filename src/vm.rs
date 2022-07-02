@@ -78,37 +78,29 @@ impl<'c> VM<'c> {
                     let result = a.equal(b);
                     self.push(Value::Bool(result));
                 }
-                OpCode::Return => {
-                    // let v = self.pop();
-                    // println!("{}", v);
-                    // return Ok(());
-                    return Ok(self.pop());
-                }
+                OpCode::Return => return Ok(self.pop()),
                 OpCode::Add
                 | OpCode::Subtract
                 | OpCode::Multiply
                 | OpCode::Divide
                 | OpCode::Greater
                 | OpCode::Less => {
-                    match (self.peek(0), self.peek(1)) {
-                        (Value::Number(l), Value::Number(r)) => {
+                    if let (Value::Number(r), Value::Number(l)) = (self.peek(0), self.peek(1)) {
                             let result = match opcode {
                                 OpCode::Add => Value::Number(l + r),
-                                OpCode::Subtract => Value::Number(r - l),
+                                OpCode::Subtract => Value::Number(l - r),
                                 OpCode::Multiply => Value::Number(l * r),
-                                OpCode::Divide => Value::Number(r / l),
-                                OpCode::Greater => Value::Bool(r > l),
-                                OpCode::Less => Value::Bool(r < l),
+                                OpCode::Divide => Value::Number(l / r),
+                                OpCode::Greater => Value::Bool(l > r),
+                                OpCode::Less => Value::Bool(l < r),
                                 _ => unreachable!(),
                             };
                             self.pop(); // pop the operands
                             self.pop();
                             self.push(result);
-                        }
-                        _ => {
-                            let msg = format!("Operands to '{}' should be of type number.", opcode);
-                            return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
-                        }
+                    } else {
+                        let msg = format!("Operands to '{}' should be of type number.", opcode);
+                        return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
                     }
                 }
             }

@@ -18,9 +18,10 @@ impl Value {
 
     fn equal(&self, other: Value) -> bool {
         match (self, other) {
-            (Value::Number(a), Value::Number(b)) => *a == b,
             (Value::Nil, Value::Nil) => true,
+            (Value::Number(a), Value::Number(b)) => *a == b,
             (Value::Bool(a), Value::Bool(b)) => *a == b,
+            (Value::String(a), Value::String(b)) => *a == b, 
             _ => false,
         }
     }

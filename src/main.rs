@@ -13,8 +13,8 @@ mod vm;
 // (setq compilation-scroll-output 'first-error)
 
 
-use std::fs;
 fn main() {
+    use std::fs;
     let contents = fs::read_to_string("test/scan.lox").unwrap();
     // let contents = String::from("\"hello\"");
     let mut compiler = compiler::Compiler::new(&contents);

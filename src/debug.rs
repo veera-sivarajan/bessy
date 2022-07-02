@@ -71,10 +71,11 @@ impl Chunk {
                     "{offset:04} {} {code:?} {}",
                     self.lines[index], self.constants[*i]
                 );
+                offset += 2
             } else {
                 println!("{offset:04} {} {code:?}", self.lines[index]);
+                offset += 1;
             }
-            offset += 1;
         }
         println!("== END ==");
     }

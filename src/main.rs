@@ -16,7 +16,7 @@ mod vm;
 use std::fs;
 fn main() {
     let contents = fs::read_to_string("test/scan.lox").unwrap();
-    // let contents = String::from("-nil");
+    // let contents = String::from("\"hello\"");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
         Ok(c) => {
@@ -79,5 +79,11 @@ mod tests {
     #[test]
     fn unknown_chars() {
         assert!(!test("`", Value::Number(1.0)))
+    }
+
+    #[test]
+    fn strings() {
+        assert!(test("\"Hello, world!\"", Value::String(String::from("Hello, world!"))));
+        assert!(test("\"Hello, \" + \"world!\"", Value::String(String::from("Hello, world!"))));
     }
 }

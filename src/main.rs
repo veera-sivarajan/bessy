@@ -3,6 +3,7 @@
 mod error;
 mod chunk;
 mod compiler;
+mod debug;
 mod lexer;
 mod token;
 mod vm;
@@ -11,7 +12,8 @@ mod vm;
 // (add-hook 'after-save-hook 'rust-compile)
 // (setq compilation-scroll-output 'first-error)
 
-use std::fs;
+
+// use std::fs;
 fn main() {
     // let contents = fs::read_to_string("test/scan.lox").unwrap();
     let contents = String::from("-nil");
@@ -32,8 +34,9 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::chunk::Value;
 
-    fn test(input: &str, expected: chunk::Value) -> bool {
+    fn test(input: &str, expected: Value) -> bool {
         let mut compiler = compiler::Compiler::new(input);
         if let Ok(code) = compiler.compile() {
             let mut vm = vm::VM::new(code);
@@ -47,34 +50,34 @@ mod tests {
     #[test]
     fn empty_input() {
         // errors
-        assert!(!test("", chunk::Value::Number(1.0)));
+        assert!(!test("", Value::Number(1.0)));
     }
 
     #[test]
     fn numbers() {
-        assert!(test("1", chunk::Value::Number(1.0)))
+        assert!(test("1", Value::Number(1.0)))
     }
 
     #[test]
     fn literals() {
-        assert!(test("true", chunk::Value::Bool(true)));
-        assert!(test("false", chunk::Value::Bool(false)));
-        assert!(test("nil", chunk::Value::Nil));
+        assert!(test("true", Value::Bool(true)));
+        assert!(test("false", Value::Bool(false)));
+        assert!(test("nil", Value::Nil));
     }
 
     #[test]
     fn expressions() {
-        assert!(test("1 + 2", chunk::Value::Number(3.0)));
-        assert!(test("!(5 - 4 > 3 * 2 == !nil)", chunk::Value::Bool(true)));
-        assert!(test("!true", chunk::Value::Bool(false)));
+        assert!(test("1 + 2", Value::Number(3.0)));
+        assert!(test("!(5 - 4 > 3 * 2 == !nil)", Value::Bool(true)));
+        assert!(test("!true", Value::Bool(false)));
 
         // errors
-        assert!(!test("1 + true", chunk::Value::Number(1.0)));
-        assert!(!test("true > true", chunk::Value::Number(1.0)));
+        assert!(!test("1 + true", Value::Number(1.0)));
+        assert!(!test("true > true", Value::Number(1.0)));
     }
 
     #[test]
     fn unknown_chars() {
-        assert!(!test("`", chunk::Value::Number(1.0)))
+        assert!(!test("`", Value::Number(1.0)))
     }
 }

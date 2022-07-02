@@ -85,7 +85,8 @@ impl<'c> VM<'c> {
                 | OpCode::Divide
                 | OpCode::Greater
                 | OpCode::Less => {
-                    if let (Value::Number(r), Value::Number(l)) = (self.peek(0), self.peek(1)) {
+                    match (self.peek(0), self.peek(1)) {
+                        (Value::Number(r), Value::Number(l)) => {
                             let result = match opcode {
                                 OpCode::Add => Value::Number(l + r),
                                 OpCode::Subtract => Value::Number(l - r),
@@ -98,9 +99,20 @@ impl<'c> VM<'c> {
                             self.pop(); // pop the operands
                             self.pop();
                             self.push(result);
-                    } else {
-                        let msg = format!("Operands to '{}' should be of type number.", opcode);
-                        return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
+                        }
+                        (Value::String(r), Value::String(l)) => {
+                            let result = match opcode {
+                                OpCode::Add => Value::String(format!("{}{}",l, r)),
+                                _ => return runtime_error!("Unsupported operation for Strings.", self.chunk.lines[self.ip - 1]),
+                            };
+                            self.pop();
+                            self.pop();
+                            self.push(result);
+                        }
+                        _ => {
+                            let msg = format!("Operands to '{}' should be of type number.", opcode);
+                            return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
+                        }
                     }
                 }
             }

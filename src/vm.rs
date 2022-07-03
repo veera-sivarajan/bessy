@@ -50,8 +50,8 @@ impl<'c> VM<'c> {
             .expect("Tried to peek at an empty stack.")
     }
 
-    pub fn run(&mut self) -> Result<Value, BessyError> {
-        loop {
+    pub fn run(&mut self) -> Result<(), BessyError> {
+        while !self.chunk.code.is_empty() {
             let opcode = self.chunk.code[self.ip];
             self.ip += 1;
             match opcode {
@@ -79,7 +79,8 @@ impl<'c> VM<'c> {
                     let result = a.equal(b);
                     self.push(Value::Bool(result));
                 }
-                OpCode::Return => return Ok(self.pop()),
+                OpCode::Return => return Ok(()), 
+                OpCode::Print => println!("{}", self.pop()),
                 OpCode::Add
                 | OpCode::Subtract
                 | OpCode::Multiply
@@ -116,8 +117,8 @@ impl<'c> VM<'c> {
                         }
                     }
                 }
-                OpCode::Print => todo!(),
             }
         }
+        Ok(())
     }
 }

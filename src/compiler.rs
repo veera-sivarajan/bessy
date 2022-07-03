@@ -119,7 +119,7 @@ impl<'a> Compiler<'a> {
 
     fn print_statement(&mut self) -> Result<()> {
         self.expression()?;
-        self.consume(TokenType::Semicolon, "Expect ';' after value.");
+        self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
         self.emit(OpCode::Print);
         Ok(())
     }
@@ -133,7 +133,7 @@ impl<'a> Compiler<'a> {
             self.advance();
             Ok(())
         } else {
-            parse_error!(msg, self.current.line)
+            parse_error!(msg, self.previous.line)
         }
     }
 
@@ -148,7 +148,7 @@ impl<'a> Compiler<'a> {
             }
             Ok(())
         } else {
-            parse_error!("Expected expression!", self.current.line)
+            parse_error!("Expected expression!", self.previous.line)
         }
     }
 
@@ -157,7 +157,7 @@ impl<'a> Compiler<'a> {
             let index = self.chunk.add_constant(Value::Number(value));
             Ok(self.emit(OpCode::Constant(index)))
         } else {
-            parse_error!("Expected Number!", self.current.line)
+            parse_error!("Expected Number!", self.previous.line)
         }
     }
 

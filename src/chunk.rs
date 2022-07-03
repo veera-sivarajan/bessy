@@ -14,6 +14,7 @@ pub enum OpCode {
     Equal,
     Greater,
     Less,
+    Print,
 }
 
 #[derive(Clone, PartialEq)]

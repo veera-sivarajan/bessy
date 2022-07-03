@@ -85,7 +85,7 @@ impl<'a> Compiler<'a> {
         self.emit(b);
     }
 
-    fn next_eq(&mut self, kind: TokenType) -> bool {
+    fn next_eq(&mut self, kind: TokenType<'a>) -> bool {
         if self.current.kind == kind {
             self.advance();
             true
@@ -103,6 +103,25 @@ impl<'a> Compiler<'a> {
         self.consume(TokenType::Eof, "Expect end of expression.")?;
         self.emit(OpCode::Return);
         Ok(&self.chunk)
+    }
+
+    fn declaration(&mut self) -> Result<()> {
+        self.statement()
+    }
+
+    fn statement(&mut self) -> Result<()> {
+        if self.next_eq(TokenType::Print) {
+            self.print_statement()
+        } else {
+            todo!()
+        }
+    }
+
+    fn print_statement(&mut self) -> Result<()> {
+        self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect ';' after value.");
+        self.emit(OpCode::Print);
+        Ok(())
     }
 
     fn expression(&mut self) -> Result<()> {

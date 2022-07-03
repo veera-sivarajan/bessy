@@ -18,6 +18,7 @@ impl fmt::Debug for OpCode {
             OpCode::Equal => write!(f, "EQUAL"),
             OpCode::Greater => write!(f, "GREATER"),
             OpCode::Less => write!(f, "LESS"),
+            OpCode::Print => write!(f, "PRINT"),
         }
     }
 }
@@ -39,6 +40,7 @@ impl fmt::Display for OpCode {
             OpCode::Equal => write!(f, "equal"),
             OpCode::Greater => write!(f, "greater"),
             OpCode::Less => write!(f, "less"),
+            OpCode::Print => write!(f, "print"),
         }
     }
 }

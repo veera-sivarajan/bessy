@@ -116,6 +116,7 @@ impl<'c> VM<'c> {
                         }
                     }
                 }
+                OpCode::Print => todo!(),
             }
         }
     }

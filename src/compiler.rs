@@ -85,10 +85,21 @@ impl<'a> Compiler<'a> {
         self.emit(b);
     }
 
+    fn next_eq(&mut self, kind: TokenType) -> bool {
+        if self.current.kind == kind {
+            self.advance();
+            true
+        } else {
+            false
+        }
+    }
+
     // compiles the entire source code to a chunk
     pub fn compile(&mut self) -> Result<&Chunk> {
         self.advance();
-        self.expression()?;
+        while !self.next_eq(TokenType::Eof) {
+            self.declaration()?;
+        }
         self.consume(TokenType::Eof, "Expect end of expression.")?;
         self.emit(OpCode::Return);
         Ok(&self.chunk)

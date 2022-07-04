@@ -14,6 +14,11 @@ pub enum OpCode {
     Equal,
     Greater,
     Less,
+    Print,
+    Pop,
+    DefineGlobal(usize), 
+    GetGlobal(usize),
+    SetGlobal(usize),
 }
 
 #[derive(Clone, PartialEq)]

@@ -18,6 +18,11 @@ impl fmt::Debug for OpCode {
             OpCode::Equal => write!(f, "EQUAL"),
             OpCode::Greater => write!(f, "GREATER"),
             OpCode::Less => write!(f, "LESS"),
+            OpCode::Print => write!(f, "PRINT"),
+            OpCode::Pop => write!(f, "POP"),
+            OpCode::DefineGlobal(index) => write!(f, "DEFINE_GLOBAL({})", index),
+            OpCode::GetGlobal(index) => write!(f, "GET_GLOBAL({})", index),
+            OpCode::SetGlobal(index) => write!(f, "SET_GLOBAL({})", index),
         }
     }
 }
@@ -39,6 +44,11 @@ impl fmt::Display for OpCode {
             OpCode::Equal => write!(f, "equal"),
             OpCode::Greater => write!(f, "greater"),
             OpCode::Less => write!(f, "less"),
+            OpCode::Print => write!(f, "print"),
+            OpCode::Pop => write!(f, "pop"),
+            OpCode::DefineGlobal(index) => write!(f, "{}", index),
+            OpCode::GetGlobal(index) => write!(f, "{}", index),
+            OpCode::SetGlobal(index) => write!(f, "{}", index),
         }
     }
 }
@@ -67,10 +77,7 @@ impl Chunk {
         println!("== BYTECODE ==");
         for (index, code) in self.code.iter().enumerate() {
             if let OpCode::Constant(i) = code {
-                println!(
-                    "{offset:04} {} {code:?} {}",
-                    self.lines[index], self.constants[*i]
-                );
+                println!("{offset:04} {} {code:?} {:->7} {}", self.lines[index], "", self.constants[*i]);
                 offset += 2
             } else {
                 println!("{offset:04} {} {code:?}", self.lines[index]);

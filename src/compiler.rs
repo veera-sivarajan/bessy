@@ -46,8 +46,8 @@ pub struct Compiler<'a> {
 }
 
 type ParseRule<'a> = (
-    Option<fn(&mut Compiler<'a>) -> Result<()>>,
-    Option<fn(&mut Compiler<'a>) -> Result<()>>,
+    Option<fn(&mut Compiler<'a>, bool) -> Result<()>>,
+    Option<fn(&mut Compiler<'a>, bool) -> Result<()>>,
     Precedence,
 );
 
@@ -85,13 +85,75 @@ impl<'a> Compiler<'a> {
         self.emit(b);
     }
 
+    fn next_eq(&mut self, kind: TokenType<'a>) -> bool {
+        if self.current.kind == kind {
+            self.advance();
+            true
+        } else {
+            false
+        }
+    }
+
     // compiles the entire source code to a chunk
     pub fn compile(&mut self) -> Result<&Chunk> {
         self.advance();
-        self.expression()?;
+        while !self.next_eq(TokenType::Eof) {
+            self.declaration()?;
+        }
         self.consume(TokenType::Eof, "Expect end of expression.")?;
         self.emit(OpCode::Return);
         Ok(&self.chunk)
+    }
+
+    fn declaration(&mut self) -> Result<()> {
+        if self.next_eq(TokenType::Var) {
+            self.var_declaration()
+        } else {
+            self.statement()
+        }
+    }
+
+    fn var_declaration(&mut self) -> Result<()> {
+        let name_index = self.parse_variable("Expect variable name.")?;
+        if self.next_eq(TokenType::Equal) {
+            self.expression()?;
+        } else {
+            self.emit(OpCode::Nil);
+        }
+        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")?;
+        self.emit(OpCode::DefineGlobal(name_index));
+        Ok(())
+    }
+
+    fn parse_variable(&mut self, error_msg: &str) -> Result<usize> {
+        if let TokenType::Identifier(lexeme) = self.current.kind {
+            self.advance();
+            Ok(self.chunk.add_constant(Value::String(lexeme.to_owned())))
+        } else {
+            parse_error!(error_msg, self.previous.line)
+        }
+    }
+
+    fn statement(&mut self) -> Result<()> {
+        if self.next_eq(TokenType::Print) {
+            self.print_statement()
+        } else {
+            self.expression_statement()
+        }
+    }
+
+    fn print_statement(&mut self) -> Result<()> {
+        self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
+        self.emit(OpCode::Print);
+        Ok(())
+    }
+
+    fn expression_statement(&mut self) -> Result<()> {
+        self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
+        self.emit(OpCode::Pop);
+        Ok(())
     }
 
     fn expression(&mut self) -> Result<()> {
@@ -103,41 +165,46 @@ impl<'a> Compiler<'a> {
             self.advance();
             Ok(())
         } else {
-            parse_error!(msg, self.current.line)
+            parse_error!(msg, self.previous.line)
         }
     }
 
     fn parse_precedence(&mut self, bp: Precedence) -> Result<()> {
         self.advance();
-        if let Some(p_rule) = self.get_rule(self.previous.kind).0 {
-            p_rule(self)?;
+        if let Some(prefix_rule) = self.get_rule(self.previous.kind).0 {
+            let can_assign = bp <= Precedence::Assignment;
+            prefix_rule(self, can_assign)?;
             while bp <= self.get_rule(self.current.kind).2 {
                 self.advance();
                 let infix_rule = self.get_rule(self.previous.kind).1;
-                infix_rule.unwrap()(self)?;
+                infix_rule.unwrap()(self, can_assign)?;
             }
-            Ok(())
+            if can_assign && self.next_eq(TokenType::Equal) {
+                parse_error!("Invalid assignment target.", self.previous.line)
+            } else {
+                Ok(())
+            }
         } else {
-            parse_error!("Expected expression!", self.current.line)
+            parse_error!("Expected expression!", self.previous.line)
         }
     }
 
-    fn number(&mut self) -> Result<()> {
+    fn number(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::Number(value) = self.previous.kind {
             let index = self.chunk.add_constant(Value::Number(value));
             Ok(self.emit(OpCode::Constant(index)))
         } else {
-            parse_error!("Expected Number!", self.current.line)
+            parse_error!("Expected Number!", self.previous.line)
         }
     }
 
-    fn grouping(&mut self) -> Result<()> {
+    fn grouping(&mut self, _can_assign: bool) -> Result<()> {
         self.expression()?;
         self.consume(TokenType::RightParen, "Expect ')' after expression")?;
         Ok(())
     }
 
-    fn unary(&mut self) -> Result<()> {
+    fn unary(&mut self, _can_assign: bool) -> Result<()> {
         let operator = self.previous.kind;
         self.parse_precedence(Precedence::Unary)?;
         match operator {
@@ -147,7 +214,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn binary(&mut self) -> Result<()> {
+    fn binary(&mut self, _can_assign: bool) -> Result<()> {
         let operator = self.previous.kind;
         let rule = self.get_rule(operator).2;
         self.parse_precedence(rule.next())?;
@@ -166,7 +233,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn literal(&mut self) -> Result<()> {
+    fn literal(&mut self, _can_assign: bool) -> Result<()> {
         match self.previous.kind {
             TokenType::False => Ok(self.emit(OpCode::False)),
             TokenType::True => Ok(self.emit(OpCode::True)),
@@ -175,16 +242,35 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn string(&mut self) -> Result<()> {
+    fn string(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::StrLit(lexeme) = self.previous.kind {
-            let index = self.chunk.add_constant(Value::String(String::from(lexeme)));
+            let index = self.chunk.add_constant(Value::String(lexeme.to_owned()));
             Ok(self.emit(OpCode::Constant(index)))
         } else {
             parse_error!("Expected String literal.", self.previous.line)
         }
     }
-                                            
 
+    fn variable(&mut self, can_assign: bool) -> Result<()> {
+        self.named_variable(self.previous, can_assign)
+    }
+
+    fn named_variable(&mut self, name: Token<'a>, can_assign: bool) -> Result<()> {
+        if let TokenType::Identifier(lexeme) = name.kind {
+            let index = self.chunk.add_constant(Value::String(lexeme.to_owned()));
+            if self.next_eq(TokenType::Equal) && can_assign {
+                // l-value
+                self.expression()?;
+                Ok(self.emit(OpCode::SetGlobal(index)))
+            } else {
+                // r-value
+                Ok(self.emit(OpCode::GetGlobal(index)))
+            }
+        } else {
+            parse_error!("Expected variable name.", self.previous.line)
+        }
+    }
+            
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
             TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None),
@@ -214,7 +300,7 @@ impl<'a> Compiler<'a> {
             TokenType::Number(_) => (Some(Compiler::number), None, Precedence::None),
             TokenType::True => (Some(Compiler::literal), None, Precedence::None),
             TokenType::False => (Some(Compiler::literal), None, Precedence::None),
-            TokenType::Identifier(_) => (None, None, Precedence::None),
+            TokenType::Identifier(_) => (Some(Compiler::variable), None, Precedence::None),
             TokenType::StrLit(_) => (Some(Compiler::string), None, Precedence::None),
             TokenType::Print => (None, None, Precedence::None),
             TokenType::Var => (None, None, Precedence::None),

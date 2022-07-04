@@ -239,14 +239,26 @@ impl<'a> Compiler<'a> {
 
     fn string(&mut self) -> Result<()> {
         if let TokenType::StrLit(lexeme) = self.previous.kind {
-            let index = self.chunk.add_constant(Value::String(String::from(lexeme)));
+            let index = self.chunk.add_constant(Value::String(lexeme.to_owned()));
             Ok(self.emit(OpCode::Constant(index)))
         } else {
             parse_error!("Expected String literal.", self.previous.line)
         }
     }
-                                            
 
+    fn variable(&mut self) -> Result<()> {
+        self.named_variable(self.previous)
+    }
+
+    fn named_variable(&mut self, name: Token<'a>) -> Result<()> {
+        if let TokenType::Identifier(lexeme) = name.kind {
+            let index = self.chunk.add_constant(Value::String(lexeme.to_owned()));
+            Ok(self.emit(OpCode::GetGlobal(index)))
+        } else {
+            parse_error!("Expected variable name.", self.previous.line)
+        }
+    }
+            
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
             TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None),
@@ -276,7 +288,7 @@ impl<'a> Compiler<'a> {
             TokenType::Number(_) => (Some(Compiler::number), None, Precedence::None),
             TokenType::True => (Some(Compiler::literal), None, Precedence::None),
             TokenType::False => (Some(Compiler::literal), None, Precedence::None),
-            TokenType::Identifier(_) => (None, None, Precedence::None),
+            TokenType::Identifier(_) => (Some(Compiler::variable), None, Precedence::None),
             TokenType::StrLit(_) => (Some(Compiler::string), None, Precedence::None),
             TokenType::Print => (None, None, Precedence::None),
             TokenType::Var => (None, None, Precedence::None),

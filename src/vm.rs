@@ -95,6 +95,9 @@ impl<'c> VM<'c> {
                         unreachable!()
                     }
                 }
+                OpCode::GetGlobal(_index) => {
+                    todo!()
+                }
                 OpCode::Add
                 | OpCode::Subtract
                 | OpCode::Multiply

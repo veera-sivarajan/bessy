@@ -81,6 +81,9 @@ impl<'c> VM<'c> {
                 }
                 OpCode::Return => return Ok(()), 
                 OpCode::Print => println!("{}", self.pop()),
+                OpCode::Pop => {
+                    let _ = self.pop();
+                }
                 OpCode::Add
                 | OpCode::Subtract
                 | OpCode::Multiply

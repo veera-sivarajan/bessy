@@ -113,7 +113,7 @@ impl<'a> Compiler<'a> {
         if self.next_eq(TokenType::Print) {
             self.print_statement()
         } else {
-            todo!()
+            self.expression_statement()
         }
     }
 
@@ -121,6 +121,13 @@ impl<'a> Compiler<'a> {
         self.expression()?;
         self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
         self.emit(OpCode::Print);
+        Ok(())
+    }
+
+    fn expression_statement(&mut self) -> Result<()> {
+        self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
+        self.emit(OpCode::Pop);
         Ok(())
     }
 

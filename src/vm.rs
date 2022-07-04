@@ -110,7 +110,7 @@ impl<'c> VM<'c> {
                 OpCode::SetGlobal(index) => {
                     if let Value::String(name) = self.chunk.constants[index].clone() {
                         if self.globals.contains_key(&name) {
-                            // not popping the variable here because assignment is an expression
+                            // not popping the value here because assignment is an expression
                             let _ = self.globals.insert(name, self.peek(0).to_owned());
                         } else {
                             let msg = format!("Cannot assign to undefined variable '{}'.", name);

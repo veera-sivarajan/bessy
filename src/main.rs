@@ -15,7 +15,7 @@ mod vm;
 
 fn main() {
     use std::fs;
-    let contents = fs::read_to_string("test/scan.lox").unwrap();
+    let contents = fs::read_to_string("/home/veera/Projects/bessy/test/scan.lox").unwrap();
     // let contents = String::from("\"hello\"");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {

@@ -95,8 +95,17 @@ impl<'c> VM<'c> {
                         unreachable!()
                     }
                 }
-                OpCode::GetGlobal(_index) => {
-                    todo!()
+                OpCode::GetGlobal(index) => {
+                    if let Value::String(name) = self.chunk.constants[index].clone() {
+                        if let Some(value) = self.globals.get(&name) {
+                            self.push(value.to_owned());
+                        } else {
+                            let msg = format!("Undefined variable '{}'.", name);
+                            return runtime_error!(msg, self.chunk.lines[self.ip - 1])
+                        }
+                    } else {
+                        unreachable!()
+                    }
                 }
                 OpCode::Add
                 | OpCode::Subtract

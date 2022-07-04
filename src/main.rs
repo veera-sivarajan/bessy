@@ -21,11 +21,11 @@ fn main() {
     match compiler.compile() {
         Ok(c) => {
             c.print();
-            // let mut vm = vm::VM::new(c);
-            // match vm.run() {
-            //     Err(e) => eprintln!("{}", e),
-            //     Ok(()) => {},
-            // }
+            let mut vm = vm::VM::new(c);
+            match vm.run() {
+                Err(e) => eprintln!("{}", e),
+                Ok(()) => {},
+            }
         }
         Err(e) => eprintln!("{}", e),
     }

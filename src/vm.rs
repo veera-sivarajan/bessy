@@ -1,10 +1,12 @@
 use crate::chunk::{Chunk, OpCode, Value};
 use crate::error::BessyError;
+use std::collections::HashMap;
 
 pub struct VM<'c> {
     chunk: &'c Chunk,
     ip: usize,
     stack: Vec<Value>,
+    globals: HashMap<String, Value>,
 }
 
 impl Value {
@@ -33,6 +35,7 @@ impl<'c> VM<'c> {
             chunk,
             ip: 0,
             stack: Vec::new(),
+            globals: HashMap::new(),
         }
     }
 
@@ -84,7 +87,14 @@ impl<'c> VM<'c> {
                 OpCode::Pop => {
                     let _ = self.pop();
                 }
-                OpCode::DefineGlobal(_index) => todo!(),
+                OpCode::DefineGlobal(index) => {
+                    if let Value::String(name) = self.chunk.constants[index].clone() {
+                        let value = self.pop();
+                        let _ = self.globals.insert(name, value);
+                    } else {
+                        unreachable!()
+                    }
+                }
                 OpCode::Add
                 | OpCode::Subtract
                 | OpCode::Multiply

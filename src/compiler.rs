@@ -189,7 +189,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn number(&mut self, can_assign: bool) -> Result<()> {
+    fn number(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::Number(value) = self.previous.kind {
             let index = self.chunk.add_constant(Value::Number(value));
             Ok(self.emit(OpCode::Constant(index)))
@@ -198,13 +198,13 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn grouping(&mut self, can_assign: bool) -> Result<()> {
+    fn grouping(&mut self, _can_assign: bool) -> Result<()> {
         self.expression()?;
         self.consume(TokenType::RightParen, "Expect ')' after expression")?;
         Ok(())
     }
 
-    fn unary(&mut self, can_assign: bool) -> Result<()> {
+    fn unary(&mut self, _can_assign: bool) -> Result<()> {
         let operator = self.previous.kind;
         self.parse_precedence(Precedence::Unary)?;
         match operator {
@@ -214,7 +214,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn binary(&mut self, can_assign: bool) -> Result<()> {
+    fn binary(&mut self, _can_assign: bool) -> Result<()> {
         let operator = self.previous.kind;
         let rule = self.get_rule(operator).2;
         self.parse_precedence(rule.next())?;
@@ -233,7 +233,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn literal(&mut self, can_assign: bool) -> Result<()> {
+    fn literal(&mut self, _can_assign: bool) -> Result<()> {
         match self.previous.kind {
             TokenType::False => Ok(self.emit(OpCode::False)),
             TokenType::True => Ok(self.emit(OpCode::True)),
@@ -242,7 +242,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn string(&mut self, can_assign: bool) -> Result<()> {
+    fn string(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::StrLit(lexeme) = self.previous.kind {
             let index = self.chunk.add_constant(Value::String(lexeme.to_owned()));
             Ok(self.emit(OpCode::Constant(index)))

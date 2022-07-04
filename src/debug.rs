@@ -22,6 +22,7 @@ impl fmt::Debug for OpCode {
             OpCode::Pop => write!(f, "POP"),
             OpCode::DefineGlobal(index) => write!(f, "DEFINE_GLOBAL({})", index),
             OpCode::GetGlobal(index) => write!(f, "GET_GLOBAL({})", index),
+            OpCode::SetGlobal(index) => write!(f, "SET_GLOBAL({})", index),
         }
     }
 }
@@ -47,6 +48,7 @@ impl fmt::Display for OpCode {
             OpCode::Pop => write!(f, "pop"),
             OpCode::DefineGlobal(index) => write!(f, "{}", index),
             OpCode::GetGlobal(index) => write!(f, "{}", index),
+            OpCode::SetGlobal(index) => write!(f, "{}", index),
         }
     }
 }

@@ -253,7 +253,14 @@ impl<'a> Compiler<'a> {
     fn named_variable(&mut self, name: Token<'a>) -> Result<()> {
         if let TokenType::Identifier(lexeme) = name.kind {
             let index = self.chunk.add_constant(Value::String(lexeme.to_owned()));
-            Ok(self.emit(OpCode::GetGlobal(index)))
+            if self.next_eq(TokenType::Equal) {
+                // l-value
+                self.expression()?;
+                Ok(self.emit(OpCode::SetGlobal(index)))
+            } else {
+                // r-value
+                Ok(self.emit(OpCode::GetGlobal(index)))
+            }
         } else {
             parse_error!("Expected variable name.", self.previous.line)
         }

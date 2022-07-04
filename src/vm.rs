@@ -107,7 +107,19 @@ impl<'c> VM<'c> {
                         unreachable!()
                     }
                 }
-                OpCode::SetGlobal(_index) => todo!(),
+                OpCode::SetGlobal(index) => {
+                    if let Value::String(name) = self.chunk.constants[index].clone() {
+                        if self.globals.contains_key(&name) {
+                            // not popping the variable here because assignment is an expression
+                            let _ = self.globals.insert(name, self.peek(0).to_owned());
+                        } else {
+                            let msg = format!("Cannot assign to undefined variable '{}'.", name);
+                            return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
+                        }
+                    } else {
+                        unreachable!()
+                    }
+                }
                 OpCode::Add
                 | OpCode::Subtract
                 | OpCode::Multiply

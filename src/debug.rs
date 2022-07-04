@@ -20,6 +20,7 @@ impl fmt::Debug for OpCode {
             OpCode::Less => write!(f, "LESS"),
             OpCode::Print => write!(f, "PRINT"),
             OpCode::Pop => write!(f, "POP"),
+            OpCode::DefineGlobal(index) => write!(f, "DEFINE_GLOBAL({})", index),
         }
     }
 }
@@ -43,6 +44,7 @@ impl fmt::Display for OpCode {
             OpCode::Less => write!(f, "less"),
             OpCode::Print => write!(f, "print"),
             OpCode::Pop => write!(f, "pop"),
+            OpCode::DefineGlobal(index) => write!(f, "{}", index),
         }
     }
 }

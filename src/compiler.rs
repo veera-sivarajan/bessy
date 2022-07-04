@@ -106,7 +106,32 @@ impl<'a> Compiler<'a> {
     }
 
     fn declaration(&mut self) -> Result<()> {
-        self.statement()
+        if self.next_eq(TokenType::Var) {
+            self.var_declaration()
+        } else {
+            self.statement()
+        }
+    }
+
+    fn var_declaration(&mut self) -> Result<()> {
+        let name_index = self.parse_variable("Expect variable name.")?;
+        if self.next_eq(TokenType::Equal) {
+            self.expression()?;
+        } else {
+            self.emit(OpCode::Nil);
+        }
+        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")?;
+        self.emit(OpCode::DefineGlobal(name_index));
+        Ok(())
+    }
+
+    fn parse_variable(&mut self, error_msg: &str) -> Result<usize> {
+        if let TokenType::Identifier(lexeme) = self.current.kind {
+            self.advance();
+            Ok(self.chunk.add_constant(Value::String(lexeme.to_owned())))
+        } else {
+            parse_error!(error_msg, self.previous.line)
+        }
     }
 
     fn statement(&mut self) -> Result<()> {

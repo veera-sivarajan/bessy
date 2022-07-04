@@ -84,6 +84,7 @@ impl<'c> VM<'c> {
                 OpCode::Pop => {
                     let _ = self.pop();
                 }
+                OpCode::DefineGlobal(_index) => todo!(),
                 OpCode::Add
                 | OpCode::Subtract
                 | OpCode::Multiply

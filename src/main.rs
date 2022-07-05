@@ -22,9 +22,8 @@ fn main() {
         Ok(c) => {
             c.print();
             let mut vm = vm::VM::new(c);
-            match vm.run() {
-                Err(e) => eprintln!("{}", e),
-                Ok(()) => {},
+            if let Err(e) = vm.run() { 
+                eprintln!("{}", e);
             }
         }
         Err(e) => eprintln!("{}", e),

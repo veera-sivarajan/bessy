@@ -77,7 +77,10 @@ impl Chunk {
         println!("== BYTECODE ==");
         for (index, code) in self.code.iter().enumerate() {
             if let OpCode::Constant(i) = code {
-                println!("{offset:04} {} {code:?} {:->7} {}", self.lines[index], "", self.constants[*i]);
+                println!(
+                    "{offset:04} {} {code:?} {:->7} {}",
+                    self.lines[index], "", self.constants[*i]
+                );
                 offset += 2
             } else {
                 println!("{offset:04} {} {code:?}", self.lines[index]);

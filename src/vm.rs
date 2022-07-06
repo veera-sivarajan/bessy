@@ -1,6 +1,7 @@
 use crate::chunk::{Chunk, OpCode, Value};
 use crate::error::BessyError;
 use std::collections::HashMap;
+use std::io::Write;
 
 pub struct VM<'c> {
     chunk: &'c Chunk,
@@ -56,7 +57,7 @@ impl<'c> VM<'c> {
     // TODO should vm.run() really return a Result?
     // would it be more efficient if it was a function with no return values instead aka returning `()`
     // if there is an error, it will print the error message on screen and terminate the interpreter after setting the appropriate shell code
-    pub fn run(&mut self) -> Result<(), BessyError> {
+    pub fn run(&mut self, output: &mut impl Write) -> Result<(), BessyError> {
         while self.ip < self.chunk.code.len() { 
             let opcode = self.chunk.code[self.ip];
             self.ip += 1;
@@ -86,7 +87,11 @@ impl<'c> VM<'c> {
                     self.push(Value::Bool(result));
                 }
                 OpCode::Return => return Ok(()), 
-                OpCode::Print => println!("{}", self.pop()),
+                OpCode::Print => {
+                    // println!("{}", self.pop()),
+                    let result = format!("{}\n", self.pop());
+                    output.write_all(result.as_bytes());
+                }
                 OpCode::Pop => {
                     let _ = self.pop();
                 }

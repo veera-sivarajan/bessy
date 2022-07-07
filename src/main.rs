@@ -7,6 +7,7 @@ mod debug;
 mod lexer;
 mod token;
 mod vm;
+mod strings;
 
 // code to compile project on buffer save
 // (add-hook 'after-save-hook 'rust-compile)

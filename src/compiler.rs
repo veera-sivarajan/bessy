@@ -57,7 +57,7 @@ impl<'a> Compiler<'a> {
             current: Token::new(TokenType::Eof, 0),
             previous: Token::new(TokenType::Eof, 0),
             lexer: Lexer::new(source),
-            chunk: Chunk::new(),
+            chunk: Default::default()
         }
     }
 

@@ -1,3 +1,5 @@
+use crate::strings::IStrings;
+
 #[derive(Copy, Clone)]
 pub enum OpCode {
     Add,
@@ -25,7 +27,7 @@ pub enum OpCode {
 pub enum Value {
     Number(f64),
     Bool(bool),
-    String(String),
+    String(usize), // A String type will contain a index to it's stored location in IStrings::list 
     Nil,
 }
 
@@ -34,6 +36,7 @@ pub struct Chunk {
     pub code: Vec<OpCode>,
     pub constants: Vec<Value>,
     pub lines: Vec<u16>,
+    pub strings: IStrings,
 }
 
 impl Chunk {

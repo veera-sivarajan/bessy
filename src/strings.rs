@@ -2,14 +2,14 @@
 use std::collections::HashMap;
 
 #[derive(Default)]
-struct IString {
+pub struct IStrings {
     map: HashMap<String, usize>,
     list: Vec<String>,
 }
 
-impl IString {
+impl IStrings {
     pub fn intern(&mut self, name: &str) -> usize {
-        if let Some(&index) = self.map.get(name) {
+        if let Some(&index) = self.map.get(name) {  // using hashmap because O(1) lookup in theory. Not sure about Rust's complexity with all its safety checks
             index
         } else {
             let index = self.map.len();

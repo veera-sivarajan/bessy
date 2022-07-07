@@ -128,7 +128,8 @@ impl<'a> Compiler<'a> {
     fn parse_variable(&mut self, error_msg: &str) -> Result<usize> {
         if let TokenType::Identifier(lexeme) = self.current.kind {
             self.advance();
-            Ok(self.chunk.add_constant(Value::String(lexeme.to_owned())))
+            let str_index = self.chunk.strings.intern(lexeme);
+            Ok(self.chunk.add_constant(Value::String(str_index)))
         } else {
             parse_error!(error_msg, self.previous.line)
         }
@@ -244,7 +245,8 @@ impl<'a> Compiler<'a> {
 
     fn string(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::StrLit(lexeme) = self.previous.kind {
-            let index = self.chunk.add_constant(Value::String(lexeme.to_owned()));
+            let str_index = self.chunk.strings.intern(lexeme);
+            let index = self.chunk.add_constant(Value::String(str_index));
             Ok(self.emit(OpCode::Constant(index)))
         } else {
             parse_error!("Expected String literal.", self.previous.line)
@@ -257,7 +259,8 @@ impl<'a> Compiler<'a> {
 
     fn named_variable(&mut self, name: Token<'a>, can_assign: bool) -> Result<()> {
         if let TokenType::Identifier(lexeme) = name.kind {
-            let index = self.chunk.add_constant(Value::String(lexeme.to_owned()));
+            let str_index = self.chunk.strings.intern(lexeme);
+            let index = self.chunk.add_constant(Value::String(str_index));
             if self.next_eq(TokenType::Equal) && can_assign {
                 // l-value
                 self.expression()?;

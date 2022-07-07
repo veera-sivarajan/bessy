@@ -4,10 +4,10 @@ use std::collections::HashMap;
 use std::io::Write;
 
 pub struct VM<'c> {
-    chunk: &'c Chunk,
+    chunk: &'c mut Chunk,
     ip: usize,
     stack: Vec<Value>,
-    globals: HashMap<String, Value>,
+    globals: HashMap<usize, Value>,
 }
 
 impl Value {
@@ -31,7 +31,7 @@ impl Value {
 }
 
 impl<'c> VM<'c> {
-    pub fn new(chunk: &'c Chunk) -> Self {
+    pub fn new(chunk: &'c mut Chunk) -> Self {
         VM {
             chunk,
             ip: 0,
@@ -96,19 +96,19 @@ impl<'c> VM<'c> {
                     let _ = self.pop();
                 }
                 OpCode::DefineGlobal(index) => {
-                    if let Value::String(name) = self.chunk.constants[index].clone() {
+                    if let Value::String(str_index) = self.chunk.constants[index] {
                         let value = self.pop();
-                        let _ = self.globals.insert(name, value);
+                        let _ = self.globals.insert(str_index, value);
                     } else {
                         unreachable!()
                     }
                 }
                 OpCode::GetGlobal(index) => {
-                    if let Value::String(name) = self.chunk.constants[index].clone() {
-                        if let Some(value) = self.globals.get(&name) {
+                    if let Value::String(str_index) = self.chunk.constants[index] {
+                        if let Some(value) = self.globals.get(&str_index) {
                             self.push(value.to_owned());
                         } else {
-                            let msg = format!("Undefined variable '{}'.", name);
+                            let msg = format!("Undefined variable '{}'.", self.chunk.strings.lookup(str_index));
                             return runtime_error!(msg, self.chunk.lines[self.ip - 1])
                         }
                     } else {
@@ -116,12 +116,12 @@ impl<'c> VM<'c> {
                     }
                 }
                 OpCode::SetGlobal(index) => {
-                    if let Value::String(name) = self.chunk.constants[index].clone() {
-                        if self.globals.contains_key(&name) {
+                    if let Value::String(str_index) = self.chunk.constants[index] {
+                        if self.globals.contains_key(&str_index) {
                             // not popping the value here because assignment is an expression
-                            let _ = self.globals.insert(name, self.peek(0).to_owned());
+                            let _ = self.globals.insert(str_index, self.peek(0).to_owned());
                         } else {
-                            let msg = format!("Cannot assign to undefined variable '{}'.", name);
+                            let msg = format!("Cannot assign to undefined variable '{}'.", self.chunk.strings.lookup(str_index));
                             return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
                         }
                     } else {
@@ -151,7 +151,12 @@ impl<'c> VM<'c> {
                         }
                         (Value::String(r), Value::String(l)) => {
                             let result = match opcode {
-                                OpCode::Add => Value::String(format!("{}{}",l, r)),
+                                OpCode::Add => {
+                                    let l = self.chunk.strings.lookup(*l);
+                                    let r = self.chunk.strings.lookup(*r);
+                                    let concat = self.chunk.strings.intern(format!("{}{}", l, r).as_ref());
+                                    Value::String(concat)
+                                }
                                 _ => return runtime_error!("Unsupported operation for Strings.", self.chunk.lines[self.ip - 1]),
                             };
                             self.pop();

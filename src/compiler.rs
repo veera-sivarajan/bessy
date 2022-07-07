@@ -95,14 +95,14 @@ impl<'a> Compiler<'a> {
     }
 
     // compiles the entire source code to a chunk
-    pub fn compile(&mut self) -> Result<&Chunk> {
+    pub fn compile(&mut self) -> Result<&mut Chunk> {
         self.advance();
         while !self.next_eq(TokenType::Eof) {
             self.declaration()?;
         }
         self.consume(TokenType::Eof, "Expect end of expression.")?;
         self.emit(OpCode::Return);
-        Ok(&self.chunk)
+        Ok(&mut self.chunk)
     }
 
     fn declaration(&mut self) -> Result<()> {

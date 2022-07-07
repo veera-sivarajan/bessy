@@ -59,13 +59,7 @@ impl fmt::Display for Value {
         match self {
             Value::Number(n) => write!(f, "{}", n),
             Value::Nil => write!(f, "Nil"),
-            Value::Bool(b) => {
-                if *b {
-                    write!(f, "True")
-                } else {
-                    write!(f, "False")
-                }
-            }
+            Value::Bool(b) => write!(f, "{}", b),
             Value::String(s) => write!(f, "{}", s),
         }
     }

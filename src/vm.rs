@@ -89,8 +89,17 @@ impl<'c> VM<'c> {
                 OpCode::Return => return Ok(()), 
                 OpCode::Print => {
                     // println!("{}", self.pop()),
-                    let result = format!("{}\n", self.pop());
-                    let _ = output.write_all(result.as_bytes());
+                    let value = self.pop();
+                    if let Value::String(index) = value {
+                        let mut newline_buf: [u8; 1] = [0; 1]; // newline character needs 1 byte
+                        let newline_str = '\n'.encode_utf8(&mut newline_buf);
+                        let result = self.chunk.strings.lookup(index);
+                        let _ = output.write_all(result.as_bytes());
+                        let _ = output.write_all(newline_str.as_bytes());
+                    } else {
+                        let result = format!("{}\n", value);
+                        let _ = output.write_all(result.as_bytes());
+                    }
                 }
                 OpCode::Pop => {
                     let _ = self.pop();

@@ -44,8 +44,7 @@ mod tests {
             let mut vm = vm::VM::new(code);
             let mut output_buf: Vec<u8> = Vec::new();
             if let Ok(_) = vm.run(&mut output_buf) {
-                let expected_str = format!("{}\n", expected);
-                assert_eq!(&output_buf, expected_str.as_bytes());
+                assert_eq!(&output_buf, expected.as_bytes());
             } else {
                 assert!(false)
             }
@@ -56,26 +55,32 @@ mod tests {
 
     #[test]
     fn numbers() {
-        test("print 1;", "1");
+        test("print 1;", "1\n");
+        test("print 10000000;", "10000000\n");
+        test("100;", "");
     }
 
     #[test]
     fn literals() {
-        test("print true;", "true"); 
-        test("print false;", "false");
-        test("print nil;", "Nil"); 
+        test("true;", "");
+        test("false;", "");
+        test("print true;", "true\n"); 
+        test("print false;", "false\n");
+        test("print nil;", "Nil\n"); 
     }
 
     #[test]
     fn expressions() {
-        test("print 1 + 2;", "3");
-        test("print !(5 - 4 > 3 * 2 == !nil);", "true");
-        test("print !true;", "false"); 
+        test("print 1 + 2;", "3\n");
+        test("print !(5 - 4 > 3 * 2 == !nil);", "true\n");
+        test("print !true;", "false\n"); 
+        test("1 + 1;", "");
     }
 
     #[test]
     fn strings() {
-        test("print \"Hello, world!\";", "Hello, world!");
-        test("print \"Hello, \" + \"world!\";", "Hello, world!");
+        test("print \"Hello, world!\";", "Hello, world!\n");
+        test("print \"Hello, \" + \"world!\";", "Hello, world!\n");
+        test("\"billa\";", "");
     }
 }

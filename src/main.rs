@@ -27,7 +27,6 @@ fn main() {
             if let Err(e) = vm.run(&mut output) { 
                 eprintln!("{}", e);
             }
-            // println!("Output buffer: {:?}", output);
         }
         Err(e) => eprintln!("{}", e),
     }

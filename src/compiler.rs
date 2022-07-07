@@ -264,10 +264,10 @@ impl<'a> Compiler<'a> {
             if self.next_eq(TokenType::Equal) && can_assign {
                 // l-value
                 self.expression()?;
-                Ok(self.emit(OpCode::SetGlobal(index)))
+                Ok(self.emit(OpCode::SetGlobal(index))) // assignment expression
             } else {
                 // r-value
-                Ok(self.emit(OpCode::GetGlobal(index)))
+                Ok(self.emit(OpCode::GetGlobal(index))) // variable expression
             }
         } else {
             parse_error!("Expected variable name.", self.previous.line)

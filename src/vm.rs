@@ -90,7 +90,7 @@ impl<'c> VM<'c> {
                 OpCode::Print => {
                     // println!("{}", self.pop()),
                     let result = format!("{}\n", self.pop());
-                    output.write_all(result.as_bytes());
+                    let _ = output.write_all(result.as_bytes());
                 }
                 OpCode::Pop => {
                     let _ = self.pop();

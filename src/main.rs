@@ -15,9 +15,9 @@ mod vm;
 use std::io;
 
 fn main() {
-    use std::fs;
-    let contents = fs::read_to_string("/home/veera/Projects/bessy/test/scan.lox").unwrap();
-    // let contents = String::from("print \"\";");
+    // use std::fs;
+    // let contents = fs::read_to_string("/home/veera/Projects/bessy/test/scan.lox").unwrap();
+    let contents = String::from("print \"\";");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
         Ok(c) => {
@@ -37,25 +37,27 @@ fn main() {
 mod tests {
     use super::*;
     use crate::chunk::Value;
+    use std::str;
 
     fn test(input: &str, expected: Value) {
         let mut compiler = compiler::Compiler::new(input);
         if let Ok(code) = compiler.compile() {
             let mut vm = vm::VM::new(code);
             let mut output_buf: Vec<u8> = Vec::new();
-            let result = vm.run(&mut output_buf);
-            let expected_str = format!("{}\n", expected);
-            println!("Expected: {}", expected_str);
-            assert_eq!(&output_buf, expected_str.as_bytes());
+            if let Ok(_) = vm.run(&mut output_buf) {
+                let expected_str = format!("{}\n", expected);
+                assert_eq!(&output_buf, expected_str.as_bytes());
+            } else {
+                assert!(false)
+            }
         } else {
             assert!(false)
         }
     }
 
     #[test]
+    #[ignore]
     fn empty_input() {
-        // errors
-        // assert!(!test("", Value::Number(1.0)));
         test("", Value::String("".to_owned()))
     }
 
@@ -63,34 +65,24 @@ mod tests {
     fn numbers() {
         test("print 1;", Value::Number(1.0))
     }
+
+    #[test]
+    fn literals() {
+        test("print true;", Value::Bool(true));
+        test("print false;", Value::Bool(false));
+        test("print nil;", Value::Nil);
+    }
+
+    #[test]
+    fn expressions() {
+        test("print 1 + 2;", Value::Number(3.0));
+        test("print !(5 - 4 > 3 * 2 == !nil);", Value::Bool(true));
+        test("print !true;", Value::Bool(false));
+    }
+
+    #[test]
+    fn strings() {
+        test("print \"Hello, world!\";", Value::String(String::from("Hello, world!")));
+        test("print \"Hello, \" + \"world!\";", Value::String(String::from("Hello, world!")));
+    }
 }
-
-//     #[test]
-//     fn literals() {
-//         assert!(test("true", Value::Bool(true)));
-//         assert!(test("false", Value::Bool(false)));
-//         assert!(test("nil", Value::Nil));
-//     }
-
-//     #[test]
-//     fn expressions() {
-//         assert!(test("1 + 2", Value::Number(3.0)));
-//         assert!(test("!(5 - 4 > 3 * 2 == !nil)", Value::Bool(true)));
-//         assert!(test("!true", Value::Bool(false)));
-
-//         // errors
-//         assert!(!test("1 + true", Value::Number(1.0)));
-//         assert!(!test("true > true", Value::Number(1.0)));
-//     }
-
-//     #[test]
-//     fn unknown_chars() {
-//         assert!(!test("`", Value::Number(1.0)))
-//     }
-
-//     #[test]
-//     fn strings() {
-//         assert!(test("\"Hello, world!\"", Value::String(String::from("Hello, world!"))));
-//         assert!(test("\"Hello, \" + \"world!\"", Value::String(String::from("Hello, world!"))));
-//     }
-// }

@@ -36,10 +36,9 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chunk::Value;
     use std::str;
 
-    fn test(input: &str, expected: Value) {
+    fn test(input: &str, expected: &str) {
         let mut compiler = compiler::Compiler::new(input);
         if let Ok(code) = compiler.compile() {
             let mut vm = vm::VM::new(code);
@@ -55,35 +54,28 @@ mod tests {
         }
     }
 
-    // #[test]
-    // // #[ignore]
-    // fn empty_input() {
-    //     test("", Value::String(0))
-    // }
-
     #[test]
     fn numbers() {
-        test("print 1;", Value::Number(1.0))
+        test("print 1;", "1");
     }
 
     #[test]
     fn literals() {
-        test("print true;", Value::Bool(true));
-        test("print false;", Value::Bool(false));
-        test("print nil;", Value::Nil);
+        test("print true;", "true"); 
+        test("print false;", "false");
+        test("print nil;", "Nil"); 
     }
 
     #[test]
     fn expressions() {
-        test("print 1 + 2;", Value::Number(3.0));
-        test("print !(5 - 4 > 3 * 2 == !nil);", Value::Bool(true));
-        test("print !true;", Value::Bool(false));
+        test("print 1 + 2;", "3");
+        test("print !(5 - 4 > 3 * 2 == !nil);", "true");
+        test("print !true;", "false"); 
     }
 
-    // #[test]
-    // #[ignore]
-    // fn strings() {
-    //     test("print \"Hello, world!\";", Value::String(String::from("Hello, world!")));
-    //     test("print \"Hello, \" + \"world!\";", Value::String(String::from("Hello, world!")));
-    // }
+    #[test]
+    fn strings() {
+        test("print \"Hello, world!\";", "Hello, world!");
+        test("print \"Hello, \" + \"world!\";", "Hello, world!");
+    }
 }

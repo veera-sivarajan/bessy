@@ -62,8 +62,6 @@ type ParseRule<'a> = (
 impl<'a> Compiler<'a> {
     pub fn new(source: &'a str) -> Self {
         Compiler {
-            current: Token::new(TokenType::Eof, 0),
-            previous: Token::new(TokenType::Eof, 0),
             lexer: Lexer::new(source),
             ..Default::default()
         }

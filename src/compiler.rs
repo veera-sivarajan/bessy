@@ -38,11 +38,19 @@ impl Precedence {
     }
 }
 
+struct Local<'a> {
+    name: Token<'a>,
+    depth: u32,
+}
+        
+#[derive(Default)]
 pub struct Compiler<'a> {
     current: Token<'a>,
     previous: Token<'a>,
     lexer: Lexer<'a>,
     chunk: Chunk,
+    locals: Vec<Local<'a>>,
+    scope_depth: u32,
 }
 
 type ParseRule<'a> = (
@@ -57,7 +65,7 @@ impl<'a> Compiler<'a> {
             current: Token::new(TokenType::Eof, 0),
             previous: Token::new(TokenType::Eof, 0),
             lexer: Lexer::new(source),
-            chunk: Default::default()
+            ..Default::default()
         }
     }
 
@@ -126,7 +134,9 @@ impl<'a> Compiler<'a> {
             self.emit(OpCode::Nil);
         }
         self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")?;
-        self.emit(OpCode::DefineGlobal(name_index));
+        if self.scope_depth == 0 {
+            self.emit(OpCode::DefineGlobal(name_index));
+        }
         Ok(())
     }
 
@@ -139,12 +149,36 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    fn declare_variable(&mut self) {
+
+    }
+
     fn statement(&mut self) -> Result<()> {
         if self.next_eq(TokenType::Print) {
             self.print_statement()
+        } else if self.next_eq(TokenType::LeftBrace) {
+            self.begin_scope();
+            self.block()?;
+            self.end_scope();
+            Ok(())
         } else {
             self.expression_statement()
         }
+    }
+
+    fn begin_scope(&mut self) {
+        self.scope_depth += 1;
+    }
+
+    fn block(&mut self) -> Result<()> {
+        while self.current.kind != TokenType::RightBrace && self.current.kind != TokenType::Eof {
+            self.declaration()?;
+        }
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")
+    }
+
+    fn end_scope(&mut self) {
+        self.scope_depth -= 1;
     }
 
     fn print_statement(&mut self) -> Result<()> {

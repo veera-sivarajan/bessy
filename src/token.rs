@@ -1,4 +1,4 @@
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Default)]
 pub enum TokenType<'a> {
     LeftParen,
     RightParen,
@@ -8,6 +8,7 @@ pub enum TokenType<'a> {
     Slash,
     Star,
     Semicolon,
+    #[default]
     Eof,
     LeftBrace,
     RightBrace,
@@ -43,7 +44,7 @@ pub enum TokenType<'a> {
     This,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Token<'a> {
     pub kind: TokenType<'a>,
     pub line: u16,

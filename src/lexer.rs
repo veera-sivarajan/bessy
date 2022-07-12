@@ -5,6 +5,7 @@ use crate::token::{Token, TokenType};
 
 type Result<T> = std::result::Result<T, BessyError>;
 
+#[derive(Default)]
 pub struct Lexer<'a> {
     source: &'a str,
     start: usize,

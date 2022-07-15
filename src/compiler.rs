@@ -63,6 +63,7 @@ impl<'a> Compiler<'a> {
     pub fn new(source: &'a str) -> Self {
         Compiler {
             lexer: Lexer::new(source),
+            locals: Vec::with_capacity(usize::MAX), // immediately provide a vector with capacity instead of doing multiple allocations
             ..Default::default()
         }
     }
@@ -118,23 +119,25 @@ impl<'a> Compiler<'a> {
 
     fn declaration(&mut self) -> Result<()> {
         if self.next_eq(TokenType::Var) {
-            self.var_declaration()
+            self.global_var_declaration()
         } else {
             self.statement()
         }
     }
 
-    fn var_declaration(&mut self) -> Result<()> {
-        let name_index = self.parse_variable("Expect variable name.")?;
+    fn init_variable(&mut self) -> Result<()> {
         if self.next_eq(TokenType::Equal) {
             self.expression()?;
         } else {
             self.emit(OpCode::Nil);
         }
-        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")?;
-        if self.scope_depth == 0 {
-            self.emit(OpCode::DefineGlobal(name_index));
-        }
+        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")
+    }
+
+    fn global_var_declaration(&mut self) -> Result<()> {
+        let name_index = self.parse_variable("Expect variable name.")?;
+        self.init_variable()?;
+        self.emit(OpCode::DefineGlobal(name_index));
         Ok(())
     }
 

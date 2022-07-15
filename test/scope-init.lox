@@ -1,0 +1,5 @@
+var a = "global";
+{
+    var a = a;
+    print a;
+}

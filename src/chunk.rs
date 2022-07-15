@@ -25,7 +25,7 @@ pub enum OpCode {
     SetLocal(usize),
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Copy)]
 pub enum Value {
     Number(f64),
     Bool(bool),

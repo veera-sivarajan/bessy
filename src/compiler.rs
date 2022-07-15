@@ -355,7 +355,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn resolve_local(&mut self, name: Token<'a>) -> Option<usize> {
-        for (i, l) in self.locals.iter().rev().enumerate() {
+        for (i, l) in self.locals.iter().enumerate().rev() {
             if l.name == name {
                 return Some(i);
             }

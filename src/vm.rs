@@ -137,6 +137,8 @@ impl<'c> VM<'c> {
                         unreachable!()
                     }
                 }
+                OpCode::GetLocal(index) => self.push(self.stack[index]),
+                OpCode::SetLocal(index) => self.stack[index] = *self.peek(0),
                 OpCode::Add
                 | OpCode::Subtract
                 | OpCode::Multiply

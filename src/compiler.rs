@@ -355,12 +355,12 @@ impl<'a> Compiler<'a> {
     }
 
     fn resolve_local(&mut self, name: Token<'a>) -> Option<usize> {
-        for (i, l) in self.locals.iter().enumerate().rev() {
-            if l.name == name {
-                return Some(i);
-            }
-        }
-        None
+        self.locals
+            .iter()
+            .enumerate()
+            .rev()
+            .find(|(_i, l)| l.name == name)
+            .map(|(i, _l)| i)
     }
             
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {

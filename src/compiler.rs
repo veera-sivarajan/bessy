@@ -141,13 +141,27 @@ impl<'a> Compiler<'a> {
     fn local_var(&mut self) -> Result<()> {
         if let TokenType::Identifier(_) = self.current.kind {
             self.advance();
+            self.is_unique(self.previous)?;
             let local = Local { name: self.previous, depth: self.scope_depth };
-            self.locals.push(local);
-            self.init_variable()?;
-            Ok(())
+            if self.locals.len() == u8::MAX as usize {
+                parse_error!("Too many local variables.", self.previous.line)
+            } else {
+                self.locals.push(local);
+                self.init_variable()?;
+                Ok(())
+            }
         } else {
             parse_error!("Expected variable identifier.", self.previous.line)
         }
+    }
+
+    fn is_unique(&mut self, given: Token<'a>) -> Result<()> {
+        for l in self.locals.iter().rev().filter(|l| l.depth > self.scope_depth) {
+            if l.name == given {
+                return parse_error!("Already a variable with this name in this scope.", self.previous.line);
+            }
+        }
+        Ok(())
     }
 
     fn global_var(&mut self) -> Result<()> {
@@ -192,6 +206,12 @@ impl<'a> Compiler<'a> {
 
     fn end_scope(&mut self) {
         self.scope_depth -= 1;
+        for i in (0..self.locals.len()).rev() {
+            if self.locals[i].depth > self.scope_depth {
+                self.emit(OpCode::Pop);
+                self.locals.pop();
+            }
+        }
     }
 
     fn print_statement(&mut self) -> Result<()> {

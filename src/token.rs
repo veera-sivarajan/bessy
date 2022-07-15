@@ -44,7 +44,7 @@ pub enum TokenType<'a> {
     This,
 }
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, PartialEq)]
 pub struct Token<'a> {
     pub kind: TokenType<'a>,
     pub line: u16,

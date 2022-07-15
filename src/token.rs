@@ -44,7 +44,7 @@ pub enum TokenType<'a> {
     This,
 }
 
-#[derive(Debug, Copy, Clone, Default, PartialEq)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Token<'a> {
     pub kind: TokenType<'a>,
     pub line: u16,
@@ -53,5 +53,11 @@ pub struct Token<'a> {
 impl<'a> Token<'a> {
     pub fn new(kind: TokenType<'a>, line: u16) -> Self {
         Token { kind, line }
+    }
+}
+
+impl<'a> PartialEq for Token<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind
     }
 }

@@ -38,6 +38,7 @@ impl Precedence {
     }
 }
 
+#[derive(Debug)]
 struct Local<'a> {
     name: Token<'a>,
     depth: u32,
@@ -141,13 +142,14 @@ impl<'a> Compiler<'a> {
     fn local_var(&mut self) -> Result<()> {
         if let TokenType::Identifier(_) = self.current.kind {
             self.advance();
-            self.is_unique(self.previous)?;
-            let local = Local { name: self.previous, depth: self.scope_depth };
+            let token = self.previous;
+            self.is_unique(token)?;
+            let local = Local { name: token, depth: self.scope_depth };
+            self.init_variable()?;
             if self.locals.len() == u8::MAX as usize {
                 parse_error!("Too many local variables.", self.previous.line)
             } else {
                 self.locals.push(local);
-                self.init_variable()?;
                 Ok(())
             }
         } else {
@@ -156,7 +158,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn is_unique(&mut self, given: Token<'a>) -> Result<()> {
-        for l in self.locals.iter().rev().filter(|l| l.depth > self.scope_depth) {
+        for l in self.locals.iter().rev().filter(|l| l.depth >= self.scope_depth) {
             if l.name == given {
                 return parse_error!("Already a variable with this name in this scope.", self.previous.line);
             }

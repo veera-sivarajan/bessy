@@ -41,7 +41,14 @@ impl Precedence {
 #[derive(Debug)]
 struct Local<'a> {
     name: Token<'a>,
-    depth: u32,
+    depth: Option<u32>,
+}
+
+
+enum Resolved {
+    Local(usize),
+    Global,
+    Nope,
 }
         
 #[derive(Default)]
@@ -142,14 +149,15 @@ impl<'a> Compiler<'a> {
     fn local_var(&mut self) -> Result<()> {
         if let TokenType::Identifier(_) = self.current.kind {
             self.advance();
-            let token = self.previous;
-            self.is_unique(token)?;
-            let local = Local { name: token, depth: self.scope_depth };
-            self.init_variable()?;
             if self.locals.len() == u8::MAX as usize {
                 parse_error!("Too many local variables.", self.previous.line)
             } else {
+                let token = self.previous;
+                self.is_unique(token)?;
+                let local = Local { name: token, depth: None };
                 self.locals.push(local);
+                self.init_variable()?;
+                self.mark_initialized();
                 Ok(())
             }
         } else {
@@ -157,8 +165,13 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    fn mark_initialized(&mut self) {
+        let last = self.locals.last_mut().expect("Tried to pop out of empty locals vector.");
+        last.depth = Some(self.scope_depth);
+    }
+
     fn is_unique(&mut self, given: Token<'a>) -> Result<()> {
-        for l in self.locals.iter().rev().filter(|l| l.depth >= self.scope_depth) {
+        for l in self.locals.iter().rev().filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth)) {
             if l.name == given {
                 return parse_error!("Already a variable with this name in this scope.", self.previous.line);
             }
@@ -209,7 +222,7 @@ impl<'a> Compiler<'a> {
     fn end_scope(&mut self) {
         self.scope_depth -= 1;
         for i in (0..self.locals.len()).rev() {
-            if self.locals[i].depth > self.scope_depth {
+            if self.locals[i].depth > Some(self.scope_depth) {
                 self.emit(OpCode::Pop);
                 self.locals.pop();
             }
@@ -329,18 +342,24 @@ impl<'a> Compiler<'a> {
         self.named_variable(self.previous, can_assign)
     }
 
+
     fn named_variable(&mut self, name: Token<'a>, can_assign: bool) -> Result<()> {
         if let TokenType::Identifier(lexeme) = name.kind {
             let get_op;
             let set_op;
-            if let Some(i) = self.resolve_local(name) {
-                get_op = OpCode::GetLocal(i);
-                set_op = OpCode::SetLocal(i);
-            } else {
-                let index = self.create_string(lexeme);
-                get_op = OpCode::GetGlobal(index);
-                set_op = OpCode::SetGlobal(index);
+            match self.resolve_local(name) {
+                Resolved::Global => {
+                    let index = self.create_string(lexeme);
+                    get_op = OpCode::GetGlobal(index);
+                    set_op = OpCode::SetGlobal(index);
+                }
+                Resolved::Local(i) => {
+                    get_op = OpCode::GetLocal(i);
+                    set_op = OpCode::SetLocal(i);
+                }
+                Resolved::Nope => return parse_error!("Can't read local variable in its own initializer.", self.previous.line),
             }
+                
             if self.next_eq(TokenType::Equal) && can_assign {
                 // l-value
                 self.expression()?;
@@ -354,13 +373,17 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn resolve_local(&mut self, name: Token<'a>) -> Option<usize> {
-        self.locals
-            .iter()
-            .enumerate()
-            .rev()
-            .find(|(_i, l)| l.name == name)
-            .map(|(i, _l)| i)
+    fn resolve_local(&mut self, name: Token<'a>) -> Resolved {
+        for (i, l) in self.locals.iter().enumerate().rev() {
+            if l.name == name {
+                if l.depth.is_none() {
+                    return Resolved::Nope;
+                } else {
+                    return Resolved::Local(i);
+                }
+            }
+        }
+        Resolved::Global
     }
             
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {

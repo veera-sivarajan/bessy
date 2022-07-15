@@ -209,7 +209,7 @@ impl<'a> Compiler<'a> {
     fn end_scope(&mut self) {
         self.scope_depth -= 1;
         for i in (0..self.locals.len()).rev() {
-            if self.locals[i].depth >= self.scope_depth {
+            if self.locals[i].depth > self.scope_depth {
                 self.emit(OpCode::Pop);
                 self.locals.pop();
             }

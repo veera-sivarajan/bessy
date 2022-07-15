@@ -209,7 +209,7 @@ impl<'a> Compiler<'a> {
     fn end_scope(&mut self) {
         self.scope_depth -= 1;
         for i in (0..self.locals.len()).rev() {
-            if self.locals[i].depth > self.scope_depth {
+            if self.locals[i].depth >= self.scope_depth {
                 self.emit(OpCode::Pop);
                 self.locals.pop();
             }
@@ -331,18 +331,36 @@ impl<'a> Compiler<'a> {
 
     fn named_variable(&mut self, name: Token<'a>, can_assign: bool) -> Result<()> {
         if let TokenType::Identifier(lexeme) = name.kind {
-            let index = self.create_string(lexeme);
+            let get_op;
+            let set_op;
+            if let Some(i) = self.resolve_local(name) {
+                get_op = OpCode::GetLocal(i);
+                set_op = OpCode::SetLocal(i);
+            } else {
+                let index = self.create_string(lexeme);
+                get_op = OpCode::GetGlobal(index);
+                set_op = OpCode::SetGlobal(index);
+            }
             if self.next_eq(TokenType::Equal) && can_assign {
                 // l-value
                 self.expression()?;
-                Ok(self.emit(OpCode::SetGlobal(index)))
+                Ok(self.emit(set_op))
             } else {
                 // r-value
-                Ok(self.emit(OpCode::GetGlobal(index)))
+                Ok(self.emit(get_op))
             }
         } else {
             parse_error!("Expected variable name.", self.previous.line)
         }
+    }
+
+    fn resolve_local(&mut self, name: Token<'a>) -> Option<usize> {
+        for (i, l) in self.locals.iter().rev().enumerate() {
+            if l.name == name {
+                return Some(i);
+            }
+        }
+        None
     }
             
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {

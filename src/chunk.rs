@@ -21,6 +21,8 @@ pub enum OpCode {
     DefineGlobal(usize), 
     GetGlobal(usize),
     SetGlobal(usize),
+    GetLocal(usize),
+    SetLocal(usize),
 }
 
 #[derive(Clone, PartialEq)]

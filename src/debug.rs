@@ -1,5 +1,5 @@
+use crate::chunk::{Chunk, OpCode, Value};
 use std::fmt;
-use crate::chunk::{Chunk, Value, OpCode};
 
 impl fmt::Debug for OpCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -23,6 +23,8 @@ impl fmt::Debug for OpCode {
             OpCode::DefineGlobal(index) => write!(f, "DEFINE_GLOBAL({})", index),
             OpCode::GetGlobal(index) => write!(f, "GET_GLOBAL({})", index),
             OpCode::SetGlobal(index) => write!(f, "SET_GLOBAL({})", index),
+            OpCode::GetLocal(index) => write!(f, "GET_LOCAL({})", index),
+            OpCode::SetLocal(index) => write!(f, "SET_LOCAL({})", index),
         }
     }
 }
@@ -49,10 +51,11 @@ impl fmt::Display for OpCode {
             OpCode::DefineGlobal(index) => write!(f, "{}", index),
             OpCode::GetGlobal(index) => write!(f, "{}", index),
             OpCode::SetGlobal(index) => write!(f, "{}", index),
+            OpCode::GetLocal(index) => write!(f, "{}", index),
+            OpCode::SetLocal(index) => write!(f, "{}", index),
         }
     }
 }
-
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

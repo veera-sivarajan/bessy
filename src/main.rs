@@ -5,9 +5,9 @@ mod chunk;
 mod compiler;
 mod debug;
 mod lexer;
+mod strings;
 mod token;
 mod vm;
-mod strings;
 
 // code to compile project on buffer save
 // (add-hook 'after-save-hook 'rust-compile)
@@ -17,7 +17,7 @@ use std::io;
 
 fn main() {
     use std::fs;
-    let contents = fs::read_to_string("/home/veera/Projects/bessy/test/scan.lox").unwrap();
+    let contents = fs::read_to_string("/home/veera/Projects/bessy/test/main.lox").unwrap();
     // let contents = String::from("print \"\";");
     let mut compiler = compiler::Compiler::new(&contents);
     match compiler.compile() {
@@ -25,7 +25,7 @@ fn main() {
             c.print();
             let mut vm = vm::VM::new(c);
             let mut output = io::stdout();
-            if let Err(e) = vm.run(&mut output) { 
+            if let Err(e) = vm.run(&mut output) {
                 eprintln!("{}", e);
             }
         }
@@ -64,16 +64,16 @@ mod tests {
     fn literals() {
         test("true;", "");
         test("false;", "");
-        test("print true;", "true\n"); 
+        test("print true;", "true\n");
         test("print false;", "false\n");
-        test("print nil;", "Nil\n"); 
+        test("print nil;", "Nil\n");
     }
 
     #[test]
     fn expressions() {
         test("print 1 + 2;", "3\n");
         test("print !(5 - 4 > 3 * 2 == !nil);", "true\n");
-        test("print !true;", "false\n"); 
+        test("print !true;", "false\n");
         test("1 + 1;", "");
     }
 
@@ -82,5 +82,19 @@ mod tests {
         test("print \"Hello, world!\";", "Hello, world!\n");
         test("print \"Hello, \" + \"world!\";", "Hello, world!\n");
         test("\"billa\";", "");
+    }
+
+    #[test]
+    fn local_variables() {
+        use std::fs;
+        let paths = [
+            "/home/veera/Projects/bessy/test/scope.lox",
+            "/home/veera/Projects/bessy/test/scope-1.lox",
+        ];
+        let outputs = ["3\n2\n1\n", "global\n2\n3\n4\nglobal\n"];
+        for (file, result) in paths.iter().zip(outputs.iter()) {
+            let input = fs::read_to_string(file).expect("File not found.");
+            test(input.as_str(), result);
+        }
     }
 }

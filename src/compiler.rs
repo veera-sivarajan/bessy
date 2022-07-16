@@ -38,11 +38,26 @@ impl Precedence {
     }
 }
 
+#[derive(Debug)]
+struct Local<'a> {
+    name: Token<'a>,
+    depth: Option<u32>,
+}
+
+enum Resolved {
+    Local(usize),
+    Global,
+    Nope,
+}
+
+#[derive(Default)]
 pub struct Compiler<'a> {
     current: Token<'a>,
     previous: Token<'a>,
     lexer: Lexer<'a>,
     chunk: Chunk,
+    locals: Vec<Local<'a>>,
+    scope_depth: u32,
 }
 
 type ParseRule<'a> = (
@@ -54,10 +69,9 @@ type ParseRule<'a> = (
 impl<'a> Compiler<'a> {
     pub fn new(source: &'a str) -> Self {
         Compiler {
-            current: Token::new(TokenType::Eof, 0),
-            previous: Token::new(TokenType::Eof, 0),
             lexer: Lexer::new(source),
-            chunk: Default::default()
+            locals: Vec::with_capacity(u8::MAX as usize), // immediately provide a vector with capacity instead of doing multiple allocations
+            ..Default::default()
         }
     }
 
@@ -94,6 +108,11 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    fn create_string(&mut self, lexeme: &str) -> usize {
+        let str_index = self.chunk.strings.intern(lexeme);
+        self.chunk.add_constant(Value::String(str_index))
+    }
+
     // compiles the entire source code to a chunk
     pub fn compile(&mut self) -> Result<&mut Chunk> {
         self.advance();
@@ -107,20 +126,77 @@ impl<'a> Compiler<'a> {
 
     fn declaration(&mut self) -> Result<()> {
         if self.next_eq(TokenType::Var) {
-            self.var_declaration()
+            if self.scope_depth == 0 {
+                self.global_var()
+            } else {
+                self.local_var()
+            }
         } else {
             self.statement()
         }
     }
 
-    fn var_declaration(&mut self) -> Result<()> {
-        let name_index = self.parse_variable("Expect variable name.")?;
+    fn init_variable(&mut self) -> Result<()> {
         if self.next_eq(TokenType::Equal) {
             self.expression()?;
         } else {
             self.emit(OpCode::Nil);
         }
-        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")?;
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' after variable declaration.",
+        )
+    }
+
+    fn local_var(&mut self) -> Result<()> {
+        if let TokenType::Identifier(_) = self.current.kind {
+            self.advance();
+            if self.locals.len() == u8::MAX as usize {
+                parse_error!("Too many local variables.", self.previous.line)
+            } else {
+                let token = self.previous;
+                self.is_unique(token)?;
+                let local = Local {
+                    name: token,
+                    depth: None,
+                };
+                self.locals.push(local);
+                self.init_variable()?;
+                self.mark_initialized();
+                Ok(())
+            }
+        } else {
+            parse_error!("Expected variable identifier.", self.previous.line)
+        }
+    }
+
+    fn mark_initialized(&mut self) {
+        let last = self
+            .locals
+            .last_mut()
+            .expect("Tried to pop out of empty locals vector.");
+        last.depth = Some(self.scope_depth);
+    }
+
+    fn is_unique(&mut self, given: Token<'a>) -> Result<()> {
+        for l in self
+            .locals
+            .iter()
+            .rev()
+            .filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth)) {
+            if l.name == given {
+                return parse_error!(
+                    "Already a variable with this name in this scope.",
+                    self.previous.line
+                );
+            }
+        }
+        Ok(())
+    }
+
+    fn global_var(&mut self) -> Result<()> {
+        let name_index = self.parse_variable("Expect variable name.")?;
+        self.init_variable()?;
         self.emit(OpCode::DefineGlobal(name_index));
         Ok(())
     }
@@ -128,8 +204,7 @@ impl<'a> Compiler<'a> {
     fn parse_variable(&mut self, error_msg: &str) -> Result<usize> {
         if let TokenType::Identifier(lexeme) = self.current.kind {
             self.advance();
-            let str_index = self.chunk.strings.intern(lexeme);
-            Ok(self.chunk.add_constant(Value::String(str_index)))
+            Ok(self.create_string(lexeme))
         } else {
             parse_error!(error_msg, self.previous.line)
         }
@@ -138,8 +213,34 @@ impl<'a> Compiler<'a> {
     fn statement(&mut self) -> Result<()> {
         if self.next_eq(TokenType::Print) {
             self.print_statement()
+        } else if self.next_eq(TokenType::LeftBrace) {
+            self.begin_scope();
+            self.block()?;
+            self.end_scope();
+            Ok(())
         } else {
             self.expression_statement()
+        }
+    }
+
+    fn begin_scope(&mut self) {
+        self.scope_depth += 1;
+    }
+
+    fn block(&mut self) -> Result<()> {
+        while self.current.kind != TokenType::RightBrace && self.current.kind != TokenType::Eof {
+            self.declaration()?;
+        }
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")
+    }
+
+    fn end_scope(&mut self) {
+        self.scope_depth -= 1;
+        for i in (0..self.locals.len()).rev() {
+            if self.locals[i].depth > Some(self.scope_depth) {
+                self.emit(OpCode::Pop);
+                self.locals.pop();
+            }
         }
     }
 
@@ -193,7 +294,8 @@ impl<'a> Compiler<'a> {
     fn number(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::Number(value) = self.previous.kind {
             let index = self.chunk.add_constant(Value::Number(value));
-            Ok(self.emit(OpCode::Constant(index)))
+            self.emit(OpCode::Constant(index));
+            Ok(())
         } else {
             parse_error!("Expected Number!", self.previous.line)
         }
@@ -209,8 +311,14 @@ impl<'a> Compiler<'a> {
         let operator = self.previous.kind;
         self.parse_precedence(Precedence::Unary)?;
         match operator {
-            TokenType::Minus => Ok(self.emit(OpCode::Negate)),
-            TokenType::Bang => Ok(self.emit(OpCode::Not)),
+            TokenType::Minus => {
+                self.emit(OpCode::Negate);
+                Ok(())
+            }
+            TokenType::Bang => {
+                self.emit(OpCode::Not);
+                Ok(())
+            }
             _ => Ok(()),
         }
     }
@@ -220,34 +328,73 @@ impl<'a> Compiler<'a> {
         let rule = self.get_rule(operator).2;
         self.parse_precedence(rule.next())?;
         match operator {
-            TokenType::Plus => Ok(self.emit(OpCode::Add)),
-            TokenType::Minus => Ok(self.emit(OpCode::Subtract)),
-            TokenType::Star => Ok(self.emit(OpCode::Multiply)),
-            TokenType::Slash => Ok(self.emit(OpCode::Divide)),
-            TokenType::BangEqual => Ok(self.emits(OpCode::Equal, OpCode::Not)),
-            TokenType::EqualEqual => Ok(self.emit(OpCode::Equal)),
-            TokenType::Greater => Ok(self.emit(OpCode::Greater)),
-            TokenType::GreaterEqual => Ok(self.emits(OpCode::Less, OpCode::Not)),
-            TokenType::Less => Ok(self.emit(OpCode::Less)),
-            TokenType::LessEqual => Ok(self.emits(OpCode::Greater, OpCode::Not)),
+            TokenType::Plus => {
+                self.emit(OpCode::Add);
+                Ok(())
+            }
+            TokenType::Minus => {
+                self.emit(OpCode::Subtract);
+                Ok(())
+            }
+            TokenType::Star => {
+                self.emit(OpCode::Multiply);
+                Ok(())
+            }
+            TokenType::Slash => {
+                self.emit(OpCode::Divide);
+                Ok(())
+            }
+            TokenType::BangEqual => {
+                self.emits(OpCode::Equal, OpCode::Not);
+                Ok(())
+            }
+            TokenType::EqualEqual => {
+                self.emit(OpCode::Equal);
+                Ok(())
+            }
+            TokenType::Greater => {
+                self.emit(OpCode::Greater);
+                Ok(())
+            }
+            TokenType::GreaterEqual => {
+                self.emits(OpCode::Less, OpCode::Not);
+                Ok(())
+            }
+            TokenType::Less => {
+                self.emit(OpCode::Less);
+                Ok(())
+            }
+            TokenType::LessEqual => {
+                self.emits(OpCode::Greater, OpCode::Not);
+                Ok(())
+            }
             _ => Ok(()),
         }
     }
 
     fn literal(&mut self, _can_assign: bool) -> Result<()> {
         match self.previous.kind {
-            TokenType::False => Ok(self.emit(OpCode::False)),
-            TokenType::True => Ok(self.emit(OpCode::True)),
-            TokenType::Nil => Ok(self.emit(OpCode::Nil)),
+            TokenType::False => {
+                self.emit(OpCode::False);
+                Ok(())
+            }
+            TokenType::True => {
+                self.emit(OpCode::True);
+                Ok(())
+            }
+            TokenType::Nil => {
+                self.emit(OpCode::Nil);
+                Ok(())
+            }
             _ => unreachable!(),
         }
     }
 
     fn string(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::StrLit(lexeme) = self.previous.kind {
-            let str_index = self.chunk.strings.intern(lexeme);
-            let index = self.chunk.add_constant(Value::String(str_index));
-            Ok(self.emit(OpCode::Constant(index)))
+            let index = self.create_string(lexeme);
+            self.emit(OpCode::Constant(index));
+            Ok(())
         } else {
             parse_error!("Expected String literal.", self.previous.line)
         }
@@ -259,21 +406,54 @@ impl<'a> Compiler<'a> {
 
     fn named_variable(&mut self, name: Token<'a>, can_assign: bool) -> Result<()> {
         if let TokenType::Identifier(lexeme) = name.kind {
-            let str_index = self.chunk.strings.intern(lexeme);
-            let index = self.chunk.add_constant(Value::String(str_index));
+            let get_op;
+            let set_op;
+            match self.resolve_local(name) {
+                Resolved::Global => {
+                    let index = self.create_string(lexeme);
+                    get_op = OpCode::GetGlobal(index);
+                    set_op = OpCode::SetGlobal(index);
+                }
+                Resolved::Local(i) => {
+                    get_op = OpCode::GetLocal(i);
+                    set_op = OpCode::SetLocal(i);
+                }
+                Resolved::Nope => {
+                    return parse_error!(
+                        "Can't read local variable in its own initializer.",
+                        self.previous.line
+                    )
+                }
+            }
+
             if self.next_eq(TokenType::Equal) && can_assign {
                 // l-value
                 self.expression()?;
-                Ok(self.emit(OpCode::SetGlobal(index))) // assignment expression
+                self.emit(set_op);
+                Ok(())
             } else {
                 // r-value
-                Ok(self.emit(OpCode::GetGlobal(index))) // variable expression
+                self.emit(get_op);
+                Ok(())
             }
         } else {
             parse_error!("Expected variable name.", self.previous.line)
         }
     }
-            
+
+    fn resolve_local(&mut self, name: Token<'a>) -> Resolved {
+        for (i, l) in self.locals.iter().enumerate().rev() {
+            if l.name == name {
+                if l.depth.is_none() {
+                    return Resolved::Nope;
+                } else {
+                    return Resolved::Local(i);
+                }
+            }
+        }
+        Resolved::Global
+    }
+
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
             TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None),

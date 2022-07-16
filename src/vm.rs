@@ -88,7 +88,6 @@ impl<'c> VM<'c> {
                 }
                 OpCode::Return => return Ok(()),
                 OpCode::Print => {
-                    // println!("{}", self.pop()),
                     let value = self.pop();
                     if let Value::String(index) = value {
                         let mut newline_buf: [u8; 1] = [0; 1]; // newline character needs 1 byte

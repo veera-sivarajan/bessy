@@ -57,6 +57,7 @@ impl<'c> VM<'c> {
     // TODO should vm.run() really return a Result?
     // would it be more efficient if it was a function with no return values instead aka returning `()`
     // if there is an error, it will print the error message on screen and terminate the interpreter after setting the appropriate shell code
+    #[allow(clippy::map_entry)]
     pub fn run(&mut self, output: &mut impl Write) -> Result<(), BessyError> {
         while self.ip < self.chunk.code.len() {
             let opcode = self.chunk.code[self.ip];

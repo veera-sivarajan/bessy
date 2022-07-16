@@ -24,7 +24,7 @@ impl Value {
             (Value::Nil, Value::Nil) => true,
             (Value::Number(a), Value::Number(b)) => *a == b,
             (Value::Bool(a), Value::Bool(b)) => *a == b,
-            (Value::String(a), Value::String(b)) => *a == b, 
+            (Value::String(a), Value::String(b)) => *a == b,
             _ => false,
         }
     }
@@ -58,7 +58,7 @@ impl<'c> VM<'c> {
     // would it be more efficient if it was a function with no return values instead aka returning `()`
     // if there is an error, it will print the error message on screen and terminate the interpreter after setting the appropriate shell code
     pub fn run(&mut self, output: &mut impl Write) -> Result<(), BessyError> {
-        while self.ip < self.chunk.code.len() { 
+        while self.ip < self.chunk.code.len() {
             let opcode = self.chunk.code[self.ip];
             self.ip += 1;
             match opcode {
@@ -86,7 +86,7 @@ impl<'c> VM<'c> {
                     let result = a.equal(b);
                     self.push(Value::Bool(result));
                 }
-                OpCode::Return => return Ok(()), 
+                OpCode::Return => return Ok(()),
                 OpCode::Print => {
                     // println!("{}", self.pop()),
                     let value = self.pop();
@@ -117,8 +117,11 @@ impl<'c> VM<'c> {
                         if let Some(value) = self.globals.get(&str_index) {
                             self.push(value.to_owned());
                         } else {
-                            let msg = format!("Undefined variable '{}'.", self.chunk.strings.lookup(str_index));
-                            return runtime_error!(msg, self.chunk.lines[self.ip - 1])
+                            let msg = format!(
+                                "Undefined variable '{}'.",
+                                self.chunk.strings.lookup(str_index)
+                            );
+                            return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
                         }
                     } else {
                         unreachable!()
@@ -130,7 +133,10 @@ impl<'c> VM<'c> {
                             // not popping the value here because assignment is an expression
                             let _ = self.globals.insert(str_index, self.peek(0).to_owned());
                         } else {
-                            let msg = format!("Cannot assign to undefined variable '{}'.", self.chunk.strings.lookup(str_index));
+                            let msg = format!(
+                                "Cannot assign to undefined variable '{}'.",
+                                self.chunk.strings.lookup(str_index)
+                            );
                             return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
                         }
                     } else {
@@ -165,10 +171,16 @@ impl<'c> VM<'c> {
                                 OpCode::Add => {
                                     let l = self.chunk.strings.lookup(*l);
                                     let r = self.chunk.strings.lookup(*r);
-                                    let concat = self.chunk.strings.intern(format!("{}{}", l, r).as_ref());
+                                    let concat =
+                                        self.chunk.strings.intern(format!("{}{}", l, r).as_ref());
                                     Value::String(concat)
                                 }
-                                _ => return runtime_error!("Unsupported operation for Strings.", self.chunk.lines[self.ip - 1]),
+                                _ => {
+                                    return runtime_error!(
+                                        "Unsupported operation for Strings.",
+                                        self.chunk.lines[self.ip - 1]
+                                    )
+                                }
                             };
                             self.pop();
                             self.pop();

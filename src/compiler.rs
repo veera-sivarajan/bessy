@@ -44,13 +44,12 @@ struct Local<'a> {
     depth: Option<u32>,
 }
 
-
 enum Resolved {
     Local(usize),
     Global,
     Nope,
 }
-        
+
 #[derive(Default)]
 pub struct Compiler<'a> {
     current: Token<'a>,
@@ -143,7 +142,10 @@ impl<'a> Compiler<'a> {
         } else {
             self.emit(OpCode::Nil);
         }
-        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' after variable declaration.",
+        )
     }
 
     fn local_var(&mut self) -> Result<()> {
@@ -154,7 +156,10 @@ impl<'a> Compiler<'a> {
             } else {
                 let token = self.previous;
                 self.is_unique(token)?;
-                let local = Local { name: token, depth: None };
+                let local = Local {
+                    name: token,
+                    depth: None,
+                };
                 self.locals.push(local);
                 self.init_variable()?;
                 self.mark_initialized();
@@ -166,14 +171,24 @@ impl<'a> Compiler<'a> {
     }
 
     fn mark_initialized(&mut self) {
-        let last = self.locals.last_mut().expect("Tried to pop out of empty locals vector.");
+        let last = self
+            .locals
+            .last_mut()
+            .expect("Tried to pop out of empty locals vector.");
         last.depth = Some(self.scope_depth);
     }
 
     fn is_unique(&mut self, given: Token<'a>) -> Result<()> {
-        for l in self.locals.iter().rev().filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth)) {
+        for l in self
+            .locals
+            .iter()
+            .rev()
+            .filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth)) {
             if l.name == given {
-                return parse_error!("Already a variable with this name in this scope.", self.previous.line);
+                return parse_error!(
+                    "Already a variable with this name in this scope.",
+                    self.previous.line
+                );
             }
         }
         Ok(())
@@ -342,7 +357,6 @@ impl<'a> Compiler<'a> {
         self.named_variable(self.previous, can_assign)
     }
 
-
     fn named_variable(&mut self, name: Token<'a>, can_assign: bool) -> Result<()> {
         if let TokenType::Identifier(lexeme) = name.kind {
             let get_op;
@@ -357,9 +371,14 @@ impl<'a> Compiler<'a> {
                     get_op = OpCode::GetLocal(i);
                     set_op = OpCode::SetLocal(i);
                 }
-                Resolved::Nope => return parse_error!("Can't read local variable in its own initializer.", self.previous.line),
+                Resolved::Nope => {
+                    return parse_error!(
+                        "Can't read local variable in its own initializer.",
+                        self.previous.line
+                    )
+                }
             }
-                
+
             if self.next_eq(TokenType::Equal) && can_assign {
                 // l-value
                 self.expression()?;
@@ -385,7 +404,7 @@ impl<'a> Compiler<'a> {
         }
         Resolved::Global
     }
-            
+
     fn get_rule(&self, kind: TokenType<'a>) -> ParseRule<'a> {
         match kind {
             TokenType::LeftParen => (Some(Compiler::grouping), None, Precedence::None),

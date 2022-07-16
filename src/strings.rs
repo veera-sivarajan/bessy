@@ -9,7 +9,8 @@ pub struct IStrings {
 
 impl IStrings {
     pub fn intern(&mut self, name: &str) -> usize {
-        if let Some(&index) = self.map.get(name) {  // using hashmap because O(1) lookup in theory. Not sure about Rust's complexity with all its safety checks
+        if let Some(&index) = self.map.get(name) {
+            // using hashmap because O(1) lookup in theory. Not sure about Rust's complexity with all its safety checks
             index
         } else {
             let index = self.map.len();
@@ -23,4 +24,3 @@ impl IStrings {
         self.list[index].as_str()
     }
 }
-    

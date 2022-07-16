@@ -1,5 +1,5 @@
+use crate::chunk::{Chunk, OpCode, Value};
 use std::fmt;
-use crate::chunk::{Chunk, Value, OpCode};
 
 impl fmt::Debug for OpCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -56,7 +56,6 @@ impl fmt::Display for OpCode {
         }
     }
 }
-
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

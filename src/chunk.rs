@@ -18,7 +18,7 @@ pub enum OpCode {
     Less,
     Print,
     Pop,
-    DefineGlobal(usize), 
+    DefineGlobal(usize),
     GetGlobal(usize),
     SetGlobal(usize),
     GetLocal(usize),
@@ -29,7 +29,7 @@ pub enum OpCode {
 pub enum Value {
     Number(f64),
     Bool(bool),
-    String(usize), // A String type will contain a index to it's stored location in IStrings::list 
+    String(usize), // A String type will contain a index to it's stored location in IStrings::list
     Nil,
 }
 

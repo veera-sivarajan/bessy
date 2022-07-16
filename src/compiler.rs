@@ -294,7 +294,8 @@ impl<'a> Compiler<'a> {
     fn number(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::Number(value) = self.previous.kind {
             let index = self.chunk.add_constant(Value::Number(value));
-            Ok(self.emit(OpCode::Constant(index)))
+            self.emit(OpCode::Constant(index));
+            Ok(())
         } else {
             parse_error!("Expected Number!", self.previous.line)
         }
@@ -310,8 +311,14 @@ impl<'a> Compiler<'a> {
         let operator = self.previous.kind;
         self.parse_precedence(Precedence::Unary)?;
         match operator {
-            TokenType::Minus => Ok(self.emit(OpCode::Negate)),
-            TokenType::Bang => Ok(self.emit(OpCode::Not)),
+            TokenType::Minus => {
+                self.emit(OpCode::Negate);
+                Ok(())
+            }
+            TokenType::Bang => {
+                self.emit(OpCode::Not);
+                Ok(())
+            }
             _ => Ok(()),
         }
     }
@@ -321,25 +328,64 @@ impl<'a> Compiler<'a> {
         let rule = self.get_rule(operator).2;
         self.parse_precedence(rule.next())?;
         match operator {
-            TokenType::Plus => Ok(self.emit(OpCode::Add)),
-            TokenType::Minus => Ok(self.emit(OpCode::Subtract)),
-            TokenType::Star => Ok(self.emit(OpCode::Multiply)),
-            TokenType::Slash => Ok(self.emit(OpCode::Divide)),
-            TokenType::BangEqual => Ok(self.emits(OpCode::Equal, OpCode::Not)),
-            TokenType::EqualEqual => Ok(self.emit(OpCode::Equal)),
-            TokenType::Greater => Ok(self.emit(OpCode::Greater)),
-            TokenType::GreaterEqual => Ok(self.emits(OpCode::Less, OpCode::Not)),
-            TokenType::Less => Ok(self.emit(OpCode::Less)),
-            TokenType::LessEqual => Ok(self.emits(OpCode::Greater, OpCode::Not)),
+            TokenType::Plus => {
+                self.emit(OpCode::Add);
+                Ok(())
+            }
+            TokenType::Minus => {
+                self.emit(OpCode::Subtract);
+                Ok(())
+            }
+            TokenType::Star => {
+                self.emit(OpCode::Multiply);
+                Ok(())
+            }
+            TokenType::Slash => {
+                self.emit(OpCode::Divide);
+                Ok(())
+            }
+            TokenType::BangEqual => {
+                self.emits(OpCode::Equal, OpCode::Not);
+                Ok(())
+            }
+            TokenType::EqualEqual => {
+                self.emit(OpCode::Equal);
+                Ok(())
+            }
+            TokenType::Greater => {
+                self.emit(OpCode::Greater);
+                Ok(())
+            }
+            TokenType::GreaterEqual => {
+                self.emits(OpCode::Less, OpCode::Not);
+                Ok(())
+            }
+            TokenType::Less => {
+                self.emit(OpCode::Less);
+                Ok(())
+            }
+            TokenType::LessEqual => {
+                self.emits(OpCode::Greater, OpCode::Not);
+                Ok(())
+            }
             _ => Ok(()),
         }
     }
 
     fn literal(&mut self, _can_assign: bool) -> Result<()> {
         match self.previous.kind {
-            TokenType::False => Ok(self.emit(OpCode::False)),
-            TokenType::True => Ok(self.emit(OpCode::True)),
-            TokenType::Nil => Ok(self.emit(OpCode::Nil)),
+            TokenType::False => {
+                self.emit(OpCode::False);
+                Ok(())
+            }
+            TokenType::True => {
+                self.emit(OpCode::True);
+                Ok(())
+            }
+            TokenType::Nil => {
+                self.emit(OpCode::Nil);
+                Ok(())
+            }
             _ => unreachable!(),
         }
     }
@@ -347,7 +393,8 @@ impl<'a> Compiler<'a> {
     fn string(&mut self, _can_assign: bool) -> Result<()> {
         if let TokenType::StrLit(lexeme) = self.previous.kind {
             let index = self.create_string(lexeme);
-            Ok(self.emit(OpCode::Constant(index)))
+            self.emit(OpCode::Constant(index));
+            Ok(())
         } else {
             parse_error!("Expected String literal.", self.previous.line)
         }
@@ -382,10 +429,12 @@ impl<'a> Compiler<'a> {
             if self.next_eq(TokenType::Equal) && can_assign {
                 // l-value
                 self.expression()?;
-                Ok(self.emit(set_op))
+                self.emit(set_op);
+                Ok(())
             } else {
                 // r-value
-                Ok(self.emit(get_op))
+                self.emit(get_op);
+                Ok(())
             }
         } else {
             parse_error!("Expected variable name.", self.previous.line)

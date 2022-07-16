@@ -65,7 +65,7 @@ impl<'c> VM<'c> {
                 OpCode::Nil => self.push(Value::Nil),
                 OpCode::True => self.push(Value::Bool(true)),
                 OpCode::False => self.push(Value::Bool(false)),
-                OpCode::Constant(index) => self.push(self.chunk.constants[index].clone()),
+                OpCode::Constant(index) => self.push(self.chunk.constants[index]),
                 OpCode::Negate => {
                     if let Value::Number(n) = self.pop() {
                         self.push(Value::Number(-n));

@@ -38,50 +38,51 @@ mod tests {
     use super::*;
     use std::str;
 
-    fn test(input: &str, expected: &str) {
+    fn test(input: &str, expected: &str) -> bool {
         let mut compiler = compiler::Compiler::new(input);
         if let Ok(code) = compiler.compile() {
             let mut vm = vm::VM::new(code);
             let mut output_buf: Vec<u8> = Vec::new();
             if let Ok(_) = vm.run(&mut output_buf) {
-                assert_eq!(&output_buf, expected.as_bytes());
+                // assert_eq!(&output_buf, expected.as_bytes());
+                &output_buf == expected.as_bytes()
             } else {
-                assert!(false)
+                false
             }
         } else {
-            assert!(false)
+            false
         }
     }
 
     #[test]
     fn numbers() {
-        test("print 1;", "1\n");
-        test("print 10000000;", "10000000\n");
-        test("100;", "");
+        assert!(test("print 1;", "1\n"));
+        assert!(test("print 10000000;", "10000000\n"));
+        assert!(test("100;", ""));
     }
 
     #[test]
     fn literals() {
-        test("true;", "");
-        test("false;", "");
-        test("print true;", "true\n");
-        test("print false;", "false\n");
-        test("print nil;", "Nil\n");
+        assert!(test("true;", ""));
+        assert!(test("false;", ""));
+        assert!(test("print true;", "true\n"));
+        assert!(test("print false;", "false\n"));
+        assert!(test("print nil;", "Nil\n"));
     }
 
     #[test]
     fn expressions() {
-        test("print 1 + 2;", "3\n");
-        test("print !(5 - 4 > 3 * 2 == !nil);", "true\n");
-        test("print !true;", "false\n");
-        test("1 + 1;", "");
+        assert!(test("print 1 + 2;", "3\n"));
+        assert!(test("print !(5 - 4 > 3 * 2 == !nil);", "true\n"));
+        assert!(test("print !true;", "false\n"));
+        assert!(test("1 + 1;", ""));
     }
 
     #[test]
     fn strings() {
-        test("print \"Hello, world!\";", "Hello, world!\n");
-        test("print \"Hello, \" + \"world!\";", "Hello, world!\n");
-        test("\"billa\";", "");
+        assert!(test("print \"Hello, world!\";", "Hello, world!\n"));
+        assert!(test("print \"Hello, \" + \"world!\";", "Hello, world!\n"));
+        assert!(test("\"billa\";", ""));
     }
 
     #[test]
@@ -94,7 +95,7 @@ mod tests {
         let outputs = ["3\n2\n1\n", "global\n2\n3\n4\nglobal\n"];
         for (file, result) in paths.iter().zip(outputs.iter()) {
             let input = fs::read_to_string(file).expect("File not found.");
-            test(input.as_str(), result);
+            assert!(test(input.as_str(), result));
         }
     }
 }

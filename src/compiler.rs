@@ -218,9 +218,18 @@ impl<'a> Compiler<'a> {
             self.block()?;
             self.end_scope();
             Ok(())
+        } else if self.next_eq(TokenType::If) {
+            self.if_statement()
         } else {
             self.expression_statement()
         }
+    }
+
+    fn print_statement(&mut self) -> Result<()> {
+        self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
+        self.emit(OpCode::Print);
+        Ok(())
     }
 
     fn begin_scope(&mut self) {
@@ -244,11 +253,11 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn print_statement(&mut self) -> Result<()> {
+    fn if_statement(&mut self) -> Result<()> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
         self.expression()?;
-        self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
-        self.emit(OpCode::Print);
-        Ok(())
+        self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
+
     }
 
     fn expression_statement(&mut self) -> Result<()> {

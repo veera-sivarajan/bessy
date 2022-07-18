@@ -47,8 +47,9 @@ impl Chunk {
         self.constants.len() - 1 // index of added element
     }
 
-    pub fn emit_byte(&mut self, code: OpCode, line: u16) {
+    pub fn emit_byte(&mut self, code: OpCode, line: u16) -> usize {
         self.code.push(code);
         self.lines.push(line);
+        self.code.len() - 1
     }
 }

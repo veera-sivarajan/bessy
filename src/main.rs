@@ -44,7 +44,6 @@ mod tests {
             let mut vm = vm::VM::new(code);
             let mut output_buf: Vec<u8> = Vec::new();
             if let Ok(_) = vm.run(&mut output_buf) {
-                // assert_eq!(&output_buf, expected.as_bytes());
                 &output_buf == expected.as_bytes()
             } else {
                 false
@@ -97,5 +96,6 @@ mod tests {
             let input = fs::read_to_string(file).expect("File not found.");
             assert!(test(input.as_str(), result));
         }
+        assert!(!test("var a = 5;{var a = a}", "does not compile"));
     }
 }

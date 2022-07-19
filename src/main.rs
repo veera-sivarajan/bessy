@@ -78,6 +78,16 @@ mod tests {
     }
 
     #[test]
+    fn logical_operators() {
+        assert!(test("print true or false;", "true\n"));
+        assert!(test("print true and false;", "false\n"));
+        assert!(test("print !true or !false;", "true\n"));
+        assert!(test("print !true and !false;", "false\n"));
+        assert!(test("print 1 and 2;", "2\n"));
+        assert!(test("print 1 or 2;", "1\n"));
+    }
+
+    #[test]
     fn strings() {
         assert!(test("print \"Hello, world!\";", "Hello, world!\n"));
         assert!(test("print \"Hello, \" + \"world!\";", "Hello, world!\n"));

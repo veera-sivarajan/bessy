@@ -88,7 +88,7 @@ impl<'c> VM<'c> {
                     self.push(Value::Bool(result));
                 }
                 OpCode::Return => {
-                    assert!(self.stack.len() == 0);
+                    assert!(self.stack.is_empty());
                     return Ok(());
                 }
                 OpCode::Jump(offset) => self.ip += offset as usize,

@@ -1,5 +1,6 @@
-if (true) {
-    print "1";
+if (true and true) {
+    // print "then-branch";
+    print 1 and 2;
 } else {
-    print "2";
+    print "else-branch";
 }

@@ -87,7 +87,10 @@ impl<'c> VM<'c> {
                     let result = a.equal(b);
                     self.push(Value::Bool(result));
                 }
-                OpCode::Return => return Ok(()),
+                OpCode::Return => {
+                    assert!(self.stack.len() == 0);
+                    return Ok(());
+                }
                 OpCode::Jump(offset) => self.ip += offset,
                 OpCode::JumpIfFalse(offset) => {
                     if self.peek(0).is_falsey() {

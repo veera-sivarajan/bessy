@@ -262,8 +262,8 @@ impl<'a> Compiler<'a> {
         self.emit(OpCode::Pop); // pop condition expression before executing then branch
         self.statement()?; // then branch
         let else_jump = self.emit_jump(OpCode::Jump(0)); // jump over else branch after executing then branch
-        self.emit(OpCode::Pop); // pop condition expression before executing else branch
         self.patch_jump(then_jump); // backpatch then_jump to right before else branch
+        self.emit(OpCode::Pop); // pop condition expression before executing else branch
         if self.next_eq(TokenType::Else) {
             self.statement()?; // else branch
         }
@@ -276,7 +276,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn patch_jump(&mut self, pos: usize) {
-        let new_index = self.chunk.code.len() - 1;
+        let new_index = self.chunk.code.len() - 1 - pos;
         match self.chunk.code[pos] {
             OpCode::JumpIfFalse(ref mut index) => *index = new_index,
             OpCode::Jump(ref mut index) => *index = new_index,

@@ -91,13 +91,10 @@ impl<'c> VM<'c> {
                     assert!(self.stack.len() == 0);
                     return Ok(());
                 }
-                OpCode::Jump(offset) => self.ip += offset,
+                OpCode::Jump(offset) => self.ip += offset as usize,
                 OpCode::JumpIfFalse(offset) => {
                     if self.peek(0).is_falsey() {
-                        println!("ip: {}", self.ip);
-                        println!("offset: {}", offset);
-                        self.ip +=  offset;
-                        println!("Jumping to: {}", self.ip);
+                        self.ip +=  offset as usize;
                     }
                 }
                 OpCode::Print => {

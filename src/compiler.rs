@@ -2,6 +2,7 @@ use crate::chunk::{Chunk, OpCode, Value};
 use crate::error::BessyError;
 use crate::lexer::Lexer;
 use crate::token::{Token, TokenType};
+use std::convert::TryFrom;
 
 type Result<T> = std::result::Result<T, BessyError>;
 
@@ -93,7 +94,6 @@ impl<'a> Compiler<'a> {
     fn emit(&mut self, op: OpCode) {
         let _ = self.chunk.emit_byte(op, self.previous.line);
     }
-
 
     fn emits(&mut self, a: OpCode, b: OpCode) {
         self.emit(a);
@@ -262,12 +262,12 @@ impl<'a> Compiler<'a> {
         self.emit(OpCode::Pop); // pop condition expression before executing then branch
         self.statement()?; // then branch
         let else_jump = self.emit_jump(OpCode::Jump(0)); // jump over else branch after executing then branch
-        self.patch_jump(then_jump); // backpatch then_jump to right before else branch
+        self.patch_jump(then_jump)?; // backpatch then_jump to right before else branch
         self.emit(OpCode::Pop); // pop condition expression before executing else branch
         if self.next_eq(TokenType::Else) {
             self.statement()?; // else branch
         }
-        self.patch_jump(else_jump); // backpatch else_jump to right after else branch
+        self.patch_jump(else_jump)?; // backpatch else_jump to right after else branch
         Ok(())
     }
 
@@ -275,13 +275,18 @@ impl<'a> Compiler<'a> {
         self.chunk.emit_byte(op, self.previous.line)
     }
 
-    fn patch_jump(&mut self, pos: usize) {
-        let new_index = self.chunk.code.len() - 1 - pos;
+    fn patch_jump(&mut self, pos: usize) -> Result<()> {
+        let index = self.chunk.code.len() - 1 - pos;
+        let new_index = match u8::try_from(index) {
+            Ok(i) => i,
+            Err(_) => return parse_error!("Too much code to skip over.", self.previous.line),
+        };
         match self.chunk.code[pos] {
-            OpCode::JumpIfFalse(ref mut index) => *index = new_index,
-            OpCode::Jump(ref mut index) => *index = new_index,
+            OpCode::JumpIfFalse(ref mut index)
+            | OpCode::Jump(ref mut index) => *index = new_index,
             _ => unreachable!(),
         }
+        Ok(())
     }
 
     fn expression_statement(&mut self) -> Result<()> {

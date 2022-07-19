@@ -223,6 +223,8 @@ impl<'a> Compiler<'a> {
             self.if_stmt()
         } else if self.next_eq(TokenType::While) {
             self.while_stmt()
+        } else if self.next_eq(TokenType::For) {
+            self.for_stmt()
         } else {
             self.expression_stmt()
         }
@@ -333,6 +335,19 @@ impl<'a> Compiler<'a> {
             ),
         };
         self.emit(OpCode::Loop(offset));
+        Ok(())
+    }
+
+    // for (var i = 0; i < 10; i = i + 1) {
+    //      print i;
+    // }
+    fn for_stmt(&mut self) -> Result<()> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;
+        self.consume(TokenType::Semicolon, "Expect ';'.")?;
+        let loop_start = self.chunk.code.len() - 1;
+        self.consume(TokenType::RightParen, "Expect ')' after for clauses.")?;
+        self.statement()?;
+        self.emit_loop(loop_start)?;
         Ok(())
     }
 

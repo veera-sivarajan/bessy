@@ -88,6 +88,13 @@ mod tests {
     }
 
     #[test]
+    fn while_stmts() {
+        let output = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n";
+        let input = "var a = 10; var b = 0; while (b < a) { print b; b = b + 1; }";
+        assert!(test(input, output));
+    }
+
+    #[test]
     fn strings() {
         assert!(test("print \"Hello, world!\";", "Hello, world!\n"));
         assert!(test("print \"Hello, \" + \"world!\";", "Hello, world!\n"));

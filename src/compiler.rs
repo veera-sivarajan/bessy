@@ -213,20 +213,22 @@ impl<'a> Compiler<'a> {
 
     fn statement(&mut self) -> Result<()> {
         if self.next_eq(TokenType::Print) {
-            self.print_statement()
+            self.print_stmt()
         } else if self.next_eq(TokenType::LeftBrace) {
             self.begin_scope();
             self.block()?;
             self.end_scope();
             Ok(())
         } else if self.next_eq(TokenType::If) {
-            self.if_statement()
+            self.if_stmt()
+        } else if self.next_eq(TokenType::While) {
+            self.while_stmt()
         } else {
-            self.expression_statement()
+            self.expression_stmt()
         }
     }
 
-    fn print_statement(&mut self) -> Result<()> {
+    fn print_stmt(&mut self) -> Result<()> {
         self.expression()?;
         self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
         self.emit(OpCode::Print);
@@ -254,7 +256,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn if_statement(&mut self) -> Result<()> {
+    fn if_stmt(&mut self) -> Result<()> {
         self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
         self.expression()?; // condition expression
         self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
@@ -277,7 +279,7 @@ impl<'a> Compiler<'a> {
 
     fn patch_jump(&mut self, pos: usize) -> Result<()> {
         let index = self.chunk.code.len() - 1 - pos;
-        let new_index = match u8::try_from(index) {
+        let new_index = match u16::try_from(index) {
             Ok(i) => i,
             Err(_) => return parse_error!("Too much code to skip over.", self.previous.line),
         };
@@ -307,7 +309,34 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    fn expression_statement(&mut self) -> Result<()> {
+    fn while_stmt(&mut self) -> Result<()> {
+        let loop_start = self.chunk.code.len() - 1;
+        self.consume(TokenType::LeftParen, "Expect '(' after 'while'.")?;
+        self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
+        let body_jump = self.emit_jump(OpCode::JumpIfFalse(0));
+        self.emit(OpCode::Pop);
+        self.statement()?;
+        self.emit_loop(loop_start)?;
+        self.patch_jump(body_jump)?;
+        self.emit(OpCode::Pop);
+        Ok(())
+    }
+
+    fn emit_loop(&mut self, start: usize) -> Result<()> {
+        let offset = self.chunk.code.len() - start;
+        let offset = match u16::try_from(offset) {
+            Ok(i) => i,
+            Err(_) => return parse_error!(
+                "Loop body too large.",
+                self.previous.line
+            ),
+        };
+        self.emit(OpCode::Loop(offset));
+        Ok(())
+    }
+
+    fn expression_stmt(&mut self) -> Result<()> {
         self.expression()?;
         self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
         self.emit(OpCode::Pop);

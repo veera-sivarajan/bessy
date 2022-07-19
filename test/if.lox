@@ -1,6 +1,6 @@
-if (true and true) {
-    // print "then-branch";
-    print 1 and 2;
-} else {
-    print "else-branch";
+var a = 10;
+var b = 0;
+while (b < a) {
+    print b;
+    b = b + 1;
 }

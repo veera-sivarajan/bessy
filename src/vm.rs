@@ -92,6 +92,7 @@ impl<'c> VM<'c> {
                     return Ok(());
                 }
                 OpCode::Jump(offset) => self.ip += offset as usize,
+                OpCode::Loop(offset) => self.ip -= offset as usize,
                 OpCode::JumpIfFalse(offset) => {
                     if self.peek(0).is_falsey() {
                         self.ip +=  offset as usize;

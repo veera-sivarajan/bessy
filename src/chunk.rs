@@ -23,8 +23,9 @@ pub enum OpCode {
     SetGlobal(usize),
     GetLocal(usize),
     SetLocal(usize),
-    JumpIfFalse(u8),
-    Jump(u8),
+    JumpIfFalse(u16),
+    Jump(u16),
+    Loop(u16),
 }
 
 #[derive(Clone, PartialEq, Copy)]

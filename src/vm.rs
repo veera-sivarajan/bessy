@@ -88,6 +88,14 @@ impl<'c> VM<'c> {
                     self.push(Value::Bool(result));
                 }
                 OpCode::Return => return Ok(()),
+                OpCode::JumpIfFalse(offset) => {
+                    if self.peek(0).is_falsey() {
+                        println!("ip: {}", self.ip);
+                        println!("offset: {}", offset);
+                        self.ip +=  offset;
+                        println!("Jumping to: {}", self.ip);
+                    }
+                }
                 OpCode::Print => {
                     let value = self.pop();
                     if let Value::String(index) = value {

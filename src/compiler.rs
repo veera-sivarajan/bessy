@@ -91,8 +91,9 @@ impl<'a> Compiler<'a> {
     }
 
     fn emit(&mut self, op: OpCode) {
-        self.chunk.emit_byte(op, self.previous.line);
+        let _ = self.chunk.emit_byte(op, self.previous.line);
     }
+
 
     fn emits(&mut self, a: OpCode, b: OpCode) {
         self.emit(a);
@@ -257,7 +258,24 @@ impl<'a> Compiler<'a> {
         self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
         self.expression()?;
         self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
+        let then_jump = self.emit_jump(OpCode::JumpIfFalse(0));
+        self.statement()?;
+        self.patch_jump(then_jump);
+        Ok(())
+    }
 
+    fn emit_jump(&mut self, op: OpCode) -> usize {
+        self.chunk.emit_byte(op, self.previous.line)
+    }
+
+    fn patch_jump(&mut self, pos: usize) {
+        let new_index = self.chunk.code.len() - 1;
+        match self.chunk.code[pos] {
+            OpCode::JumpIfFalse(ref mut index) => {
+                *index = new_index;
+            }
+            _ => unreachable!(),
+        }
     }
 
     fn expression_statement(&mut self) -> Result<()> {

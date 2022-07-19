@@ -26,6 +26,7 @@ impl fmt::Debug for OpCode {
             OpCode::GetLocal(index) => write!(f, "GET_LOCAL({})", index),
             OpCode::SetLocal(index) => write!(f, "SET_LOCAL({})", index),
             OpCode::JumpIfFalse(index) => write!(f, "JUMP_IF_FALSE({})", index),
+            OpCode::Jump(index) => write!(f, "JUMP({})", index),
         }
     }
 }
@@ -55,6 +56,7 @@ impl fmt::Display for OpCode {
             OpCode::GetLocal(index) => write!(f, "{}", index),
             OpCode::SetLocal(index) => write!(f, "{}", index),
             OpCode::JumpIfFalse(index) => write!(f, "{}", index),
+            OpCode::Jump(index) => write!(f, "{}", index),
         }
     }
 }

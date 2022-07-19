@@ -88,6 +88,7 @@ impl<'c> VM<'c> {
                     self.push(Value::Bool(result));
                 }
                 OpCode::Return => return Ok(()),
+                OpCode::Jump(offset) => self.ip += offset,
                 OpCode::JumpIfFalse(offset) => {
                     if self.peek(0).is_falsey() {
                         println!("ip: {}", self.ip);

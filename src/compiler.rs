@@ -256,11 +256,18 @@ impl<'a> Compiler<'a> {
 
     fn if_statement(&mut self) -> Result<()> {
         self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
-        self.expression()?;
+        self.expression()?; // condition expression
         self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
-        let then_jump = self.emit_jump(OpCode::JumpIfFalse(0));
-        self.statement()?;
-        self.patch_jump(then_jump);
+        let then_jump = self.emit_jump(OpCode::JumpIfFalse(0)); // jump to else if condition expression is false
+        self.emit(OpCode::Pop); // pop condition expression before executing then branch
+        self.statement()?; // then branch
+        let else_jump = self.emit_jump(OpCode::Jump(0)); // jump over else branch after executing then branch
+        self.emit(OpCode::Pop); // pop condition expression before executing else branch
+        self.patch_jump(then_jump); // backpatch then_jump to right before else branch
+        if self.next_eq(TokenType::Else) {
+            self.statement()?; // else branch
+        }
+        self.patch_jump(else_jump); // backpatch else_jump to right after else branch
         Ok(())
     }
 
@@ -271,9 +278,8 @@ impl<'a> Compiler<'a> {
     fn patch_jump(&mut self, pos: usize) {
         let new_index = self.chunk.code.len() - 1;
         match self.chunk.code[pos] {
-            OpCode::JumpIfFalse(ref mut index) => {
-                *index = new_index;
-            }
+            OpCode::JumpIfFalse(ref mut index) => *index = new_index,
+            OpCode::Jump(ref mut index) => *index = new_index,
             _ => unreachable!(),
         }
     }

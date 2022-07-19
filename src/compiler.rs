@@ -299,6 +299,14 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
+    fn and(&mut self, _can_assign: bool) -> Result<()> {
+        let end_jump = self.emit_jump(OpCode::JumpIfFalse(0));
+        self.emit(OpCode::Pop);
+        self.parse_precedence(Precedence::And)?;
+        self.patch_jump(end_jump)?;
+        Ok(())
+    }
+
     fn expression_statement(&mut self) -> Result<()> {
         self.expression()?;
         self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
@@ -542,7 +550,7 @@ impl<'a> Compiler<'a> {
             TokenType::For => (None, None, Precedence::None),
             TokenType::Fun => (None, None, Precedence::None),
             TokenType::Return => (None, None, Precedence::None),
-            TokenType::And => (None, None, Precedence::None),
+            TokenType::And => (None, Some(Compiler::and), Precedence::And),
             TokenType::Or => (None, Some(Compiler::or), Precedence::Or),
             TokenType::Class => (None, None, Precedence::None),
             TokenType::Super => (None, None, Precedence::None),

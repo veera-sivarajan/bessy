@@ -117,14 +117,13 @@ mod tests {
     #[test]
     fn local_variables() {
         use std::fs;
-        let paths = [
-            "/home/veera/Projects/bessy/test/scope.lox",
-            "/home/veera/Projects/bessy/test/scope-1.lox",
+        let tests = [
+            ("/home/veera/Projects/bessy/test/scope.lox", "3\n2\n1\n"),
+            ("/home/veera/Projects/bessy/test/scope-1.lox", "global\n2\n3\n4\nglobal\n"),
         ];
-        let outputs = ["3\n2\n1\n", "global\n2\n3\n4\nglobal\n"];
-        for (file, result) in paths.iter().zip(outputs.iter()) {
-            let input = fs::read_to_string(file).expect("File not found.");
-            assert!(test(input.as_str(), result));
+        for t in tests {
+            let input = fs::read_to_string(t.0).expect("File not found.");
+            assert!(test(input.as_str(), t.1));
         }
         assert!(!test("var a = 5;{var a = a}", "does not compile"));
     }

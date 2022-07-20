@@ -338,9 +338,6 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    // for (var i = 0; i < 10; i = i + 1) {
-    //      print i;
-    // }
     fn for_stmt(&mut self) -> Result<()> {
         self.begin_scope();
         self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;

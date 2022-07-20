@@ -180,11 +180,13 @@ impl<'a> Compiler<'a> {
     }
 
     fn is_unique(&mut self, given: Token<'a>) -> Result<()> {
-        for l in self
+        let locals = self
             .locals
             .iter()
             .rev()
-            .filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth)) {
+            .filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth));
+        
+        for l in locals {
             if l.name == given {
                 return parse_error!(
                     "Already a variable with this name in this scope.",

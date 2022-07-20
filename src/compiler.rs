@@ -342,12 +342,49 @@ impl<'a> Compiler<'a> {
     //      print i;
     // }
     fn for_stmt(&mut self) -> Result<()> {
+        self.begin_scope();
         self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;
-        self.consume(TokenType::Semicolon, "Expect ';'.")?;
-        let loop_start = self.chunk.code.len() - 1;
-        self.consume(TokenType::RightParen, "Expect ')' after for clauses.")?;
+        
+        // initializer caluse
+        if self.next_eq(TokenType::Semicolon) {
+            // no initializer
+        } else if self.next_eq(TokenType::Var) {
+            self.local_var()?;
+        } else {
+            self.expression_stmt()?;
+        }
+        
+        let mut loop_start = self.chunk.code.len() - 1;
+
+        // condition clause
+        let mut exit_jump = None;
+        if !self.next_eq(TokenType::Semicolon) {
+            self.expression()?;
+            self.consume(TokenType::Semicolon, "Expect ';' after loop condition.")?;
+            exit_jump = Some(self.emit_jump(OpCode::JumpIfFalse(0)));
+            self.emit(OpCode::Pop);
+        }
+
+        // increment expression
+        if !self.next_eq(TokenType::RightParen) {
+            let body_jump = self.emit_jump(OpCode::Jump(0));
+            let increment_start = self.chunk.code.len() - 1;
+            self.expression()?;
+            self.emit(OpCode::Pop);
+            self.consume(TokenType::RightParen, "Expect ')' after for clauses.")?;
+
+            self.emit_loop(loop_start)?;
+            loop_start = increment_start;
+            self.patch_jump(body_jump)?;
+        }
+            
         self.statement()?;
         self.emit_loop(loop_start)?;
+        if let Some(value) = exit_jump {
+            self.patch_jump(value)?;
+            self.emit(OpCode::Pop);
+        }
+        self.end_scope();
         Ok(())
     }
 

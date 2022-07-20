@@ -92,6 +92,19 @@ mod tests {
         let output = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n";
         let input = "var a = 10; var b = 0; while (b < a) { print b; b = b + 1; }";
         assert!(test(input, output));
+
+        let false_input = "var a = 10; while (false) { print a; }";
+        assert!(test(false_input, ""));
+    }
+
+    #[test]
+    fn for_stmts() {
+        let output = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n";
+        let input = "for (var i = 0; i < 10; i = i + 1) { print i; }";
+        assert!(test(input, output));
+
+        let false_input = "for (var i = 0; false; i = i + 1) { print i; }";
+        assert!(test(false_input, ""));
     }
 
     #[test]

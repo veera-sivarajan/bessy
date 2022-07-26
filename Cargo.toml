@@ -3,4 +3,5 @@
 members = [
         "by", # frontend binary
         "compiler", # compiler library
+        "wasm", # web frontend
 ]

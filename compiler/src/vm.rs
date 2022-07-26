@@ -57,7 +57,7 @@ impl<'c> VM<'c> {
     // would it be more efficient if it was a function with no return values instead aka returning `()`
     // if there is an error, it will print the error message on screen and terminate the interpreter after setting the appropriate shell code
     #[allow(clippy::map_entry)]
-    pub fn run(&mut self) -> Result<String, BessyError> {
+    pub fn run(&mut self) -> Result<Value, BessyError> {
         while self.ip < self.chunk.code.len() {
             let opcode = self.chunk.code[self.ip];
             self.ip += 1;
@@ -87,7 +87,7 @@ impl<'c> VM<'c> {
                     self.push(Value::Bool(result));
                 }
                 OpCode::Return => {
-                    let output = self.pop().to_string();
+                    let output = self.pop();
                     assert!(self.stack.is_empty());
                     return Ok(output);
                 }

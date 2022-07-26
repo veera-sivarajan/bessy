@@ -16,7 +16,7 @@ pub fn evaluate(input: String) -> String {
             c.print();
             let mut vm = vm::VM::new(c);
             match vm.run() {
-                Ok(output) => return output,
+                Ok(output) => return output.to_string(),
                 Err(msg) => return msg.to_string(),
             }
         }

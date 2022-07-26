@@ -1,6 +1,7 @@
 mod utils;
 
 use wasm_bindgen::prelude::*;
+use compiler;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -15,5 +16,8 @@ extern {
 
 #[wasm_bindgen]
 pub fn greet() {
-    alert("Hello, wasm!");
+    let input = String::from("print 1 + 2;");
+    let output = compiler::evaluate(input);
+    alert(&output);
 }
+

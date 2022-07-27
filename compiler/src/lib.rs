@@ -9,17 +9,20 @@ mod strings;
 mod token;
 mod vm;
 
-pub fn evaluate(input: String) -> String {
+use std::io::Write;
+
+pub fn evaluate(input: String, output: &mut impl Write) {
     let mut compiler = compiler::Compiler::new(&input);
     match compiler.compile() {
         Ok(c) => {
             c.print();
             let mut vm = vm::VM::new(c);
-            match vm.run() {
-                Ok(output) => return output.to_string(),
-                Err(msg) => return msg.to_string(),
+            if let Err(e) = vm.run(output) {
+                write!(output, "{}", e);
             }
         }
-        Err(e) => return e.to_string(),
+        Err(e) => {
+            write!(output, "{}", e);
+        }
     }
 }

@@ -1,6 +1,7 @@
 use compiler;
+use std::io;
 
 fn main() {
-    let input = String::from("var a = 10; print a + 2;");
-    println!("Output: {}", compiler::evaluate(input));
+    let input = String::from("print \"hello, world\";");
+    compiler::evaluate(input, &mut io::stdout());
 }

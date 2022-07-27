@@ -1,6 +1,7 @@
 use crate::chunk::{Chunk, OpCode, Value};
 use crate::error::BessyError;
 use std::collections::HashMap;
+use std::io::Write;
 
 pub struct VM<'c> {
     chunk: &'c mut Chunk,
@@ -57,7 +58,7 @@ impl<'c> VM<'c> {
     // would it be more efficient if it was a function with no return values instead aka returning `()`
     // if there is an error, it will print the error message on screen and terminate the interpreter after setting the appropriate shell code
     #[allow(clippy::map_entry)]
-    pub fn run(&mut self) -> Result<Value, BessyError> {
+    pub fn run(&mut self, output: &mut impl Write) -> Result<(), BessyError> {
         while self.ip < self.chunk.code.len() {
             let opcode = self.chunk.code[self.ip];
             self.ip += 1;
@@ -87,9 +88,8 @@ impl<'c> VM<'c> {
                     self.push(Value::Bool(result));
                 }
                 OpCode::Return => {
-                    let output = self.pop();
                     assert!(self.stack.is_empty());
-                    return Ok(output);
+                    return Ok(());
                 }
                 OpCode::Jump(offset) => self.ip += offset as usize,
                 OpCode::Loop(offset) => self.ip -= offset as usize,
@@ -99,7 +99,17 @@ impl<'c> VM<'c> {
                     }
                 }
                 OpCode::Print => {
-                    continue;
+                    let value = self.pop();
+                    if let Value::String(index) = value {
+                        let mut newline_buf: [u8; 1] = [0; 1]; // newline character needs 1 byte
+                        let newline_str = '\n'.encode_utf8(&mut newline_buf);
+                        let result = self.chunk.strings.lookup(index);
+                        let _ = output.write_all(result.as_bytes());
+                        let _ = output.write_all(newline_str.as_bytes());
+                    } else {
+                        let result = format!("{}\n", value);
+                        let _ = output.write_all(result.as_bytes());
+                    }
                 }
                 OpCode::Pop => {
                     let _ = self.pop();

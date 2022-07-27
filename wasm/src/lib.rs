@@ -15,9 +15,9 @@ extern {
 }
 
 #[wasm_bindgen]
-pub fn greet() {
-    let input = String::from("print 1 + 2;");
-    let output = compiler::evaluate(input);
+pub fn greet(input: &str) {
+    // let input = String::from("for (var i = 0; i < 10; i = i + 1) { print i; }");
+    let output = compiler::evaluate(input.to_string());
     alert(&output);
 }
 

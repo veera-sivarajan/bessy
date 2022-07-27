@@ -1,3 +1,6 @@
 import * as wasm from "wasm";
 
-wasm.greet();
+while (true) {
+    var input = window.prompt("Enter input: ");
+    wasm.greet(input);
+}

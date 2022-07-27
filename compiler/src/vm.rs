@@ -104,12 +104,9 @@ impl<'c> VM<'c> {
                         let mut newline_buf: [u8; 1] = [0; 1]; // newline character needs 1 byte
                         let newline_str = '\n'.encode_utf8(&mut newline_buf);
                         let result = self.chunk.strings.lookup(index);
-                        // let _ = output.write_all(result.as_bytes());
-                        // let _ = output.write_all(newline_str.as_bytes());
                         writeln!(output, "{}", result);
                     } else {
                         let result = format!("{}\n", value);
-                        // let _ = output.write_all(result.as_bytes());
                         writeln!(output, "{}", result);
                     }
                 }

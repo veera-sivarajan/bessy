@@ -46,8 +46,6 @@ impl Write for WasmPrinter {
 
 #[wasm_bindgen]
 pub fn greet(input: &str) {
-    // let input = String::from("for (var i = 0; i < 10; i = i + 1) { print i; }");
     compiler::evaluate(input.to_string(), &mut WasmPrinter::new());
-    // alert(&output);
 }
 

@@ -2,6 +2,7 @@ mod utils;
 
 use wasm_bindgen::prelude::*;
 use compiler;
+use std::fmt::Write;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -14,10 +15,39 @@ extern {
     fn alert(s: &str);
 }
 
+pub struct WasmPrinter {
+    chars: Vec<char>,
+}
+impl WasmPrinter {
+    pub fn new() -> WasmPrinter {
+        WasmPrinter { chars: Vec::new() }
+    }
+}
+impl Write for WasmPrinter {
+    fn write_char(&mut self, c: char) -> std::fmt::Result {
+        if c == '\n' {
+            alert(&self.chars.iter().cloned().collect::<String>());
+            self.chars.clear();
+        } else {
+            self.chars.push(c);
+        }
+
+        Ok(())
+    }
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        for s in s.chars() {
+            let _ = self.write_char(s);
+        }
+
+        Ok(())
+    }
+}
+
+
 #[wasm_bindgen]
 pub fn greet(input: &str) {
     // let input = String::from("for (var i = 0; i < 10; i = i + 1) { print i; }");
-    let output = compiler::evaluate(input.to_string());
-    alert(&output);
+    compiler::evaluate(input.to_string(), &mut WasmPrinter::new());
+    // alert(&output);
 }
 

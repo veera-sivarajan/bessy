@@ -9,7 +9,7 @@ mod strings;
 mod token;
 mod vm;
 
-use std::io::Write;
+use std::fmt::Write;
 
 pub fn evaluate(input: String, output: &mut impl Write) {
     let mut compiler = compiler::Compiler::new(&input);

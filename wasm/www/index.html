@@ -1,11 +1,65 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Hello wasm-pack!</title>
-  </head>
-  <body>
-    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-    <script src="./bootstrap.js"></script>
-  </body>
+
+<head>
+  <meta charset="utf-8">
+  <title>Rulox Interpreter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+  <div class="container">
+    <h2>🦀 Rulox 🤖</h2>
+    <h3>Wasm/Rust Lox interpreter!</h3>
+    <div id="button-bar">
+      <button type="button" class="btn btn-primary cneter" id="compile-btn">Compile</button>
+    </div>
+    <div class="compiler-area">
+      <div class="code-area">
+      <div>
+        <h4>Code</h4>
+        <div class="code-box" id="code-editor">// Recursive function to print
+// the first ten Fibonacci numbers
+fun fib(n) {
+  if (n <= 1) return n; 
+  return fib(n - 2) + fib(n - 1); 
+} 
+
+for (var i = 0; i <= 10; i = i + 1) { 
+  print fib(i); 
+}</div>
+      </div>
+      <div>
+        <h4>Output</h4>
+        <div class="code-box"  id="result-output-area"></div>
+      </div>
+      </div>
+
+      <div class="info-area">
+      <div>
+        <h4>Tokens</h4>
+        <div class="info-box" id="token-output-area"></div>
+      </div>
+
+      <div>
+        <h4>AST</h4>
+        <div class="info-box" id="ast-output-area"></div>
+      </div>
+
+      <div>
+        <h4>Globals</h4>
+        <div class="info-box" id="env-output-area"></div>
+      </div>
+      </div>
+
+
+    </div>
+  </div>
+  <script src="./bootstrap.js"></script>
+</body>
+
 </html>

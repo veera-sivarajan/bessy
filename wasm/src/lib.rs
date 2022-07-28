@@ -18,6 +18,7 @@ extern {
 pub struct WasmPrinter {
     chars: Vec<char>,
 }
+
 impl WasmPrinter {
     pub fn new() -> WasmPrinter {
         WasmPrinter { chars: Vec::new() }

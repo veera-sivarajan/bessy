@@ -1,10 +1,5 @@
 import * as wasm from "wasm";
 
-// while (true) {
-//     var input = window.prompt("Enter input: ");
-//     wasm.greet(input);
-// }
-
 import {EditorState, EditorView, basicSetup} from "@codemirror/basic-setup"
 import {javascript} from "@codemirror/lang-javascript"
 import {oneDark, oneDarkTheme, oneDarkHighlightStyle} from "@codemirror/theme-one-dark"
@@ -33,11 +28,12 @@ const term = new Terminal({
         background: '#1d2026'
     }
 });
+
 const fit = new FitAddon();
 term.loadAddon(fit);
 term.open(document.getElementById('terminal'));
 fit.fit();
-term.write('\x1B[1;3;31m>>\x1B[0m ')
+term.write('>> ')
 
 
 let runButton = document.getElementById('runButton');
@@ -48,14 +44,14 @@ function runCode() {
     let output = wasm.evaluate(input);
     console.log(output);
     term.write(output);
-    term.write('\x1B[1;3;31m>>\x1B[0m ')
+    term.write('>> ')
 }
 
 let clearBtn = document.getElementById('clearBtn');
 clearBtn.addEventListener("click", clearScreen);
 function clearScreen() {
     term.write('\x1bc');
-    term.write('\x1B[1;3;31m>>\x1B[0m ')
+    term.write('>> ')
 }
     
 

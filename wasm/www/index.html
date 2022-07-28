@@ -9,9 +9,9 @@
   <style>
 
 html, body {
-  margin: 0;
-  font-family: 'Source Pro', monospace !important;
-  font-size: 14px;
+    margin: 0;
+    font-family: "Ubuntu Mono";
+    font-size: 20px;
 }
 
 .grid-container {
@@ -20,58 +20,49 @@ html, body {
   grid-template-columns: 1fr 1fr;
 }
 
-.syntax-node {
-  padding-left: 5px;
-  margin-left: 20px;
-  background-color: #2c313a;
-}
-
-.syntax-node:hover {
-  background-color: #545c6933;
-}
-
-.syntax-err {
-  color: #e06c75;
-}
-
 .header {
   text-align: center;
   padding: 12px 0;
   font-size: 20px;
 }
 
-#output, #source-code, .header,
+#source-code, 
 a, a:hover, a:visited {
   background-color: #282c34;
   color: #a3aab6;
 }
 
-#cst, #source-code {
+.header, a, a:hover, a:visited {
+    background-color: #282c34;
+    color: gold;
+}
+
+#terminal, #source-code {
   height: 100vh;
   overflow: scroll;
 }
 
 .cm-editor * {
-  /* font-family: 'Source Pro', monospace; */
+    font-size: 18px;
 }
 
 pre {
   padding: 0px;
   margin: 0px;
-  /* font-family: 'Source Pro', monospace; */
 }
 
-span.kind {
-  color: #a3aab6;
-}
-
-span.range {
-  font-size: 11px;
-  color: #a3aab688;
-}
-
-span.token-text {
-  color: #98c379;
+.button {
+    background-color: black; 
+    color: gold; 
+    padding: 10px 22px;
+    border: none;
+    border-radius: 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 20px;
+    margin: 4px 2px;
+    cursor: pointer;
 }
 
   </style>
@@ -80,10 +71,9 @@ span.token-text {
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <script src="./bootstrap.js"></script>
     <div class="header">
-      bessy playground
-      · <a href="https://github.com/veera-sivarajan/bessy">src</a> 
-      · <button id="runButton" type="button">Run</button> 
-      · <button id="clearBtn" type="button">Clear</button> 
+      <a href="https://github.com/veera-sivarajan/bessy">SRC</a> 
+      · <button class="button" id="runButton" type="button">RUN</button> 
+      · <button class="button" id="clearBtn" type="button">CLEAR</button> 
     </div>
     <div class="grid-container">
       <div id="source-code"></div>

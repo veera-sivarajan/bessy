@@ -11,7 +11,6 @@ import {oneDark, oneDarkTheme, oneDarkHighlightStyle} from "@codemirror/theme-on
 import {Terminal} from "xterm";
 import { FitAddon } from 'xterm-addon-fit';
 
-let output = document.getElementById('output');
 let timer;
 let editor = new EditorView({
     state: EditorState.create({
@@ -25,8 +24,6 @@ let editor = new EditorView({
                 if(v.docChanged) {
                     if(timer) clearTimeout(timer);
                     timer = setTimeout(() => {
-                        var y = document.createTextNode("This just got added");
-                        output.appendChild(y);
                     }, 500 );
                 }
             })
@@ -62,8 +59,6 @@ let runButton = document.getElementById('runButton');
 runButton.addEventListener("click", runCode);
 
 function runCode() {
-        // var input = window.prompt("Enter input: ");
     var input = editor.state.doc.toString();
-    // console.log(input);
-    wasm.greet(input);
+    wasm.evaluate(input);
 }

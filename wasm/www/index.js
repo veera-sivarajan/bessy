@@ -19,14 +19,7 @@ let editor = new EditorView({
             javascript(), 
             oneDark,
             oneDarkTheme,
-            oneDarkHighlightStyle.extension,
-            EditorView.updateListener.of((v)=> {
-                if(v.docChanged) {
-                    if(timer) clearTimeout(timer);
-                    timer = setTimeout(() => {
-                    }, 500 );
-                }
-            })
+            oneDarkHighlightStyle.extension
         ],
         doc:`var i = 10;
 var b = 2;
@@ -59,6 +52,9 @@ let runButton = document.getElementById('runButton');
 runButton.addEventListener("click", runCode);
 
 function runCode() {
-    var input = editor.state.doc.toString();
+    // var input = editor.state.doc.toString();
+    // wasm.evaluate(input);
+
+    var input = window.prompt("Enter input: ");
     wasm.evaluate(input);
 }

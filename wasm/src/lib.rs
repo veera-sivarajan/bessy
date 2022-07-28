@@ -10,10 +10,10 @@ use std::fmt::Write;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-// #[wasm_bindgen]
-// extern {
-//     fn alert(s: &str);
-// }
+#[wasm_bindgen]
+extern {
+    fn alert(s: &str);
+}
 
 #[wasm_bindgen(module = "/src/interop.js")]
 extern "C" {
@@ -41,7 +41,7 @@ impl WasmPrinter {
 impl Write for WasmPrinter {
     fn write_char(&mut self, c: char) -> std::fmt::Result {
         if c == '\n' {
-            writeTermLn(&self.chars.iter().cloned().collect::<String>());
+            alert(&self.chars.iter().cloned().collect::<String>());
             self.chars.clear();
         } else {
             self.chars.push(c);

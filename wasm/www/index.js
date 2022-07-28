@@ -27,7 +27,12 @@ let editor = new EditorView({
     parent: document.getElementById('source-code'),
 })
 
-const term = new Terminal({convertEol: true});
+const term = new Terminal({
+    convertEol: true,
+    theme: {
+        background: '#1d2026'
+    }
+});
 const fit = new FitAddon();
 term.loadAddon(fit);
 term.open(document.getElementById('terminal'));

@@ -5,6 +5,7 @@ import * as wasm from "wasm";
 //     wasm.greet(input);
 // }
 
+
 import {EditorState, EditorView, basicSetup} from "@codemirror/basic-setup"
 import {javascript} from "@codemirror/lang-javascript"
 import {oneDark, oneDarkTheme, oneDarkHighlightStyle} from "@codemirror/theme-one-dark"
@@ -48,3 +49,11 @@ while (a < e) {
     parent: document.getElementById('source-code'),
 })
 
+
+let runButton = document.getElementById('runButton');
+runButton.addEventListener("click", runCode);
+
+function runCode() {
+        var input = window.prompt("Enter input: ");
+        wasm.greet(input);
+}

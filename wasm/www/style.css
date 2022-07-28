@@ -4,7 +4,7 @@ body {
 
 .container {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
     min-width: 50%;
     max-width: 90%
 }
@@ -18,9 +18,10 @@ body {
 
 .code-area {
     display: flex;
-    justify-content: center;
-
+    flex-direction: row;
+    align-content: flex-start;
 }
+
 .code-area u {
     text-decoration-line: underline;
     text-decoration-style: wavy;
@@ -29,11 +30,12 @@ body {
 
 .code-box pre {
     color: #E8D5AB;
-    
 }
+
 .code-box {
-    min-height: 400px;
-    max-height: 400px;
+    min-height: 100%;
+    max-height: 100%;
+    min-width: 500px;
     min-width: 500px;
     background-color: #282828;
     color: #E8D5AB;
@@ -49,7 +51,7 @@ body {
     margin-right: 10px;
     text-align: left;
 
-    overflow-y: scroll;
+    /* overflow-y: scroll; */
 }
 
 .info-area {

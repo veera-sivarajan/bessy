@@ -1,7 +1,7 @@
 use crate::chunk::{Chunk, OpCode, Value};
 use crate::error::BessyError;
 use std::collections::HashMap;
-use std::fmt::Write;
+use std::io;
 
 pub struct VM<'c> {
     chunk: &'c mut Chunk,
@@ -58,7 +58,7 @@ impl<'c> VM<'c> {
     // would it be more efficient if it was a function with no return values instead aka returning `()`
     // if there is an error, it will print the error message on screen and terminate the interpreter after setting the appropriate shell code
     #[allow(clippy::map_entry)]
-    pub fn run(&mut self, output: &mut impl Write) -> Result<(), BessyError> {
+    pub fn run(&mut self, output: &mut impl std::io::Write) -> Result<(), BessyError> {
         while self.ip < self.chunk.code.len() {
             let opcode = self.chunk.code[self.ip];
             self.ip += 1;

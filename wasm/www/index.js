@@ -5,10 +5,10 @@ import * as wasm from "wasm";
 //     wasm.greet(input);
 // }
 
-
 import {EditorState, EditorView, basicSetup} from "@codemirror/basic-setup"
 import {javascript} from "@codemirror/lang-javascript"
 import {oneDark, oneDarkTheme, oneDarkHighlightStyle} from "@codemirror/theme-one-dark"
+import {Terminal} from "xterm";
 
 let output = document.getElementById('output');
 let timer;
@@ -49,11 +49,17 @@ while (a < e) {
     parent: document.getElementById('source-code'),
 })
 
+var term = new Terminal();
+term.open(document.getElementById('terminal'));
+term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ')
+
 
 let runButton = document.getElementById('runButton');
 runButton.addEventListener("click", runCode);
 
 function runCode() {
-        var input = window.prompt("Enter input: ");
-        wasm.greet(input);
+        // var input = window.prompt("Enter input: ");
+    var input = editor.state.doc.toString();
+    // console.log(input);
+    wasm.greet(input);
 }

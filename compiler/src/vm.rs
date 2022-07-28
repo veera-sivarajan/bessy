@@ -106,7 +106,7 @@ impl<'c> VM<'c> {
                         let result = self.chunk.strings.lookup(index);
                         writeln!(output, "{}", result);
                     } else {
-                        let result = format!("{}\n", value);
+                        let result = format!("{}", value);
                         writeln!(output, "{}", result);
                     }
                 }

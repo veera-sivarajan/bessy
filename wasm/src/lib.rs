@@ -2,7 +2,7 @@ mod utils;
 
 use wasm_bindgen::prelude::*;
 use compiler;
-use std::io;
+use std::str;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -29,10 +29,32 @@ extern "C" {
     fn error(s: &str);
 }
 
-// pub struct WasmPrinter {
-//     chars: Vec<char>,
-// }
+pub struct WasmPrinter {
+    buffer: String,
+}
 
+impl WasmPrinter {
+    pub fn new() -> Self {
+        Self { buffer: String::new() }
+    }
+
+    fn to_string(&self) -> String {
+        self.buffer.clone()
+    }
+}
+
+impl std::io::Write for WasmPrinter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.buffer.push_str(str::from_utf8(buf).unwrap());
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.buffer.clear();
+        Ok(())
+    }
+}
+    
 // impl WasmPrinter {
 //     pub fn new() -> WasmPrinter {
 //         WasmPrinter { chars: Vec::new() }
@@ -61,8 +83,8 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn evaluate(input: String) -> String {
-    let mut output = String::new();
+    let mut output = WasmPrinter::new();
     compiler::evaluate(input, &mut output);
-    output.clone()
+    output.to_string()
 }
 

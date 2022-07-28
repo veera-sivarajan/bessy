@@ -40,12 +40,12 @@ while (a < e) {
     parent: document.getElementById('source-code'),
 })
 
-const term = new Terminal();
+const term = new Terminal({convertEol: true});
 const fit = new FitAddon();
 term.loadAddon(fit);
 term.open(document.getElementById('terminal'));
 fit.fit();
-term.write('\x1B[1;3;31m>>\x1B[0m ')
+// term.write('\x1B[1;3;31m>>\x1B[0m ')
 
 
 let runButton = document.getElementById('runButton');
@@ -54,5 +54,15 @@ runButton.addEventListener("click", runCode);
 function runCode() {
     var input = editor.state.doc.toString();
     let output = wasm.evaluate(input);
-    term.writeln(output);
+    console.log(output);
+    term.write('\x1B[1;3;31m>>\x1B[0m ')
+    term.write(output);
 }
+
+let clearBtn = document.getElementById('clearBtn');
+clearBtn.addEventListener("click", clearScreen);
+function clearScreen() {
+    term.write('\x1bc');
+}
+    
+

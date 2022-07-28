@@ -2,7 +2,7 @@ mod utils;
 
 use wasm_bindgen::prelude::*;
 use compiler;
-use std::fmt::Write;
+use std::fmt;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -38,7 +38,7 @@ impl WasmPrinter {
         WasmPrinter { chars: Vec::new() }
     }
 }
-impl Write for WasmPrinter {
+impl fmt::Write for WasmPrinter {
     fn write_char(&mut self, c: char) -> std::fmt::Result {
         if c == '\n' {
             writeTermLn(&self.chars.iter().cloned().collect::<String>());
@@ -49,6 +49,7 @@ impl Write for WasmPrinter {
 
         Ok(())
     }
+    
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for s in s.chars() {
             let _ = self.write_char(s);

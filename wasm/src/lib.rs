@@ -60,7 +60,7 @@ impl Write for WasmPrinter {
 
 
 #[wasm_bindgen]
-pub fn evaluate(input: &str) {
-    compiler::evaluate(input.to_string(), &mut WasmPrinter::new());
+pub fn evaluate(input: String) {
+    compiler::evaluate(input, &mut WasmPrinter::new());
 }
 

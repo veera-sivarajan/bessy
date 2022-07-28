@@ -52,9 +52,11 @@ let runButton = document.getElementById('runButton');
 runButton.addEventListener("click", runCode);
 
 function runCode() {
-    // var input = editor.state.doc.toString();
+    var input = editor.state.doc.toString();
+    // console.log(typeof(input));
     // wasm.evaluate(input);
 
-    var input = window.prompt("Enter input: ");
+    // var winput = window.prompt("Enter input: "); 
+    // console.log("winput: ", typeof(input));
     wasm.evaluate(input);
 }

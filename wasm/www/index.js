@@ -5,9 +5,13 @@ import * as wasm from "wasm";
 //     wasm.greet(input);
 // }
 
-import { CodeJar } from 'codejar';
-import { withLineNumbers } from 'codejar/linenumbers';
-import { gruvboxesque } from "./code-editor.js";
+import {EditorState, EditorView, basicSetup} from "@codemirror/basic-setup"
+import {javascript} from "@codemirror/lang-javascript"
 
-const codeEditor = document.querySelector('#code-editor');
-const codeJar = CodeJar(codeEditor, withLineNumbers(gruvboxesque));
+let editor = new EditorView({
+  state: EditorState.create({
+    extensions: [basicSetup, javascript()]
+  }),
+  parent: document.body
+})
+

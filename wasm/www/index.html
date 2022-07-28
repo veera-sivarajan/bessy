@@ -1,29 +1,22 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Rulox Interpreter</title>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bessy</title>
+  <link rel=stylesheet href="styles.css">
 </head>
-
 <body>
-  <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-        <h4>Code</h4>
-        <div class="code-box" id="code-editor">// Recursive function to print
-// the first ten Fibonacci numbers
-fun fib(n) {
-  if (n <= 1) return n; 
-  return fib(n - 2) + fib(n - 1); 
-} 
+    <main>
+        <h1>CodeMirror 6</h1>
+        <!-- <div id="editor"> -->
+        <!--     <\!-- code editor goes here  -\-> -->
+        <!-- </div> -->
+        <div id="editor">
 
-for (var i = 0; i <= 10; i = i + 1) { 
-  print fib(i); 
-}</div>
-  <script src="./bootstrap.js"></script>
+        </div>
+    </main>
+    <script src="./bootstrap.js"></script>  
 </body>
-
 </html>

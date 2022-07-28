@@ -26,7 +26,9 @@ const term = new Terminal({
     convertEol: true,
     theme: {
         background: '#1d2026'
-    }
+    },
+    fontSize: 20,
+    enableBold: true
 });
 
 const fit = new FitAddon();

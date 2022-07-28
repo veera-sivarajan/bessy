@@ -9,6 +9,7 @@ import {EditorState, EditorView, basicSetup} from "@codemirror/basic-setup"
 import {javascript} from "@codemirror/lang-javascript"
 import {oneDark, oneDarkTheme, oneDarkHighlightStyle} from "@codemirror/theme-one-dark"
 import {Terminal} from "xterm";
+import { FitAddon } from 'xterm-addon-fit';
 
 let output = document.getElementById('output');
 let timer;
@@ -49,9 +50,12 @@ while (a < e) {
     parent: document.getElementById('source-code'),
 })
 
-var term = new Terminal();
+const term = new Terminal();
+const fit = new FitAddon();
+term.loadAddon(fit);
 term.open(document.getElementById('terminal'));
-term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ')
+fit.fit();
+term.write('\x1B[1;3;31m>>\x1B[0m ')
 
 
 let runButton = document.getElementById('runButton');

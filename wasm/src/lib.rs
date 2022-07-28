@@ -62,7 +62,6 @@ impl fmt::Write for WasmPrinter {
 
 #[wasm_bindgen]
 pub fn evaluate(input: String) -> String {
-    // compiler::evaluate(input, &mut WasmPrinter::new());
     let mut output = String::new();
     compiler::evaluate(input, &mut output);
     output.clone()

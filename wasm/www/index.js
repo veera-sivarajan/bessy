@@ -10,6 +10,7 @@ import {javascript} from "@codemirror/lang-javascript"
 import {oneDark, oneDarkTheme, oneDarkHighlightStyle} from "@codemirror/theme-one-dark"
 import {Terminal} from "xterm";
 import { FitAddon } from 'xterm-addon-fit';
+import exampleFile from '!raw-loader!./example.lox'
 
 let timer;
 let editor = new EditorView({
@@ -21,21 +22,7 @@ let editor = new EditorView({
             oneDarkTheme,
             oneDarkHighlightStyle.extension
         ],
-        doc:`var i = 10;
-var b = 2;
-print a + b;
-
-for (var i = 0; i < 10; i = i + 1) {
-    print i;
-}
-
-var a = 0;
-var e = 10;
-while (a < e) {
-    print a;
-    a = a + 1;
-}
-`,
+        doc: exampleFile,
     }),
     parent: document.getElementById('source-code'),
 })

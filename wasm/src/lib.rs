@@ -41,7 +41,7 @@ impl WasmPrinter {
 impl Write for WasmPrinter {
     fn write_char(&mut self, c: char) -> std::fmt::Result {
         if c == '\n' {
-            alert(&self.chars.iter().cloned().collect::<String>());
+            writeTermLn(&self.chars.iter().cloned().collect::<String>());
             self.chars.clear();
         } else {
             self.chars.push(c);
@@ -60,7 +60,10 @@ impl Write for WasmPrinter {
 
 
 #[wasm_bindgen]
-pub fn evaluate(input: String) {
-    compiler::evaluate(input, &mut WasmPrinter::new());
+pub fn evaluate(input: String) -> String {
+    // compiler::evaluate(input, &mut WasmPrinter::new());
+    let mut output = String::new();
+    compiler::evaluate(input, &mut output);
+    output.clone()
 }
 

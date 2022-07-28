@@ -1,4 +1,4 @@
 export function writeTermLn(s) {
-    term.writeToTerm(s);
+    window.writeToTerm(s);
     return true;
 }

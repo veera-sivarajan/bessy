@@ -51,12 +51,10 @@ term.write('\x1B[1;3;31m>>\x1B[0m ')
 let runButton = document.getElementById('runButton');
 runButton.addEventListener("click", runCode);
 
+window.writeToTerm = (s) = term.writeln(s);
+
 function runCode() {
     var input = editor.state.doc.toString();
-    // console.log(typeof(input));
-    // wasm.evaluate(input);
-
-    // var winput = window.prompt("Enter input: "); 
-    // console.log("winput: ", typeof(input));
-    wasm.evaluate(input);
+    let output = wasm.evaluate(input);
+    term.writeln(output);
 }

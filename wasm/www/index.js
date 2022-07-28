@@ -37,7 +37,7 @@ const fit = new FitAddon();
 term.loadAddon(fit);
 term.open(document.getElementById('terminal'));
 fit.fit();
-// term.write('\x1B[1;3;31m>>\x1B[0m ')
+term.write('\x1B[1;3;31m>>\x1B[0m ')
 
 
 let runButton = document.getElementById('runButton');
@@ -47,14 +47,15 @@ function runCode() {
     var input = editor.state.doc.toString();
     let output = wasm.evaluate(input);
     console.log(output);
-    term.write('\x1B[1;3;31m>>\x1B[0m ')
     term.write(output);
+    term.write('\x1B[1;3;31m>>\x1B[0m ')
 }
 
 let clearBtn = document.getElementById('clearBtn');
 clearBtn.addEventListener("click", clearScreen);
 function clearScreen() {
     term.write('\x1bc');
+    term.write('\x1B[1;3;31m>>\x1B[0m ')
 }
     
 

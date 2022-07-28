@@ -1,22 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>bessy</title>
-  <link rel=stylesheet href="styles.css">
-</head>
-<body>
-    <main>
-        <h1>bessy plaground</h1>
-        <!-- <div id="editor"> -->
-        <!--     <\!-- code editor goes here  -\-> -->
-        <!-- </div> -->
-        <div id="editor">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>bessy</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+  </head>
+  <style>
 
-        </div>
-    </main>
-    <script src="./bootstrap.js"></script>  
-</body>
+html, body {
+  margin: 0;
+  font-family: 'Source Pro', monospace !important;
+  font-size: 14px;
+}
+
+.grid-container {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.syntax-node {
+  padding-left: 5px;
+  margin-left: 20px;
+  background-color: #2c313a;
+}
+
+.syntax-node:hover {
+  background-color: #545c6933;
+}
+
+.syntax-err {
+  color: #e06c75;
+}
+
+.header {
+  text-align: center;
+  padding: 12px 0;
+  font-size: 20px;
+}
+
+#output, #source-code, .header,
+a, a:hover, a:visited {
+  background-color: #282c34;
+  color: #a3aab6;
+}
+
+#cst, #source-code {
+  height: 100vh;
+  overflow: scroll;
+}
+
+.cm-editor * {
+  /* font-family: 'Source Pro', monospace; */
+}
+
+pre {
+  padding: 0px;
+  margin: 0px;
+  /* font-family: 'Source Pro', monospace; */
+}
+
+span.kind {
+  color: #a3aab6;
+}
+
+span.range {
+  font-size: 11px;
+  color: #a3aab688;
+}
+
+span.token-text {
+  color: #98c379;
+}
+
+  </style>
+  <body>
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+    <script src="./bootstrap.js"></script>
+    <div class="header">
+      bessy playground
+      · <a href="https://github.com/veera-sivarajan/bessy">src</a> 
+      · <button type="button">Run</button> 
+    </div>
+    <div class="grid-container">
+      <div id="source-code"></div>
+      <div id="output">
+      </div>
+    </div>
+  </body>
 </html>
+

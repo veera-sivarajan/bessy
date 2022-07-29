@@ -5,3 +5,10 @@ version = 3
 [[package]]
 name = "bessy"
 version = "0.1.0"
+
+[[package]]
+name = "by"
+version = "0.1.0"
+dependencies = [
+ "bessy",
+]

@@ -1,0 +1,11 @@
+{
+    // var c = 3;
+    // {
+    //     var d = 4;
+    //     print c + d;
+    // }
+    // c = c + 1;
+    // print c;
+    var a = 2;
+    var a = 3;
+}

@@ -3,5 +3,10 @@
 members = [
         "by", # frontend binary
         "compiler", # compiler library
-        # "wasm", # web frontend
+        "wasm", # web frontend
 ]
+
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"

@@ -1,4 +1,4 @@
-import * as wasm from "@ve_era/wasm";
+import * as bessy from "bessy-wasm";
 
 import {EditorState, EditorView, basicSetup} from "@codemirror/basic-setup"
 import {javascript} from "@codemirror/lang-javascript"
@@ -46,7 +46,7 @@ runButton.addEventListener("click", runCode);
 
 function runCode() {
     var input = editor.state.doc.toString();
-    let output = wasm.evaluate(input);
+    let output = bessy.evaluate(input);
     console.log(output);
     term.write(output);
     term.write('>> ')

@@ -5,7 +5,7 @@ Thanks to ~wasm~, you can use the compiler through a [[https://veera.app/bessy/]
 
 Compiling it to ~wasm~ was done by following this [[https://rustwasm.github.io/book/game-of-life/hello-world.html][tutorial]]. User interface is written in vanilla javascript using [[https://codemirror.net/][CodeMirror]] for text editor and [[https://xtermjs.org/][Xterm.js]] for displaying the output.
 
-This web interface was built with inspiration from:
+This web interface was inspired by:
 1. [[https://skiff.paulbiberstein.me/][skiff]]
 2. [[https://cstea.peppe.rs/][cstea]]
 ** References

@@ -1,7 +1,15 @@
 * bessy
-A work-in-progress bytecode interpreter based on /[[https://craftinginterpreters.com/][Crafting Interpreters]]/. My primary goal with this project is to learn and understand how a scanner, compiler and virtual machine work in unison to run a piece of code. So performance and efficiency will take a backseat for now.
+A work-in-progress bytecode interpreter based on /[[https://craftinginterpreters.com/][Crafting Interpreters]]/. My primary goal with this project is to learn and understand how a scanner, compiler and virtual machine work to run a piece of code. So performance and efficiency will take a backseat for now.
+** Playground
+Thanks to ~wasm~, you can use the compiler through a [[https://veera.app/bessy/][web text editor]].
+
+Compiling it to ~wasm~ was done by following this [[https://rustwasm.github.io/book/game-of-life/hello-world.html][tutorial]]. User interface is written in vanilla javascript using [[https://codemirror.net/][CodeMirror]] for text editor and [[https://xtermjs.org/][Xterm.js]] for displaying the output.
+
+This web interface was built with inspiration from:
+1. [[https://skiff.paulbiberstein.me/][skiff]]
+2. [[https://cstea.peppe.rs/][cstea]]
 ** References
-I'm fairly new to programming in Rust so I +copy from+ refer to these projects whenever I struggle with translating a piece of C code to Rust. 
+I'm fairly new to programming in Rust so I refer to these projects whenever I struggle with translating a piece of C code to Rust. 
 - [[https://github.com/ceronman/loxido][loxido]] 
 - [[https://github.com/anellie/cloxrs][cloxrs]] 
  

@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-        "by", # frontend binary
+        "cli", # frontend binary
         "compiler", # compiler library
         "wasm", # web frontend
 ]

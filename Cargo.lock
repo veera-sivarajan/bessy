@@ -3,15 +3,6 @@
 version = 3
 
 [[package]]
-name = "bessy"
-version = "0.1.0"
-
-[[package]]
-name = "bessy"
-version = "0.1.0"
-source = "git+https://github.com/veera-sivarajan/bessy#c816a53020e70fd9059abff9ae48c6fa08b82234"
-
-[[package]]
 name = "bumpalo"
 version = "3.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -33,7 +24,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "cli"
 version = "0.1.0"
 dependencies = [
- "bessy 0.1.0",
+ "core",
 ]
 
 [[package]]
@@ -45,6 +36,10 @@ dependencies = [
  "cfg-if 1.0.0",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "core"
+version = "0.1.0"
 
 [[package]]
 name = "js-sys"
@@ -127,8 +122,8 @@ checksum = "15c61ba63f9235225a22310255a29b806b907c9b8c964bcbd0a2c70f3f2deea7"
 name = "wasm"
 version = "0.1.0"
 dependencies = [
- "bessy 0.1.0 (git+https://github.com/veera-sivarajan/bessy)",
  "console_error_panic_hook",
+ "core",
  "wasm-bindgen",
  "wasm-bindgen-test",
  "wee_alloc",

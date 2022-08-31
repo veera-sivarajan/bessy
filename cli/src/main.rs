@@ -1,4 +1,4 @@
-use bessy;
+use core;
 use std::io;
 
 
@@ -36,6 +36,6 @@ impl std::io::Write for WasmPrinter {
 fn main() {
     let input = "print 1 + 1;".to_string();
     let mut output = WasmPrinter::new();
-    bessy::evaluate(input, &mut output);
+    core::evaluate(input, &mut output);
     print!("{}", output.to_string());
 }

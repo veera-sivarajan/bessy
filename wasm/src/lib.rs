@@ -1,7 +1,7 @@
 mod utils;
 
 use wasm_bindgen::prelude::*;
-use bessy;
+use core;
 use std::str;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -84,7 +84,6 @@ impl std::io::Write for WasmPrinter {
 #[wasm_bindgen]
 pub fn evaluate(input: String) -> String {
     let mut output = WasmPrinter::new();
-    bessy::evaluate(input, &mut output);
+    core::evaluate(input, &mut output);
     output.to_string()
 }
-

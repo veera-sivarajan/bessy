@@ -2,7 +2,7 @@
 
 members = [
         "cli", # frontend binary
-        "compiler", # compiler library
+        "core", # compiler library
         "wasm", # web frontend
 ]
 

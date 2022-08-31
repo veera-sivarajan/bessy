@@ -137,6 +137,8 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    // var a = 10;
+    // var a;
     fn init_variable(&mut self) -> Result<()> {
         if self.next_eq(TokenType::Equal) {
             self.expression()?;
@@ -407,6 +409,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    // 1 + 2 * 3
     fn parse_precedence(&mut self, bp: Precedence) -> Result<()> {
         self.advance();
         if let Some(prefix_rule) = self.get_rule(self.previous.kind).0 {

@@ -10,9 +10,9 @@ This web interface was inspired by:
 2. [[https://cstea.peppe.rs/][cstea]]
 ** Build Instructions
 This project is a workspace containing the following crates:
-- core :: lox bytecode interpreter as a library crate
-- cli :: command line interface as a binary crate 
-- wasm :: web interface as a library crate
+1. core - lox bytecode interpreter as a library crate
+2. cli - command line interface as a binary crate 
+3. wasm - web interface as a library crate
 *** Step 1
 Build all the crates:
 #+BEGIN_SRC sh

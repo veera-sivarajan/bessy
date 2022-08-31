@@ -8,6 +8,56 @@ Compiling it to ~wasm~ was done by following this [[https://rustwasm.github.io/b
 This web interface was inspired by:
 1. [[https://skiff.paulbiberstein.me/][skiff]]
 2. [[https://cstea.peppe.rs/][cstea]]
+** Build Instructions
+This project is a workspace containing the following crates:
+- core :: lox bytecode interpreter as a library crate
+- cli :: command line interface as a binary crate 
+- wasm :: web interface as a library crate
+*** Step 1
+Build all the crates:
+#+BEGIN_SRC sh
+  cargo build
+#+END_SRC
+
+Build a specific crate:
+#+BEGIN_SRC sh
+  cargo build -p $crate_name
+#+END_SRC
+
+Run the cli:
+#+BEGIN_SRC sh
+  cargo run -p cli
+#+END_SRC
+*** Step 2
+Compile to Wasm:
+#+BEGIN_SRC sh
+  $ cd wasm/ 
+  $ wasm-pack build
+#+END_SRC
+This will create a ~pkg/~ directory that contains the Wasm version of the compiler.
+*** Step 3
+Reinstall packages for the web:
+#+BEGIN_SRC sh
+  $ cd web/
+  $ npm i
+#+END_SRC
+Now all the packages will get updated along with the changes made to the compiler. 
+*** Step 4
+Run the web interface locally:
+#+BEGIN_SRC sh
+  npm run start
+#+END_SRC
+
+Bundle all the packages into a hostable application:
+#+BEGIN_SRC sh
+  npm run build
+#+END_SRC
+Now the ~dist~ directory will contain the bundled app.
+*** Step 5
+Push the bundled app to github:
+#+BEGIN_SRC sh
+  gh-pages -d dist/
+#+END_SRC
 ** References
 I'm fairly new to programming in Rust so I refer to these projects whenever I struggle with translating a piece of C code to Rust. 
 - [[https://github.com/ceronman/loxido][loxido]] 

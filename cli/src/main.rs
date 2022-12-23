@@ -1,5 +1,4 @@
 use core;
-use std::io;
 
 
 pub struct WasmPrinter {
@@ -20,7 +19,7 @@ impl std::io::Write for WasmPrinter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let write_str = match std::str::from_utf8(buf) {
             Ok(v) => v,
-            Err(e) => panic!("Invalid utf-8 sequence."),
+            Err(_) => panic!("Invalid utf-8 sequence."),
         };
         self.buffer.push_str(write_str);
         Ok(buf.len())

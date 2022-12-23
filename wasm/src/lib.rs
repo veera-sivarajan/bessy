@@ -1,5 +1,3 @@
-mod utils;
-
 use wasm_bindgen::prelude::*;
 use core;
 use std::str;

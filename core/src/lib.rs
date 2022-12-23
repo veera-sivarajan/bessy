@@ -16,11 +16,13 @@ pub fn evaluate(input: String, output: &mut impl std::io::Write) {
             c.print();
             let mut vm = vm::VM::new(c);
             if let Err(e) = vm.run(output) {
-                write!(output, "{}", e);
+                let _ = write!(output, "{}", e)
+                    .expect("Unable to write to stdout.");
             }
         }
         Err(e) => {
-            write!(output, "{}", e);
+            let _ = write!(output, "{}", e)
+                .expect("Unable to write to stdout.");
         }
     }
 }

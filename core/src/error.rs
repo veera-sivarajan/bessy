@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::fmt;
+use std::{fmt, io};
 
 macro_rules! lex_error {
     ($message:expr, $line:expr) => {
@@ -24,6 +24,7 @@ pub enum BessyError {
     Lexer(String, u16), // Error message and line number
     Parser(String, u16),
     Runtime(String, u16),
+    IoError(io::Error),
 }
 
 impl Error for BessyError {}
@@ -34,6 +35,13 @@ impl fmt::Display for BessyError {
             BessyError::Lexer(msg, line) => write!(f, "[line {}] Lex error: {}", line, msg),
             BessyError::Parser(msg, line) => write!(f, "[line {}] Parse error: {}", line, msg),
             BessyError::Runtime(msg, line) => write!(f, "[line {}] Runtime error: {}", line, msg),
+            BessyError::IoError(err) => write!(f, "Cannot write to stdout. {}", err), 
         }
+    }
+}
+
+impl From<io::Error> for BessyError {
+    fn from(error: io::Error) -> Self {
+        BessyError::IoError(error)
     }
 }

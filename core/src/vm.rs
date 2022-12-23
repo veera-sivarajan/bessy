@@ -1,7 +1,6 @@
 use crate::chunk::{Chunk, OpCode, Value};
 use crate::error::BessyError;
 use std::collections::HashMap;
-use std::io;
 
 pub struct VM<'c> {
     chunk: &'c mut Chunk,
@@ -101,13 +100,11 @@ impl<'c> VM<'c> {
                 OpCode::Print => {
                     let value = self.pop();
                     if let Value::String(index) = value {
-                        let mut newline_buf: [u8; 1] = [0; 1]; // newline character needs 1 byte
-                        let newline_str = '\n'.encode_utf8(&mut newline_buf);
                         let result = self.chunk.strings.lookup(index);
-                        writeln!(output, "{}", result);
+                        writeln!(output, "{}", result)?;
                     } else {
                         let result = format!("{}", value);
-                        writeln!(output, "{}", result);
+                        writeln!(output, "{}", result)?;
                     }
                 }
                 OpCode::Pop => {

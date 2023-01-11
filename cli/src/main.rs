@@ -1,40 +1,19 @@
-use core;
+use std::io::Write;
 
+fn get_input() -> String {
+    let mut input = String::new();
+    input.clear();
+    print!("rena$ ");
+    let _ = std::io::stdout().flush();
+    let _ = std::io::stdin().read_line(&mut input).unwrap();
+    let _ = input.pop();
 
-pub struct WasmPrinter {
-    buffer: String,
+    input
 }
-
-impl WasmPrinter {
-    pub fn new() -> Self {
-        Self { buffer: String::new() }
-    }
-
-    fn to_string(&self) -> String {
-        self.buffer.clone()
-    }
-}
-
-impl std::io::Write for WasmPrinter {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        let write_str = match std::str::from_utf8(buf) {
-            Ok(v) => v,
-            Err(_) => panic!("Invalid utf-8 sequence."),
-        };
-        self.buffer.push_str(write_str);
-        Ok(buf.len())
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.buffer.clear();
-        Ok(())
-    }
-}
-
 
 fn main() {
-    let input = "print 1 + 1;".to_string();
-    let mut output = WasmPrinter::new();
-    core::evaluate(input, &mut output);
-    print!("{}", output.to_string());
+    loop {
+        let input = get_input();
+        core::evaluate(input, &mut std::io::stdout());
+    }
 }

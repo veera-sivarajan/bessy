@@ -71,7 +71,9 @@ impl<'a> Compiler<'a> {
     pub fn new(source: &'a str) -> Self {
         Compiler {
             lexer: Lexer::new(source),
-            locals: Vec::with_capacity(u8::MAX as usize), // immediately provide a vector with capacity instead of doing multiple allocations
+            // immediately provide a vector with capacity
+            // instead of doing multiple allocations
+            locals: Vec::with_capacity(u8::MAX as usize), 
             ..Default::default()
         }
     }
@@ -186,7 +188,8 @@ impl<'a> Compiler<'a> {
             .locals
             .iter()
             .rev()
-            .filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth));
+            // .filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth));
+            .filter(|l| l.depth >= Some(self.scope_depth));
         
         for l in locals {
             if l.name == given {

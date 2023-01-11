@@ -101,10 +101,12 @@ impl<'c> VM<'c> {
                     let value = self.pop();
                     if let Value::String(index) = value {
                         let result = self.chunk.strings.lookup(index);
-                        writeln!(output, "{}", result)?;
+                        writeln!(output, "{}", result)
+                            .expect("Unable to write to output.");
                     } else {
                         let result = format!("{}", value);
-                        writeln!(output, "{}", result)?;
+                        writeln!(output, "{}", result)
+                            .expect("Unable to write to output.");
                     }
                 }
                 OpCode::Pop => {

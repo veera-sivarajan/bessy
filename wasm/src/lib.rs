@@ -1,14 +1,14 @@
-use wasm_bindgen::prelude::*;
 use std::str;
+use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+// #[cfg(feature = "wee_alloc")]
+// #[global_allocator]
+// static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-extern {
+extern "C" {
     fn alert(s: &str);
 }
 
@@ -26,18 +26,9 @@ extern "C" {
     fn error(s: &str);
 }
 
+#[derive(Default)]
 pub struct WasmPrinter {
     buffer: String,
-}
-
-impl WasmPrinter {
-    pub fn new() -> Self {
-        Self { buffer: String::new() }
-    }
-
-    fn to_string(&self) -> String {
-        self.buffer.clone()
-    }
 }
 
 impl std::io::Write for WasmPrinter {
@@ -51,36 +42,10 @@ impl std::io::Write for WasmPrinter {
         Ok(())
     }
 }
-    
-// impl WasmPrinter {
-//     pub fn new() -> WasmPrinter {
-//         WasmPrinter { chars: Vec::new() }
-//     }
-// }
-// impl fmt::Write for WasmPrinter {
-//     fn write_char(&mut self, c: char) -> std::fmt::Result {
-//         if c == '\n' {
-//             writeTermLn(&self.chars.iter().cloned().collect::<String>());
-//             self.chars.clear();
-//         } else {
-//             self.chars.push(c);
-//         }
-
-//         Ok(())
-//     }
-    
-//     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-//         for s in s.chars() {
-//             let _ = self.write_char(s);
-//         }
-
-//         Ok(())
-//     }
-// }
 
 #[wasm_bindgen]
 pub fn evaluate(input: String) -> String {
-    let mut output = WasmPrinter::new();
+    let mut output = WasmPrinter::default();
     core::evaluate(input, &mut output);
-    output.to_string()
+    output.buffer
 }

@@ -27,18 +27,16 @@ extern "C" {
 }
 
 #[derive(Default)]
-pub struct WasmPrinter {
-    buffer: String,
-}
+pub struct WasmPrinter(String);
 
 impl std::io::Write for WasmPrinter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.buffer.push_str(str::from_utf8(buf).unwrap());
+        self.0.push_str(str::from_utf8(buf).unwrap());
         Ok(buf.len())
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        self.buffer.clear();
+        self.0.clear();
         Ok(())
     }
 }
@@ -47,5 +45,5 @@ impl std::io::Write for WasmPrinter {
 pub fn evaluate(input: String) -> String {
     let mut output = WasmPrinter::default();
     core::evaluate(input, &mut output);
-    output.buffer
+    output.0
 }

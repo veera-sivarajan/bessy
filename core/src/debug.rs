@@ -10,7 +10,7 @@ impl fmt::Debug for OpCode {
             OpCode::Divide => write!(f, "DIVIDE"),
             OpCode::Subtract => write!(f, "SUBTRACT"),
             OpCode::Return => write!(f, "RETURN"),
-            OpCode::Constant(index) => write!(f, "CONSTANT({})", index),
+            OpCode::Constant(index) => write!(f, "CONSTANT({index})"),
             OpCode::True => write!(f, "TRUE"),
             OpCode::False => write!(f, "FALSE"),
             OpCode::Nil => write!(f, "NIL"),
@@ -20,14 +20,14 @@ impl fmt::Debug for OpCode {
             OpCode::Less => write!(f, "LESS"),
             OpCode::Print => write!(f, "PRINT"),
             OpCode::Pop => write!(f, "POP"),
-            OpCode::DefineGlobal(index) => write!(f, "DEFINE_GLOBAL({})", index),
-            OpCode::GetGlobal(index) => write!(f, "GET_GLOBAL({})", index),
-            OpCode::SetGlobal(index) => write!(f, "SET_GLOBAL({})", index),
-            OpCode::GetLocal(index) => write!(f, "GET_LOCAL({})", index),
-            OpCode::SetLocal(index) => write!(f, "SET_LOCAL({})", index),
-            OpCode::JumpIfFalse(index) => write!(f, "JUMP_IF_FALSE({})", index),
-            OpCode::Jump(index) => write!(f, "JUMP({})", index),
-            OpCode::Loop(index) => write!(f, "LOOP({})", index),
+            OpCode::DefineGlobal(index) => write!(f, "DEFINE_GLOBAL({index})"),
+            OpCode::GetGlobal(index) => write!(f, "GET_GLOBAL({index})"),
+            OpCode::SetGlobal(index) => write!(f, "SET_GLOBAL({index})"),
+            OpCode::GetLocal(index) => write!(f, "GET_LOCAL({index})"),
+            OpCode::SetLocal(index) => write!(f, "SET_LOCAL({index})"),
+            OpCode::JumpIfFalse(index) => write!(f, "JUMP_IF_FALSE({index})"),
+            OpCode::Jump(index) => write!(f, "JUMP({index})"),
+            OpCode::Loop(index) => write!(f, "LOOP({index})"),
         }
     }
 }
@@ -41,7 +41,7 @@ impl fmt::Display for OpCode {
             OpCode::Divide => write!(f, "/"),
             OpCode::Subtract => write!(f, "-"),
             OpCode::Return => write!(f, "return"),
-            OpCode::Constant(index) => write!(f, "{}", index),
+            OpCode::Constant(index) => write!(f, "{index}"),
             OpCode::True => write!(f, "true"),
             OpCode::False => write!(f, "false"),
             OpCode::Nil => write!(f, "nil"),
@@ -51,14 +51,14 @@ impl fmt::Display for OpCode {
             OpCode::Less => write!(f, "less"),
             OpCode::Print => write!(f, "print"),
             OpCode::Pop => write!(f, "pop"),
-            OpCode::DefineGlobal(index) => write!(f, "{}", index),
-            OpCode::GetGlobal(index) => write!(f, "{}", index),
-            OpCode::SetGlobal(index) => write!(f, "{}", index),
-            OpCode::GetLocal(index) => write!(f, "{}", index),
-            OpCode::SetLocal(index) => write!(f, "{}", index),
-            OpCode::JumpIfFalse(index) => write!(f, "{}", index),
-            OpCode::Jump(index) => write!(f, "{}", index),
-            OpCode::Loop(index) => write!(f, "{}", index),
+            OpCode::DefineGlobal(index) => write!(f, "{index}"),
+            OpCode::GetGlobal(index) => write!(f, "{index}"),
+            OpCode::SetGlobal(index) => write!(f, "{index}"),
+            OpCode::GetLocal(index) => write!(f, "{index}"),
+            OpCode::SetLocal(index) => write!(f, "{index}"),
+            OpCode::JumpIfFalse(index) => write!(f, "{index}"),
+            OpCode::Jump(index) => write!(f, "{index}"),
+            OpCode::Loop(index) => write!(f, "{index}"),
         }
     }
 }
@@ -66,10 +66,10 @@ impl fmt::Display for OpCode {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Value::Number(n) => write!(f, "{}", n),
+            Value::Number(n) => write!(f, "{n}"),
             Value::Nil => write!(f, "Nil"),
-            Value::Bool(b) => write!(f, "{}", b),
-            Value::String(s) => write!(f, "{}", s),
+            Value::Bool(b) => write!(f, "{b}"),
+            Value::String(s) => write!(f, "{s}"),
         }
     }
 }
@@ -77,20 +77,20 @@ impl fmt::Display for Value {
 impl fmt::Debug for Chunk {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut offset: usize = 0;
-        writeln!(f, "== BYTECODE ==");
+        writeln!(f, "== BYTECODE ==")?;
         for (index, code) in self.code.iter().enumerate() {
             if let OpCode::Constant(i) = code {
                 writeln!(
                     f,
                     "{offset:04} {} {code:?} {:->7} {}",
                     self.lines[index], "", self.constants[*i]
-                );
+                )?;
                 offset += 2
             } else {
-                writeln!(f, "{offset:04} {} {code:?}", self.lines[index]);
+                writeln!(f, "{offset:04} {} {code:?}", self.lines[index])?;
                 offset += 1;
             }
         }
-        writeln!(f, "== END ==")
+        write!(f, "== END ==")
     }
 }

@@ -74,22 +74,23 @@ impl fmt::Display for Value {
     }
 }
 
-impl Chunk {
-    pub fn print(&self) {
+impl fmt::Debug for Chunk {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut offset: usize = 0;
-        println!("== BYTECODE ==");
+        writeln!(f, "== BYTECODE ==");
         for (index, code) in self.code.iter().enumerate() {
             if let OpCode::Constant(i) = code {
-                println!(
+                writeln!(
+                    f,
                     "{offset:04} {} {code:?} {:->7} {}",
                     self.lines[index], "", self.constants[*i]
                 );
                 offset += 2
             } else {
-                println!("{offset:04} {} {code:?}", self.lines[index]);
+                writeln!(f, "{offset:04} {} {code:?}", self.lines[index]);
                 offset += 1;
             }
         }
-        println!("== END ==");
+        writeln!(f, "== END ==")
     }
 }

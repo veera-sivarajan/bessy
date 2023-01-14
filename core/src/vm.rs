@@ -94,19 +94,17 @@ impl<'c> VM<'c> {
                 OpCode::Loop(offset) => self.ip -= offset as usize,
                 OpCode::JumpIfFalse(offset) => {
                     if self.peek(0).is_falsey() {
-                        self.ip +=  offset as usize;
+                        self.ip += offset as usize;
                     }
                 }
                 OpCode::Print => {
                     let value = self.pop();
                     if let Value::String(index) = value {
                         let result = self.chunk.strings.lookup(index);
-                        writeln!(output, "{}", result)
-                            .expect("Unable to write to output.");
+                        writeln!(output, "{}", result).expect("Unable to write to output.");
                     } else {
                         let result = format!("{}", value);
-                        writeln!(output, "{}", result)
-                            .expect("Unable to write to output.");
+                        writeln!(output, "{}", result).expect("Unable to write to output.");
                     }
                 }
                 OpCode::Pop => {

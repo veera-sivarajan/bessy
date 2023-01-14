@@ -73,7 +73,7 @@ impl<'a> Compiler<'a> {
             lexer: Lexer::new(source),
             // immediately provide a vector with capacity
             // instead of doing multiple allocations
-            locals: Vec::with_capacity(u8::MAX as usize), 
+            locals: Vec::with_capacity(u8::MAX as usize),
             ..Default::default()
         }
     }
@@ -190,7 +190,7 @@ impl<'a> Compiler<'a> {
             .rev()
             // .filter(|l| l.depth.is_some() && l.depth >= Some(self.scope_depth));
             .filter(|l| l.depth >= Some(self.scope_depth));
-        
+
         for l in locals {
             if l.name == given {
                 return parse_error!(
@@ -293,8 +293,7 @@ impl<'a> Compiler<'a> {
             Err(_) => return parse_error!("Too much code to skip over.", self.previous.line),
         };
         match self.chunk.code[pos] {
-            OpCode::JumpIfFalse(ref mut index)
-            | OpCode::Jump(ref mut index) => *index = new_index,
+            OpCode::JumpIfFalse(ref mut index) | OpCode::Jump(ref mut index) => *index = new_index,
             _ => unreachable!(),
         }
         Ok(())
@@ -336,10 +335,7 @@ impl<'a> Compiler<'a> {
         let offset = self.chunk.code.len() - start;
         let offset = match u16::try_from(offset) {
             Ok(i) => i,
-            Err(_) => return parse_error!(
-                "Loop body too large.",
-                self.previous.line
-            ),
+            Err(_) => return parse_error!("Loop body too large.", self.previous.line),
         };
         self.emit(OpCode::Loop(offset));
         Ok(())
@@ -348,7 +344,7 @@ impl<'a> Compiler<'a> {
     fn for_stmt(&mut self) -> Result<()> {
         self.begin_scope();
         self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;
-        
+
         // initializer caluse
         if self.next_eq(TokenType::Semicolon) {
             // no initializer
@@ -357,7 +353,7 @@ impl<'a> Compiler<'a> {
         } else {
             self.expression_stmt()?;
         }
-        
+
         let mut loop_start = self.chunk.code.len() - 1;
 
         // condition clause
@@ -381,7 +377,7 @@ impl<'a> Compiler<'a> {
             loop_start = increment_start;
             self.patch_jump(body_jump)?;
         }
-            
+
         self.statement()?;
         self.emit_loop(loop_start)?;
         if let Some(value) = exit_jump {

@@ -101,10 +101,10 @@ impl<'c> VM<'c> {
                     let value = self.pop();
                     if let Value::String(index) = value {
                         let result = self.chunk.strings.lookup(index);
-                        writeln!(output, "{}", result).expect("Unable to write to output.");
+                        writeln!(output, "{result}").expect("Unable to write to output.");
                     } else {
-                        let result = format!("{}", value);
-                        writeln!(output, "{}", result).expect("Unable to write to output.");
+                        let result = format!("{value}");
+                        writeln!(output, "{result}").expect("Unable to write to output.");
                     }
                 }
                 OpCode::Pop => {
@@ -151,12 +151,7 @@ impl<'c> VM<'c> {
                 }
                 OpCode::GetLocal(index) => self.push(self.stack[index]),
                 OpCode::SetLocal(index) => self.stack[index] = *self.peek(0),
-                OpCode::Add
-                | OpCode::Subtract
-                | OpCode::Multiply
-                | OpCode::Divide
-                | OpCode::Greater
-                | OpCode::Less => {
+                _ => {
                     match (self.peek(0), self.peek(1)) {
                         (Value::Number(r), Value::Number(l)) => {
                             let result = match opcode {
@@ -178,7 +173,7 @@ impl<'c> VM<'c> {
                                     let l = self.chunk.strings.lookup(*l);
                                     let r = self.chunk.strings.lookup(*r);
                                     let concat =
-                                        self.chunk.strings.intern(format!("{}{}", l, r).as_ref());
+                                        self.chunk.strings.intern(format!("{l}{r}").as_ref());
                                     Value::String(concat)
                                 }
                                 _ => {
@@ -193,7 +188,7 @@ impl<'c> VM<'c> {
                             self.push(result);
                         }
                         _ => {
-                            let msg = format!("Operands to '{}' should be of type number.", opcode);
+                            let msg = format!("Operands to '{opcode}' should be of type number.");
                             return runtime_error!(msg, self.chunk.lines[self.ip - 1]);
                         }
                     }

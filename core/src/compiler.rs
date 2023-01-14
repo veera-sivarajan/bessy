@@ -84,7 +84,7 @@ impl<'a> Compiler<'a> {
         self.previous = self.current;
         loop {
             match self.lexer.next_token() {
-                Err(msg) => eprintln!("{}", msg),
+                Err(msg) => eprintln!("{msg}"),
                 Ok(t) => {
                     self.current = t;
                     break;

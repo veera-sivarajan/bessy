@@ -31,9 +31,13 @@ impl Error for BessyError {}
 impl fmt::Display for BessyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BessyError::Lexer(msg, line) => write!(f, "[line {}] Lex error: {}", line, msg),
-            BessyError::Parser(msg, line) => write!(f, "[line {}] Parse error: {}", line, msg),
-            BessyError::Runtime(msg, line) => write!(f, "[line {}] Runtime error: {}", line, msg),
+            BessyError::Lexer(msg, line) => write!(f, "[line {line}] Lex error: {msg}"),
+            BessyError::Parser(msg, line) => {
+                write!(f, "[line {line}] Parse error: {msg}")
+            }
+            BessyError::Runtime(msg, line) => {
+                write!(f, "[line {line}] Runtime error: {msg}")
+            }
         }
     }
 }

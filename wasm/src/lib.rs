@@ -27,6 +27,7 @@ extern "C" {
 }
 
 #[derive(Default)]
+#[repr(transparent)]
 pub struct WasmPrinter(String);
 
 impl std::io::Write for WasmPrinter {

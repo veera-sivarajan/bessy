@@ -91,14 +91,14 @@ pub fn scan(text: &str) -> Result<Vec<Token>, LexError> {
                 let _ = cursor.next();
                 continue
             },
-            '"' => scan_string(&mut cursor, text)?,
+            '"' => scan_string(&mut cursor)?,
             _ => {
                 if c.is_ascii_digit() {
                     scan_number(&mut cursor, start_pos)
                 } else if c.is_ascii_alphanumeric() || c == '_' {
                     scan_identifier(&mut cursor, start_pos)
                 } else {
-                    Token::new((0, 0), TokenType::Unknown)
+                    Token::new((start_pos, start_pos + c.len_utf8()), TokenType::Unknown)
                 }
             }
         };
@@ -183,15 +183,17 @@ fn scan_double_token(cursor: &mut Peekable<CharIndices>) -> Token {
 
 fn scan_string(
     cursor: &mut Peekable<CharIndices>,
-    text: &str,
 ) -> Result<Token, LexError> {
-    let (start_pos, _) = cursor.next().unwrap();
-    if let Some((end_pos, _)) = cursor.find(|x| x.1 == '"') {
-        let start = start_pos + 1;
-        let end = end_pos + 1;
-        let lexeme = String::from(&text[start..end]);
+    let mut lexeme = String::from("");
+    let (start_pos, _) = cursor.next().unwrap(); // skip opening quotes
+    let start = start_pos + 1;
+    while let Some((_, ch)) = cursor.next_if(|x| x.1 != '"') {
+        lexeme.push(ch);
+    }
+    if cursor.peek().map_or(false, |x| x.1 == '"') {
+        let _ = cursor.next();
         Ok(Token::new(
-            ((start_pos + 1), (end_pos - 1)),
+            (start, start + lexeme.len()),
             TokenType::StrLit(lexeme),
         ))
     } else {

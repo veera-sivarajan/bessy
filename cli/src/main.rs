@@ -14,6 +14,6 @@ fn get_input() -> String {
 fn main() {
     loop {
         let input = get_input();
-        core::evaluate(input, &mut std::io::stdout());
+        core::evaluate(&input);
     }
 }

@@ -1,6 +1,7 @@
 mod lexer;
 
 pub fn evaluate(text: &str) {
-    let tokens = lexer::scan(text).unwrap();
+    let mut lex = lexer::Lexer::new(text);
+    let tokens = lex.scan().unwrap();
     println!("Tokens: {tokens:?}");
 }

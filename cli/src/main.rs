@@ -12,8 +12,10 @@ fn get_input() -> String {
 }
 
 fn main() {
-    loop {
-        let input = get_input();
-        core::evaluate(&input);
-    }
+    // loop {
+    //     let input = get_input();
+    //     core::evaluate(&input);
+    // }
+    let input = include_str!("../../test/hello.lox");
+    core::evaluate(&input);
 }

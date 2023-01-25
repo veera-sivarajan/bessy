@@ -93,6 +93,7 @@ impl<'src> Lexer<'src> {
                     } else if c.is_ascii_alphanumeric() || c == '_' {
                         self.scan_identifier(start_pos);
                     } else {
+                        self.cursor.next();
                         self.tokens.push(Token::new(
                             (start_pos, start_pos + c.len_utf8()),
                             TokenType::Unknown,

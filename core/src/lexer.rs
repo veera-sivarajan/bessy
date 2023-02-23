@@ -76,8 +76,8 @@ impl<'src> Lexer<'src> {
     pub fn scan(&mut self) -> Result<Vec<Token>, LexError> {
         while let Some(&(start_pos, c)) = self.cursor.peek() {
             match c {
-                '(' | ')' | '.' | '-' | '+' | '*' | ';' | '{' | '}' | ','
-                    | '/' => self.scan_single_token(),
+                '(' | ')' | '.' | '-' | '+' | '*' | ';' | '{' | '}'
+                | ',' | '/' => self.scan_single_token(),
                 '~' => self.scan_comment(),
                 '!' | '=' | '>' | '<' => self.scan_double_token(),
                 ' ' | '\r' | '\t' | '\n' => {
@@ -121,8 +121,8 @@ impl<'src> Lexer<'src> {
             '/' => TokenType::Slash,
             _ => unreachable!(),
         };
-        self.tokens.push(Token::new((start_pos, start_pos + c.len_utf8()),
-                                    kind));
+        self.tokens
+            .push(Token::new((start_pos, start_pos + c.len_utf8()), kind));
     }
 
     fn scan_comment(&mut self) {
@@ -133,24 +133,47 @@ impl<'src> Lexer<'src> {
         }
     }
 
-    fn check_next(&mut self, start_pos: usize, len: usize, this: TokenType, that: TokenType) -> Token {
+    fn check_next(
+        &mut self,
+        start_pos: usize,
+        len: usize,
+        this: TokenType,
+        that: TokenType,
+    ) -> Token {
         if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
             Token::new((start_pos, end_pos + 1), this)
         } else {
-            Token::new(
-                (start_pos, start_pos + len),
-                that,
-            )
+            Token::new((start_pos, start_pos + len), that)
         }
     }
 
     fn scan_double_token(&mut self) {
         let (start_pos, c) = self.cursor.next().unwrap();
         let token = match c {
-            '!' => self.check_next(start_pos, c.len_utf8(), TokenType::BangEqual, TokenType::Bang),
-            '=' => self.check_next(start_pos, c.len_utf8(), TokenType::EqualEqual, TokenType::Equal),
-            '>' => self.check_next(start_pos, c.len_utf8(), TokenType::GreaterEqual, TokenType::Greater),
-            '<' => self.check_next(start_pos, c.len_utf8(), TokenType::LessEqual, TokenType::Less),
+            '!' => self.check_next(
+                start_pos,
+                c.len_utf8(),
+                TokenType::BangEqual,
+                TokenType::Bang,
+            ),
+            '=' => self.check_next(
+                start_pos,
+                c.len_utf8(),
+                TokenType::EqualEqual,
+                TokenType::Equal,
+            ),
+            '>' => self.check_next(
+                start_pos,
+                c.len_utf8(),
+                TokenType::GreaterEqual,
+                TokenType::Greater,
+            ),
+            '<' => self.check_next(
+                start_pos,
+                c.len_utf8(),
+                TokenType::LessEqual,
+                TokenType::Less,
+            ),
             _ => unreachable!(),
         };
         self.tokens.push(token);
@@ -176,13 +199,16 @@ impl<'src> Lexer<'src> {
 
     fn scan_number(&mut self, start_pos: usize) {
         let mut lexeme = String::from("");
-        while let Some((_, num)) = self.cursor.next_if(|x| x.1.is_ascii_digit()) {
+        while let Some((_, num)) =
+            self.cursor.next_if(|x| x.1.is_ascii_digit())
+        {
             lexeme.push(num);
         }
         if self.cursor.peek().map_or(false, |x| x.1 == '.') {
             lexeme.push('.');
             let _ = self.cursor.next();
-            while let Some((_, num)) = self.cursor.next_if(|x| x.1.is_ascii_digit())
+            while let Some((_, num)) =
+                self.cursor.next_if(|x| x.1.is_ascii_digit())
             {
                 lexeme.push(num);
             }
@@ -194,10 +220,11 @@ impl<'src> Lexer<'src> {
         ));
     }
 
-    
     fn scan_identifier(&mut self, start_pos: usize) {
         let mut lexeme = String::from("");
-        while let Some((_, ch)) = self.cursor.next_if(|x| x.1.is_ascii_alphanumeric()) {
+        while let Some((_, ch)) =
+            self.cursor.next_if(|x| x.1.is_ascii_alphanumeric())
+        {
             lexeme.push(ch);
         }
         let len = lexeme.len();
@@ -217,7 +244,7 @@ impl<'src> Lexer<'src> {
             "while" => TokenType::While,
             _ => TokenType::Identifier(lexeme),
         };
-        self.tokens.push(Token::new((start_pos, start_pos + len), kind));
+        self.tokens
+            .push(Token::new((start_pos, start_pos + len), kind));
     }
 }
-        

@@ -133,49 +133,24 @@ impl<'src> Lexer<'src> {
         }
     }
 
+    fn check_next(&mut self, start_pos: usize, len: usize, this: TokenType, that: TokenType) -> Token {
+        if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
+            Token::new((start_pos, end_pos + 1), this)
+        } else {
+            Token::new(
+                (start_pos, start_pos + len),
+                that,
+            )
+        }
+    }
+
     fn scan_double_token(&mut self) {
         let (start_pos, c) = self.cursor.next().unwrap();
         let token = match c {
-            '!' => {
-                if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
-                    Token::new((start_pos, end_pos + 1), TokenType::BangEqual)
-                } else {
-                    Token::new(
-                        (start_pos, start_pos + c.len_utf8()),
-                        TokenType::Bang,
-                    )
-                }
-            }
-            '=' => {
-                if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
-                    Token::new((start_pos, end_pos + 1), TokenType::EqualEqual)
-                } else {
-                    Token::new(
-                        (start_pos, start_pos + c.len_utf8()),
-                        TokenType::Equal,
-                    )
-                }
-            }
-            '>' => {
-                if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
-                    Token::new((start_pos, end_pos + 1), TokenType::GreaterEqual)
-                } else {
-                    Token::new(
-                        (start_pos, start_pos + c.len_utf8()),
-                        TokenType::Greater,
-                    )
-                }
-            }
-            '<' => {
-                if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
-                    Token::new((start_pos, end_pos + 1), TokenType::LessEqual)
-                } else {
-                    Token::new(
-                        (start_pos, start_pos + c.len_utf8()),
-                        TokenType::Less,
-                    )
-                }
-            }
+            '!' => self.check_next(start_pos, c.len_utf8(), TokenType::BangEqual, TokenType::Bang),
+            '=' => self.check_next(start_pos, c.len_utf8(), TokenType::EqualEqual, TokenType::Equal),
+            '>' => self.check_next(start_pos, c.len_utf8(), TokenType::GreaterEqual, TokenType::Greater),
+            '<' => self.check_next(start_pos, c.len_utf8(), TokenType::LessEqual, TokenType::Less),
             _ => unreachable!(),
         };
         self.tokens.push(token);
@@ -212,10 +187,10 @@ impl<'src> Lexer<'src> {
                 lexeme.push(num);
             }
         }
-        let num = &lexeme.parse::<f64>().expect("Unable to parse number.");
+        let num = lexeme.parse::<f64>().expect("Unable to parse number.");
         self.tokens.push(Token::new(
             (start_pos, start_pos + lexeme.len()),
-            TokenType::Number(*num),
+            TokenType::Number(num),
         ));
     }
 

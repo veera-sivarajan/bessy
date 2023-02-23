@@ -1,4 +1,4 @@
 ~ comment comment
 fun hello() {
-   print("hello");
+   print("hello);
 }

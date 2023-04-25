@@ -254,8 +254,7 @@ mod test_lexer {
     use super::*;
 
     fn test_runner(src: &str, expected_tokens: &[TokenType]) -> bool {
-        let mut lexer = Lexer::new(src);
-        match lexer.scan() {
+        match Lexer::new(src).scan() {
             Ok(tokens) => {
                 let output = tokens
                     .iter()

@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 use std::str::CharIndices;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -246,5 +246,74 @@ impl<'src> Lexer<'src> {
         };
         self.tokens
             .push(Token::new((start_pos, start_pos + len), kind));
+    }
+}
+
+#[cfg(test)]
+mod test_lexer {
+    use super::*;
+
+    fn test_runner(src: &str, expected_tokens: &[TokenType]) -> bool {
+        let mut lexer = Lexer::new(src);
+        match lexer.scan() {
+            Ok(tokens) => {
+                let output = tokens
+                    .iter()
+                    .map(|t| t.token_type.clone())
+                    .collect::<Vec<TokenType>>();
+                output.as_slice() == expected_tokens 
+            }
+            Err(error) => {
+                eprintln!("{error:?}");
+                false
+            }
+        }
+    }
+
+    #[test]
+    fn test_single_char() {
+        assert!(test_runner(".", &[TokenType::Dot]))
+    }
+
+    #[test]
+    fn test_double_char() {
+        assert!(test_runner("==", &[TokenType::EqualEqual]))
+    }
+
+    #[test]
+    fn test_keyword() {
+        assert!(test_runner("while () {}",
+                            &[TokenType::While,
+                              TokenType::LeftParen,
+                              TokenType::RightParen,
+                              TokenType::LeftBrace,
+                              TokenType::RightBrace
+                            ]));
+    }
+
+    #[test]
+    fn test_string() {
+        assert!(test_runner("\"hello\"", &[TokenType::StrLit("hello".into())]))
+    }
+
+    #[test]
+    fn test_numbers() {
+        assert!(test_runner("1", &[TokenType::Number(1.0)]));
+        assert!(test_runner("123", &[TokenType::Number(123.0)]));
+        assert!(test_runner("1.00", &[TokenType::Number(1.00)]));
+    }
+
+    #[test]
+    fn test_bools() {
+        assert!(test_runner("false and true",
+                            &[TokenType::False,
+                              TokenType::And,
+                              TokenType::True,
+                            ]));
+    }
+
+    #[test]
+    fn test_identifier() {
+        assert!(test_runner("human", &[TokenType::Identifier("human".into())]));
     }
 }

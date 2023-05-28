@@ -120,9 +120,16 @@ impl<'src> Lexer<'src> {
     }
 
     fn make_index(&self, start: usize) -> Index {
-        Index {
-            row: self.line,
-            column: start as u16 - self.consumed - 2,
+        if self.line > 1 {
+            Index {
+                row: self.line,
+                column: (start as u16 - self.consumed) - 2,
+            }
+        } else {
+            Index {
+                row: self.line,
+                column: (start as u16 - self.consumed),
+            }
         }
     }
 

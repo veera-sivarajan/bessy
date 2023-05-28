@@ -43,7 +43,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
 
     fn declaration(&mut self) -> Result<Stmt, BessyError> {
         if self.next_eq(TokenType::Var) {
-            todo!();
+            self.variable_declaration()
         } else if self.next_eq(TokenType::Fun) {
             todo!();
         } else {
@@ -94,6 +94,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     }
 
     fn expression(&mut self) -> Result<Expr, BessyError> {
+        self.cursor.next();
         Ok(Expr::Nil)
     }
 }

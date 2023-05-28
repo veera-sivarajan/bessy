@@ -11,17 +11,24 @@ fn get_input() -> String {
     input
 }
 
-fn main() {
-    // loop {
-    //     let input = get_input();
-    //     match core::evaluate(&input) {
-    //         Ok(()) => continue,
-    //         Err(msg) => eprintln!("{msg}"),
-    //     }
-    // }
+fn repl() {
+    loop {
+        let input = get_input();
+        match core::evaluate(&input) {
+            Ok(()) => continue,
+            Err(msg) => eprintln!("{msg}"),
+        }
+    }
+}
+
+fn evaluate_file() {
     let input = include_str!("../../test/hello.lox");
     match core::evaluate(input) {
         Ok(()) => {},
         Err(msg) => eprintln!("{msg}"),
     }
+}
+
+fn main() {
+    repl()
 }

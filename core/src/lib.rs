@@ -1,5 +1,5 @@
-mod lexer;
 mod expr;
+mod lexer;
 mod stmt;
 
 pub fn evaluate(text: &str) {

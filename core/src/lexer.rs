@@ -76,8 +76,9 @@ impl<'src> Lexer<'src> {
     pub fn scan(&mut self) -> Result<Vec<Token>, LexError> {
         while let Some(&(start_pos, c)) = self.cursor.peek() {
             match c {
-                '(' | ')' | '.' | '-' | '+' | '*' | ';' | '{' | '}'
-                | ',' | '/' => self.scan_single_token(),
+                '(' | ')' | '.' | '-' | '+' | '*' | ';' | '{' | '}' | ',' | '/' => {
+                    self.scan_single_token()
+                }
                 '~' => self.scan_comment(),
                 '!' | '=' | '>' | '<' => self.scan_double_token(),
                 ' ' | '\r' | '\t' | '\n' => {
@@ -199,17 +200,13 @@ impl<'src> Lexer<'src> {
 
     fn scan_number(&mut self, start_pos: usize) {
         let mut lexeme = String::from("");
-        while let Some((_, num)) =
-            self.cursor.next_if(|x| x.1.is_ascii_digit())
-        {
+        while let Some((_, num)) = self.cursor.next_if(|x| x.1.is_ascii_digit()) {
             lexeme.push(num);
         }
         if self.cursor.peek().map_or(false, |x| x.1 == '.') {
             lexeme.push('.');
             let _ = self.cursor.next();
-            while let Some((_, num)) =
-                self.cursor.next_if(|x| x.1.is_ascii_digit())
-            {
+            while let Some((_, num)) = self.cursor.next_if(|x| x.1.is_ascii_digit()) {
                 lexeme.push(num);
             }
         }
@@ -222,9 +219,7 @@ impl<'src> Lexer<'src> {
 
     fn scan_identifier(&mut self, start_pos: usize) {
         let mut lexeme = String::from("");
-        while let Some((_, ch)) =
-            self.cursor.next_if(|x| x.1.is_ascii_alphanumeric())
-        {
+        while let Some((_, ch)) = self.cursor.next_if(|x| x.1.is_ascii_alphanumeric()) {
             lexeme.push(ch);
         }
         let len = lexeme.len();
@@ -260,7 +255,7 @@ mod test_lexer {
                     .iter()
                     .map(|t| t.token_type.clone())
                     .collect::<Vec<TokenType>>();
-                output.as_slice() == expected_tokens 
+                output.as_slice() == expected_tokens
             }
             Err(error) => {
                 eprintln!("{error:?}");
@@ -281,18 +276,24 @@ mod test_lexer {
 
     #[test]
     fn test_keyword() {
-        assert!(test_runner("while () {}",
-                            &[TokenType::While,
-                              TokenType::LeftParen,
-                              TokenType::RightParen,
-                              TokenType::LeftBrace,
-                              TokenType::RightBrace
-                            ]));
+        assert!(test_runner(
+            "while () {}",
+            &[
+                TokenType::While,
+                TokenType::LeftParen,
+                TokenType::RightParen,
+                TokenType::LeftBrace,
+                TokenType::RightBrace
+            ]
+        ));
     }
 
     #[test]
     fn test_string() {
-        assert!(test_runner("\"hello\"", &[TokenType::StrLit("hello".into())]))
+        assert!(test_runner(
+            "\"hello\"",
+            &[TokenType::StrLit("hello".into())]
+        ))
     }
 
     #[test]
@@ -304,15 +305,17 @@ mod test_lexer {
 
     #[test]
     fn test_bools() {
-        assert!(test_runner("false and true",
-                            &[TokenType::False,
-                              TokenType::And,
-                              TokenType::True,
-                            ]));
+        assert!(test_runner(
+            "false and true",
+            &[TokenType::False, TokenType::And, TokenType::True,]
+        ));
     }
 
     #[test]
     fn test_identifier() {
-        assert!(test_runner("human", &[TokenType::Identifier("human".into())]));
+        assert!(test_runner(
+            "human",
+            &[TokenType::Identifier("human".into())]
+        ));
     }
 }

@@ -1,9 +1,9 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Index {
-    row: u16,
-    column: u16,
+    pub row: u16,
+    pub column: u16,
 }
 
 impl From<(u16, u16)> for Index {
@@ -24,7 +24,7 @@ impl fmt::Display for Index {
 #[derive(Debug)]
 pub enum BessyError {
     UnterminatedString(Index),
-    Unexpected { msg: Box<str>, span: Index },
+    Unexpected { msg: Box<str>, span: Option<Index> },
 }
 
 impl fmt::Display for BessyError {
@@ -32,9 +32,18 @@ impl fmt::Display for BessyError {
         use BessyError::*;
         match self {
             UnterminatedString(span) => {
-                write!(f, "Syntax Error: Unterminated string literal at {span}.")
+                write!(
+                    f,
+                    "Syntax Error: Unterminated string literal at {span}."
+                )
             }
-            Unexpected { msg, span } => write!(f, "Parse error: {msg} at {span}."),
+            Unexpected { msg, span } => {
+                if let Some(span) = span {
+                    write!(f, "Parse error: {msg} at {span}.")
+                } else {
+                    write!(f, "Parse error: {msg} at end of file.")
+                }
+            }
         }
     }
 }

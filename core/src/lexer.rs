@@ -1,4 +1,4 @@
-use crate::error::BessyError;
+use crate::error::{BessyError, Index};
 use std::iter::Peekable;
 use std::str::CharIndices;
 
@@ -45,32 +45,21 @@ pub enum TokenType {
 }
 
 #[derive(Clone, Debug)]
-pub struct Span {
-    start: u16,
-    end: u16,
-}
-
-impl From<(usize, usize)> for Span {
-    fn from(start_len: (usize, usize)) -> Span {
-        let start = start_len.0 as u16;
-        let end = start + start_len.1 as u16;
-        Span { start, end }
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct Token {
-    span: Span,
-    token_type: TokenType,
-    line: u16,
+    pub index: Index,
+    pub kind: TokenType,
+    pub line: u16,
 }
 
 impl Token {
-    pub fn new(span: Span, token_type: TokenType, line: u16) -> Self {
-        Self {
-            span,
-            token_type,
-            line,
+    pub fn new(index: Index, kind: TokenType, line: u16) -> Self {
+        Self { index, kind, line }
+    }
+
+    pub fn is_identifier(&self) -> bool {
+        match self.kind {
+            TokenType::Identifier(_) => true,
+            _ => false,
         }
     }
 }
@@ -95,9 +84,8 @@ impl<'src> Lexer<'src> {
     pub fn scan(&mut self) -> Result<Vec<Token>, BessyError> {
         while let Some(&(start_pos, c)) = self.cursor.peek() {
             match c {
-                '(' | ')' | '.' | '-' | '+' | '*' | ';' | '{' | '}' | ',' | '/' => {
-                    self.scan_single_token()
-                }
+                '(' | ')' | '.' | '-' | '+' | '*' | ';' | '{' | '}' | ','
+                | '/' => self.scan_single_token(),
                 '~' => self.scan_comment(),
                 '!' | '=' | '>' | '<' => self.scan_double_token(),
                 ' ' | '\r' | '\t' => {
@@ -120,7 +108,7 @@ impl<'src> Lexer<'src> {
                     } else {
                         self.cursor.next();
                         self.tokens.push(Token::new(
-                            (start_pos, c.len_utf8()).into(),
+                            self.make_index(start_pos),
                             TokenType::Unknown,
                             self.line,
                         ));
@@ -129,6 +117,13 @@ impl<'src> Lexer<'src> {
             }
         }
         Ok(self.tokens.clone())
+    }
+
+    fn make_index(&self, start: usize) -> Index {
+        Index {
+            row: self.line,
+            column: start as u16 - self.consumed - 2,
+        }
     }
 
     fn scan_single_token(&mut self) {
@@ -148,7 +143,7 @@ impl<'src> Lexer<'src> {
             _ => unreachable!(),
         };
         self.tokens.push(Token::new(
-            (start_pos, c.len_utf8()).into(),
+            self.make_index(start_pos),
             kind,
             self.line,
         ));
@@ -172,13 +167,9 @@ impl<'src> Lexer<'src> {
         that: TokenType,
     ) -> Token {
         if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
-            let span = Span {
-                start: start_pos as u16,
-                end: end_pos as u16 + 1,
-            };
-            Token::new(span, this, self.line)
+            Token::new(self.make_index(start_pos), this, self.line)
         } else {
-            Token::new((start_pos, len).into(), that, self.line)
+            Token::new(self.make_index(start_pos), that, self.line)
         }
     }
 
@@ -224,33 +215,34 @@ impl<'src> Lexer<'src> {
         if self.cursor.peek().map_or(false, |x| x.1 == '"') {
             let _ = self.cursor.next();
             Ok(Token::new(
-                (start, lexeme.len()).into(),
+                self.make_index(start),
                 TokenType::StrLit(lexeme),
                 self.line,
             ))
         } else {
             let column = start as u16 - self.consumed;
-            Err(BessyError::UnterminatedString(
-                (self.line, column - 2).into(),
-            ))
+            Err(BessyError::UnterminatedString(self.make_index(start)))
         }
     }
 
     fn scan_number(&mut self, start_pos: usize) {
         let mut lexeme = String::from("");
-        while let Some((_, num)) = self.cursor.next_if(|x| x.1.is_ascii_digit()) {
+        while let Some((_, num)) = self.cursor.next_if(|x| x.1.is_ascii_digit())
+        {
             lexeme.push(num);
         }
         if self.cursor.peek().map_or(false, |x| x.1 == '.') {
             lexeme.push('.');
             let _ = self.cursor.next();
-            while let Some((_, num)) = self.cursor.next_if(|x| x.1.is_ascii_digit()) {
+            while let Some((_, num)) =
+                self.cursor.next_if(|x| x.1.is_ascii_digit())
+            {
                 lexeme.push(num);
             }
         }
         let num = lexeme.parse::<f64>().expect("Unable to parse number.");
         self.tokens.push(Token::new(
-            (start_pos, lexeme.len()).into(),
+            self.make_index(start_pos),
             TokenType::Number(num),
             self.line,
         ));
@@ -258,7 +250,9 @@ impl<'src> Lexer<'src> {
 
     fn scan_identifier(&mut self, start_pos: usize) {
         let mut lexeme = String::from("");
-        while let Some((_, ch)) = self.cursor.next_if(|x| x.1.is_ascii_alphanumeric()) {
+        while let Some((_, ch)) =
+            self.cursor.next_if(|x| x.1.is_ascii_alphanumeric())
+        {
             lexeme.push(ch);
         }
         let len = lexeme.len();
@@ -279,7 +273,7 @@ impl<'src> Lexer<'src> {
             _ => TokenType::Identifier(lexeme),
         };
         self.tokens
-            .push(Token::new((start_pos, len).into(), kind, self.line));
+            .push(Token::new(self.make_index(start_pos), kind, self.line));
     }
 }
 
@@ -292,7 +286,7 @@ mod test_lexer {
             Ok(tokens) => {
                 let output = tokens
                     .iter()
-                    .map(|t| t.token_type.clone())
+                    .map(|t| t.kind.clone())
                     .collect::<Vec<TokenType>>();
                 output.as_slice() == expected_tokens
             }

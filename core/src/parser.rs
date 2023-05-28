@@ -23,7 +23,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         }
     }
 
-    pub fn parse() -> Result<Vec<Stmt>, BessyError> {
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, BessyError> {
         todo!()
     }
 }

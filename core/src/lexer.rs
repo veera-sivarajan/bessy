@@ -79,6 +79,7 @@ pub struct Lexer<'src> {
     cursor: Peekable<CharIndices<'src>>,
     tokens: Vec<Token>,
     line: u16,
+    consumed: u16,
 }
 
 impl<'src> Lexer<'src> {
@@ -87,6 +88,7 @@ impl<'src> Lexer<'src> {
             cursor: text.char_indices().peekable(),
             tokens: vec![],
             line: 1,
+            consumed: 0,
         }
     }
 
@@ -101,7 +103,11 @@ impl<'src> Lexer<'src> {
                 ' ' | '\r' | '\t' => {
                     self.cursor.next();
                 }
-                '\n' => self.line += 1,
+                '\n' => {
+                    let (index, _) = self.cursor.next().unwrap();
+                    self.line += 1;
+                    self.consumed = index as u16;
+                }
                 '"' => {
                     let token = self.scan_string()?;
                     self.tokens.push(token);
@@ -149,8 +155,10 @@ impl<'src> Lexer<'src> {
     }
 
     fn scan_comment(&mut self) {
-        for (_, ch) in self.cursor.by_ref() {
+        for (index, ch) in self.cursor.by_ref() {
             if ch == '\n' {
+                self.line += 1;
+                self.consumed = index as u16;
                 break;
             }
         }
@@ -221,8 +229,9 @@ impl<'src> Lexer<'src> {
                 self.line,
             ))
         } else {
+            let column = start as u16 - self.consumed;
             Err(BessyError::UnterminatedString(
-                (start_pos as u16, self.line).into(),
+                (self.line, column - 2).into(),
             ))
         }
     }

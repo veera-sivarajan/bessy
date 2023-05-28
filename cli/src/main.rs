@@ -12,10 +12,16 @@ fn get_input() -> String {
 }
 
 fn main() {
-    loop {
-        let input = get_input();
-        core::evaluate(&input);
+    // loop {
+    //     let input = get_input();
+    //     match core::evaluate(&input) {
+    //         Ok(()) => continue,
+    //         Err(msg) => eprintln!("{msg}"),
+    //     }
+    // }
+    let input = include_str!("../../test/hello.lox");
+    match core::evaluate(input) {
+        Ok(()) => {},
+        Err(msg) => eprintln!("{msg}"),
     }
-    // let input = include_str!("../../test/hello.lox");
-    // core::evaluate(&input);
 }

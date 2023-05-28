@@ -4,9 +4,13 @@ mod lexer;
 mod parser;
 mod stmt;
 
-pub fn evaluate(text: &str) {
+use crate::error::BessyError;
+
+pub fn evaluate(text: &str) -> Result<(), BessyError> {
     let mut lex = lexer::Lexer::new(text);
-    let tokens = lex.scan().unwrap();
+    let tokens = lex.scan()?;
     println!("Tokens: {tokens:?}");
-    let mut parser = parser::Parser::new(tokens.into_iter());
+    Ok(())
+    // let mut parser = parser::Parser::new(tokens.into_iter());
+    // parser.parse();
 }

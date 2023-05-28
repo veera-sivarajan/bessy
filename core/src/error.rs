@@ -16,8 +16,8 @@ impl From<(u16, u16)> for Index {
 }
 
 impl fmt::Display for Index {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "at line {}, column {}", self.row, self.column)
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "line {}, column {}", self.row, self.column)
     }
 }
 
@@ -28,11 +28,11 @@ pub enum BessyError {
 }
 
 impl fmt::Display for BessyError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use BessyError::*;
         match self {
             UnterminatedString(span) => {
-                write!(f, "Lex error: Unterminated String Literal at {span}.")
+                write!(f, "Syntax Error: Unterminated string literal at {span}.")
             }
             Unexpected { msg, span } => write!(f, "Parse error: {msg} at {span}."),
         }

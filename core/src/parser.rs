@@ -86,15 +86,52 @@ impl<T: Iterator<Item = Token>> Parser<T> {
             })
         } else {
             self.consume(TokenType::Semicolon, "Expect semicolon.")?;
-            Ok(Stmt::Var {
-                name,
-                init: None,
-            })
+            Ok(Stmt::Var { name, init: None })
         }
     }
 
     fn expression(&mut self) -> Result<Expr, BessyError> {
-        self.cursor.next();
-        Ok(Expr::Nil)
+        self.primary()
+    }
+
+    // TODO: Make return type Result<!, BessyError>
+    // once the feature is stabilized
+    fn error(&mut self, message: &str) -> BessyError {
+        BessyError::Unexpected {
+            msg: message.into(),
+            span: self.cursor.peek().map(|t| t.index),
+        }
+    }
+
+    fn primary(&mut self) -> Result<Expr, BessyError> {
+        if self.next_eq(TokenType::Nil) {
+            Ok(Expr::Nil)
+        } else if self.next_eq(TokenType::False) {
+            Ok(Expr::Boolean(false))
+        } else if self.next_eq(TokenType::True) {
+            Ok(Expr::Boolean(true))
+        } else if let Some(Token {
+            index: _,
+            kind: TokenType::Number(num),
+            line: _,
+        }) = self.cursor.next_if(|t| t.is_number())
+        {
+            Ok(Expr::Number(num))
+        } else if let Some(Token {
+            index: _,
+            kind: TokenType::StrLit(literal),
+            line: _,
+        }) = self.cursor.next_if(|t| t.is_string())
+        {
+            Ok(Expr::String(literal))
+        } else if self.next_eq(TokenType::LeftParen) {
+            let expr = self.expression()?;
+            self.consume(TokenType::RightParen, "Expect ')' after expression")?;
+            Ok(Expr::Group(Box::new(expr)))
+        } else if let Some(token) = self.cursor.next_if(|t| t.is_identifier()) {
+            Ok(Expr::Variable(token))
+        } else {
+            Err(self.error("Expect expression."))
+        }
     }
 }

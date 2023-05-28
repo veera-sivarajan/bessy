@@ -19,9 +19,7 @@ pub enum Expr {
         name: Token,
         value: Box<Expr>,
     },
-    Group {
-        expr: Box<Expr>,
-    },
+    Group(Box<Expr>),
     Call {
         callee: Box<Expr>,
         paren: Token,

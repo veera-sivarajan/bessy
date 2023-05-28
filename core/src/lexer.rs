@@ -57,10 +57,15 @@ impl Token {
     }
 
     pub fn is_identifier(&self) -> bool {
-        match self.kind {
-            TokenType::Identifier(_) => true,
-            _ => false,
-        }
+        matches!(self.kind, TokenType::Identifier(_))
+    }
+
+    pub fn is_number(&self) -> bool {
+        matches!(self.kind, TokenType::Number(_))
+    }
+
+    pub fn is_string(&self) -> bool {
+        matches!(self.kind, TokenType::StrLit(_))
     }
 }
 
@@ -279,8 +284,11 @@ impl<'src> Lexer<'src> {
             "while" => TokenType::While,
             _ => TokenType::Identifier(lexeme),
         };
-        self.tokens
-            .push(Token::new(self.make_index(start_pos), kind, self.line));
+        self.tokens.push(Token::new(
+            self.make_index(start_pos),
+            kind,
+            self.line,
+        ));
     }
 }
 

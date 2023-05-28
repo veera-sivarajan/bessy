@@ -1,10 +1,10 @@
 // a parser takens in a stream of tokens and turns them into a
 // intermediate representation in the form of an abstract syntax tree
 
+use crate::error::BessyError;
 use crate::expr::Expr;
 use crate::lexer::Token;
 use crate::stmt::Stmt;
-use crate::error::BessyError;
 use std::iter::Peekable;
 
 pub struct Parser<T>

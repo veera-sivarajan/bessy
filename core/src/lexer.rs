@@ -1,6 +1,6 @@
+use crate::error::BessyError;
 use std::iter::Peekable;
 use std::str::CharIndices;
-use crate::error::BessyError;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
@@ -52,8 +52,8 @@ pub struct Span {
 
 impl From<(usize, usize)> for Span {
     fn from(start_len: (usize, usize)) -> Span {
-        let start= start_len.0 as u16;
-        let end= start + start_len.1 as u16;
+        let start = start_len.0 as u16;
+        let end = start + start_len.1 as u16;
         Span { start, end }
     }
 }
@@ -67,7 +67,11 @@ pub struct Token {
 
 impl Token {
     pub fn new(span: Span, token_type: TokenType, line: u16) -> Self {
-        Self { span, token_type, line }
+        Self {
+            span,
+            token_type,
+            line,
+        }
     }
 }
 
@@ -137,8 +141,11 @@ impl<'src> Lexer<'src> {
             '/' => TokenType::Slash,
             _ => unreachable!(),
         };
-        self.tokens
-            .push(Token::new((start_pos, c.len_utf8()).into(), kind, self.line));
+        self.tokens.push(Token::new(
+            (start_pos, c.len_utf8()).into(),
+            kind,
+            self.line,
+        ));
     }
 
     fn scan_comment(&mut self) {
@@ -157,7 +164,10 @@ impl<'src> Lexer<'src> {
         that: TokenType,
     ) -> Token {
         if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
-            let span = Span { start: start_pos as u16, end: end_pos as u16 + 1 };
+            let span = Span {
+                start: start_pos as u16,
+                end: end_pos as u16 + 1,
+            };
             Token::new(span, this, self.line)
         } else {
             Token::new((start_pos, len).into(), that, self.line)
@@ -211,7 +221,9 @@ impl<'src> Lexer<'src> {
                 self.line,
             ))
         } else {
-            Err(BessyError::UnterminatedString((start_pos as u16, self.line).into()))
+            Err(BessyError::UnterminatedString(
+                (start_pos as u16, self.line).into(),
+            ))
         }
     }
 

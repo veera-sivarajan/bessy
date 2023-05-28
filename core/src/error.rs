@@ -24,22 +24,19 @@ impl fmt::Display for Index {
 #[derive(Debug)]
 pub enum BessyError {
     UnterminatedString(Index),
-    Unexpected {
-        msg: Box<str>,
-        span: Index,
-    },
+    Unexpected { msg: Box<str>, span: Index },
 }
 
 impl fmt::Display for BessyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use BessyError::*;
         match self {
-            UnterminatedString(span) => write!(f, "Lex error: Unterminated String Literal at {span}."),
-            Unexpected{msg, span} => write!(f, "Parse error: {msg} at {span}."),
+            UnterminatedString(span) => {
+                write!(f, "Lex error: Unterminated String Literal at {span}.")
+            }
+            Unexpected { msg, span } => write!(f, "Parse error: {msg} at {span}."),
         }
     }
 }
 
 impl std::error::Error for BessyError {}
-
-

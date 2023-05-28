@@ -1,8 +1,8 @@
+mod error;
 mod expr;
 mod lexer;
 mod parser;
 mod stmt;
-mod error;
 
 pub fn evaluate(text: &str) {
     let mut lex = lexer::Lexer::new(text);

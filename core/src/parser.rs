@@ -7,6 +7,18 @@ use crate::lexer::{Token, TokenType};
 use crate::stmt::Stmt;
 use std::iter::Peekable;
 
+macro_rules! next_eq {
+    ( $parser: ident, $( $x: expr ), *) => {
+        {
+            if $($parser.check($x)) || * {
+                $parser.cursor.next()
+            } else {
+                None
+            }
+        }
+    };
+}
+
 pub struct Parser<T>
 where
     T: Iterator<Item = Token>,
@@ -31,20 +43,17 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         Ok(self.statements.clone())
     }
 
-    fn next_eq(&mut self, expected: TokenType) -> bool {
+    fn check(&mut self, expected: TokenType) -> bool {
         if let Some(token) = self.cursor.peek() {
-            if token.kind == expected {
-                self.cursor.next();
-                return true;
-            }
+            return token.kind == expected;
         }
         false
     }
 
     fn declaration(&mut self) -> Result<Stmt, BessyError> {
-        if self.next_eq(TokenType::Var) {
+        if next_eq!(self, TokenType::Var).is_some() {
             self.variable_declaration()
-        } else if self.next_eq(TokenType::Fun) {
+        } else if next_eq!(self, TokenType::Fun).is_some() {
             todo!();
         } else {
             todo!();
@@ -58,10 +67,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     ) -> Result<Token, BessyError> {
         self.cursor
             .next_if(predicate)
-            .ok_or(BessyError::Unexpected {
-                msg: error_msg.into(),
-                span: self.cursor.peek().map(|t| t.index),
-            })
+            .ok_or(self.error(error_msg))
     }
 
     fn consume(
@@ -77,7 +83,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
             |token| token.is_identifier(),
             "Expect variable name.",
         )?;
-        if self.next_eq(TokenType::Equal) {
+        if next_eq!(self, TokenType::Equal).is_some() {
             let init = self.expression()?;
             self.consume(TokenType::Semicolon, "Expect semicolon.")?;
             Ok(Stmt::Var {
@@ -103,12 +109,55 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         }
     }
 
+    fn unary(&mut self) -> Result<Expr, BessyError> {
+        if let Some(oper) = next_eq!(self, TokenType::Bang, TokenType::Minus) {
+            let right = Box::new(self.unary()?);
+            Ok(Expr::Unary {
+                oper,
+                right,
+            })
+        } else {
+            self.call()
+        }
+    }
+
+    fn call(&mut self) -> Result<Expr, BessyError> {
+        let mut expr = self.primary()?;
+        loop {
+            if next_eq!(self, TokenType::LeftParen).is_some() {
+                expr = self.finish_call(expr)?;
+            } else {
+                break;
+            }
+        }
+        Ok(expr)
+    }
+
+    fn finish_call(&mut self, callee: Expr) -> Result<Expr, BessyError> {
+        let mut args = Vec::with_capacity(255);
+        if !self.check(TokenType::RightParen) {
+            args.push(self.expression()?);
+            while next_eq!(self, TokenType::Comma).is_some() {
+                if args.len() > 255 {
+                    return Err(self.error("Can't have more than 255 arguments."));
+                }
+                args.push(self.expression()?);
+            }
+        }
+        let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
+        Ok(Expr::Call {
+            callee: Box::new(callee),
+            paren,
+            args,
+        })
+    }
+
     fn primary(&mut self) -> Result<Expr, BessyError> {
-        if self.next_eq(TokenType::Nil) {
+        if next_eq!(self, TokenType::Nil).is_some() {
             Ok(Expr::Nil)
-        } else if self.next_eq(TokenType::False) {
+        } else if next_eq!(self, TokenType::False).is_some() {
             Ok(Expr::Boolean(false))
-        } else if self.next_eq(TokenType::True) {
+        } else if next_eq!(self, TokenType::True).is_some() {
             Ok(Expr::Boolean(true))
         } else if let Some(Token {
             index: _,
@@ -124,7 +173,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         }) = self.cursor.next_if(|t| t.is_string())
         {
             Ok(Expr::String(literal))
-        } else if self.next_eq(TokenType::LeftParen) {
+        } else if next_eq!(self, TokenType::LeftParen).is_some() {
             let expr = self.expression()?;
             self.consume(TokenType::RightParen, "Expect ')' after expression")?;
             Ok(Expr::Group(Box::new(expr)))

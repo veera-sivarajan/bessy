@@ -2,9 +2,7 @@ use crate::lexer::Token;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
-    Variable {
-        name: Token,
-    },
+    Variable(Token),
     Binary {
         left: Box<Expr>,
         oper: Token,
@@ -14,9 +12,7 @@ pub enum Expr {
         oper: Token,
         right: Box<Expr>,
     },
-    Number {
-        value: f64,
-    },
+    Number(f64),
     Boolean(bool),
     String(String),
     Assign {

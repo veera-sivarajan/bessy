@@ -1,5 +1,6 @@
 use std::iter::Peekable;
 use std::str::CharIndices;
+use crate::error::BessyError;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
@@ -44,25 +45,36 @@ pub enum TokenType {
 }
 
 #[derive(Clone, Debug)]
-pub struct Token {
-    span: (usize, usize),
-    token_type: TokenType,
+pub struct Span {
+    start: u16,
+    end: u16,
 }
 
-impl Token {
-    pub fn new(span: (usize, usize), token_type: TokenType) -> Self {
-        Self { span, token_type }
+impl From<(usize, usize)> for Span {
+    fn from(start_len: (usize, usize)) -> Span {
+        let start= start_len.0 as u16;
+        let end= start + start_len.1 as u16;
+        Span { start, end }
     }
 }
 
-#[derive(Debug)]
-pub enum LexError {
-    UnterminatedString,
+#[derive(Clone, Debug)]
+pub struct Token {
+    span: Span,
+    token_type: TokenType,
+    line: u16,
+}
+
+impl Token {
+    pub fn new(span: Span, token_type: TokenType, line: u16) -> Self {
+        Self { span, token_type, line }
+    }
 }
 
 pub struct Lexer<'src> {
     cursor: Peekable<CharIndices<'src>>,
     tokens: Vec<Token>,
+    line: u16,
 }
 
 impl<'src> Lexer<'src> {
@@ -70,10 +82,11 @@ impl<'src> Lexer<'src> {
         Self {
             cursor: text.char_indices().peekable(),
             tokens: vec![],
+            line: 1,
         }
     }
 
-    pub fn scan(&mut self) -> Result<Vec<Token>, LexError> {
+    pub fn scan(&mut self) -> Result<Vec<Token>, BessyError> {
         while let Some(&(start_pos, c)) = self.cursor.peek() {
             match c {
                 '(' | ')' | '.' | '-' | '+' | '*' | ';' | '{' | '}' | ',' | '/' => {
@@ -81,9 +94,10 @@ impl<'src> Lexer<'src> {
                 }
                 '~' => self.scan_comment(),
                 '!' | '=' | '>' | '<' => self.scan_double_token(),
-                ' ' | '\r' | '\t' | '\n' => {
+                ' ' | '\r' | '\t' => {
                     self.cursor.next();
                 }
+                '\n' => self.line += 1,
                 '"' => {
                     let token = self.scan_string()?;
                     self.tokens.push(token);
@@ -96,8 +110,9 @@ impl<'src> Lexer<'src> {
                     } else {
                         self.cursor.next();
                         self.tokens.push(Token::new(
-                            (start_pos, start_pos + c.len_utf8()),
+                            (start_pos, c.len_utf8()).into(),
                             TokenType::Unknown,
+                            self.line,
                         ));
                     }
                 }
@@ -123,7 +138,7 @@ impl<'src> Lexer<'src> {
             _ => unreachable!(),
         };
         self.tokens
-            .push(Token::new((start_pos, start_pos + c.len_utf8()), kind));
+            .push(Token::new((start_pos, c.len_utf8()).into(), kind, self.line));
     }
 
     fn scan_comment(&mut self) {
@@ -142,9 +157,10 @@ impl<'src> Lexer<'src> {
         that: TokenType,
     ) -> Token {
         if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
-            Token::new((start_pos, end_pos + 1), this)
+            let span = Span { start: start_pos as u16, end: end_pos as u16 + 1 };
+            Token::new(span, this, self.line)
         } else {
-            Token::new((start_pos, start_pos + len), that)
+            Token::new((start_pos, len).into(), that, self.line)
         }
     }
 
@@ -180,7 +196,7 @@ impl<'src> Lexer<'src> {
         self.tokens.push(token);
     }
 
-    fn scan_string(&mut self) -> Result<Token, LexError> {
+    fn scan_string(&mut self) -> Result<Token, BessyError> {
         let mut lexeme = String::from("");
         let (start_pos, _) = self.cursor.next().unwrap(); // skip opening quotes
         let start = start_pos + 1;
@@ -190,11 +206,12 @@ impl<'src> Lexer<'src> {
         if self.cursor.peek().map_or(false, |x| x.1 == '"') {
             let _ = self.cursor.next();
             Ok(Token::new(
-                (start, start + lexeme.len()),
+                (start, lexeme.len()).into(),
                 TokenType::StrLit(lexeme),
+                self.line,
             ))
         } else {
-            Err(LexError::UnterminatedString)
+            Err(BessyError::UnterminatedString((start_pos as u16, self.line).into()))
         }
     }
 
@@ -212,8 +229,9 @@ impl<'src> Lexer<'src> {
         }
         let num = lexeme.parse::<f64>().expect("Unable to parse number.");
         self.tokens.push(Token::new(
-            (start_pos, start_pos + lexeme.len()),
+            (start_pos, lexeme.len()).into(),
             TokenType::Number(num),
+            self.line,
         ));
     }
 
@@ -240,7 +258,7 @@ impl<'src> Lexer<'src> {
             _ => TokenType::Identifier(lexeme),
         };
         self.tokens
-            .push(Token::new((start_pos, start_pos + len), kind));
+            .push(Token::new((start_pos, len).into(), kind, self.line));
     }
 }
 

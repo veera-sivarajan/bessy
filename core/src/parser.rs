@@ -1,22 +1,29 @@
 // a parser takens in a stream of tokens and turns them into a
 // intermediate representation in the form of an abstract syntax tree
 
-
-use std::iter::Peekable;
+use crate::expr::Expr;
 use crate::lexer::Token;
 use crate::stmt::Stmt;
-use crate::expr::Expr;
+use crate::error::BessyError;
+use std::iter::Peekable;
 
-pub struct Parser<'src> {
-    cursor: Peekable<std::slice::Iter<'src, Token>>,
+pub struct Parser<T>
+where
+    T: Iterator<Item = Token>,
+{
+    cursor: Peekable<T>,
     statements: Vec<Stmt>,
 }
 
-impl<'src> Parser<'src> {
-    pub fn new(tokens: &'src [Token]) -> Parser<'src> {
+impl<T: Iterator<Item = Token>> Parser<T> {
+    pub fn new(tokens: T) -> Parser<T> {
         Parser {
-            cursor: tokens.iter().peekable(),
+            cursor: tokens.peekable(),
             statements: vec![],
         }
+    }
+
+    pub fn parse() -> Result<Vec<Stmt>, BessyError> {
+        todo!()
     }
 }

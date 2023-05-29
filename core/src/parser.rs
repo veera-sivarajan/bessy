@@ -65,9 +65,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         predicate: impl FnOnce(&Token) -> bool,
         error_msg: &str,
     ) -> Result<Token, BessyError> {
-        self.cursor
-            .next_if(predicate)
-            .ok_or(self.error(error_msg))
+        self.cursor.next_if(predicate).ok_or(self.error(error_msg))
     }
 
     fn consume(
@@ -97,7 +95,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     }
 
     fn expression(&mut self) -> Result<Expr, BessyError> {
-        self.primary()
+        self.unary()
     }
 
     // TODO: Make return type Result<!, BessyError>
@@ -105,17 +103,14 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     fn error(&mut self, message: &str) -> BessyError {
         BessyError::Unexpected {
             msg: message.into(),
-            span: self.cursor.peek().map(|t| t.index),
+            span: self.cursor.peek().map(|t| t.span),
         }
     }
 
     fn unary(&mut self) -> Result<Expr, BessyError> {
         if let Some(oper) = next_eq!(self, TokenType::Bang, TokenType::Minus) {
             let right = Box::new(self.unary()?);
-            Ok(Expr::Unary {
-                oper,
-                right,
-            })
+            Ok(Expr::Unary { oper, right })
         } else {
             self.call()
         }
@@ -139,12 +134,16 @@ impl<T: Iterator<Item = Token>> Parser<T> {
             args.push(self.expression()?);
             while next_eq!(self, TokenType::Comma).is_some() {
                 if args.len() > 255 {
-                    return Err(self.error("Can't have more than 255 arguments."));
+                    return Err(
+                        self.error("Can't have more than 255 arguments.")
+                    );
                 }
                 args.push(self.expression()?);
             }
         }
-        let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
+        
+        let paren =
+            self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
         Ok(Expr::Call {
             callee: Box::new(callee),
             paren,
@@ -155,21 +154,19 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     fn primary(&mut self) -> Result<Expr, BessyError> {
         if next_eq!(self, TokenType::Nil).is_some() {
             Ok(Expr::Nil)
-        } else if next_eq!(self, TokenType::False).is_some() {
+        } else if next_eq!(self, TokenType::Boolean(false)).is_some() {
             Ok(Expr::Boolean(false))
-        } else if next_eq!(self, TokenType::True).is_some() {
+        } else if next_eq!(self, TokenType::Boolean(true)).is_some() {
             Ok(Expr::Boolean(true))
         } else if let Some(Token {
-            index: _,
             kind: TokenType::Number(num),
-            line: _,
+            ..
         }) = self.cursor.next_if(|t| t.is_number())
         {
             Ok(Expr::Number(num))
         } else if let Some(Token {
-            index: _,
-            kind: TokenType::StrLit(literal),
-            line: _,
+            kind: TokenType::StringLiteral(literal),
+            ..
         }) = self.cursor.next_if(|t| t.is_string())
         {
             Ok(Expr::String(literal))

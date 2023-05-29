@@ -1,4 +1,4 @@
-use crate::error::{BessyError, Index};
+use crate::error::{BessyError};
 use std::iter::Peekable;
 use std::str::CharIndices;
 
@@ -26,11 +26,10 @@ pub enum TokenType {
     LessEqual,
 
     Number(f64),
-    True,
-    False,
+    Boolean(bool),
     Unknown,
     Identifier(String),
-    StrLit(String),
+    StringLiteral(String),
     Print,
     Var,
     Nil,
@@ -46,26 +45,37 @@ pub enum TokenType {
 
 #[derive(Clone, Debug)]
 pub struct Token {
-    pub index: Index,
     pub kind: TokenType,
-    pub line: u16,
+    pub span: Span,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Span {
+    pub start: Position,
+    pub end: Position,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Position {
+    pub line_number: u16,
+    pub column_number: u16,
 }
 
 impl Token {
-    pub fn new(index: Index, kind: TokenType, line: u16) -> Self {
-        Self { index, kind, line }
+    pub const fn new(kind: TokenType, span: Span) -> Self {
+        Self { kind, span }
     }
 
-    pub fn is_identifier(&self) -> bool {
+    pub const fn is_identifier(&self) -> bool {
         matches!(self.kind, TokenType::Identifier(_))
     }
 
-    pub fn is_number(&self) -> bool {
+    pub const fn is_number(&self) -> bool {
         matches!(self.kind, TokenType::Number(_))
     }
 
-    pub fn is_string(&self) -> bool {
-        matches!(self.kind, TokenType::StrLit(_))
+    pub const fn is_string(&self) -> bool {
+        matches!(self.kind, TokenType::StringLiteral(_))
     }
 }
 
@@ -73,17 +83,47 @@ pub struct Lexer<'src> {
     cursor: Peekable<CharIndices<'src>>,
     tokens: Vec<Token>,
     line: u16,
-    consumed: u16,
+    column: u16,
+    start_of_line: u16,
 }
 
 impl<'src> Lexer<'src> {
     pub fn new(text: &'src str) -> Self {
         Self {
             cursor: text.char_indices().peekable(),
-            tokens: vec![],
             line: 1,
-            consumed: 0,
+            column: 0,
+            start_of_line: 0,
+            tokens: Vec::with_capacity(text.len()),
         }
+    }
+
+    fn make_span(&mut self, start: usize, end: usize) -> Span {
+        let end = start + end;
+        let start_column = self.column(start);
+        let end_column = self.column(end);
+
+        let start = Position {
+            line_number: self.line,
+            column_number: start_column,
+        };
+
+        let end = Position {
+            line_number: self.line,
+            column_number: end_column,
+        };
+
+        Span { start, end }
+    }
+
+    fn next_line(&mut self, index: usize) {
+        self.line += 1;
+        self.start_of_line = (index + 1) as u16;
+    }
+
+    fn column(&mut self, start_pos: usize) -> u16 {
+        self.column = start_pos as u16 - self.start_of_line;
+        self.column
     }
 
     pub fn scan(&mut self) -> Result<Vec<Token>, BessyError> {
@@ -98,8 +138,7 @@ impl<'src> Lexer<'src> {
                 }
                 '\n' => {
                     let (index, _) = self.cursor.next().unwrap();
-                    self.line += 1;
-                    self.consumed = index as u16;
+                    self.next_line(index);
                 }
                 '"' => {
                     let token = self.scan_string()?;
@@ -112,30 +151,16 @@ impl<'src> Lexer<'src> {
                         self.scan_identifier(start_pos);
                     } else {
                         self.cursor.next();
+                        let span = self.make_span(start_pos, c.len_utf8());
                         self.tokens.push(Token::new(
-                            self.make_index(start_pos),
                             TokenType::Unknown,
-                            self.line,
+                            span,
                         ));
                     }
                 }
             }
         }
         Ok(self.tokens.clone())
-    }
-
-    fn make_index(&self, start: usize) -> Index {
-        if self.line > 1 {
-            Index {
-                row: self.line,
-                column: (start as u16 - self.consumed) - 2,
-            }
-        } else {
-            Index {
-                row: self.line,
-                column: (start as u16 - self.consumed),
-            }
-        }
     }
 
     fn scan_single_token(&mut self) {
@@ -154,18 +179,15 @@ impl<'src> Lexer<'src> {
             '/' => TokenType::Slash,
             _ => unreachable!(),
         };
-        self.tokens.push(Token::new(
-            self.make_index(start_pos),
-            kind,
-            self.line,
-        ));
+        let span = self.make_span(start_pos, c.len_utf8());
+        self.tokens
+            .push(Token::new(kind, span));
     }
 
     fn scan_comment(&mut self) {
         for (index, ch) in self.cursor.by_ref() {
             if ch == '\n' {
-                self.line += 1;
-                self.consumed = index as u16;
+                self.next_line(index);
                 break;
             }
         }
@@ -178,10 +200,10 @@ impl<'src> Lexer<'src> {
         this: TokenType,
         that: TokenType,
     ) -> Token {
-        if let Some((end_pos, _)) = self.cursor.next_if(|x| x.1 == '=') {
-            Token::new(self.make_index(start_pos), this, self.line)
+        if let Some((_, ch)) = self.cursor.next_if(|x| x.1 == '=') {
+            Token::new(this, self.make_span(start_pos, ch.len_utf8()))
         } else {
-            Token::new(self.make_index(start_pos), that, self.line)
+            Token::new(that, self.make_span(start_pos, len))
         }
     }
 
@@ -224,16 +246,17 @@ impl<'src> Lexer<'src> {
         while let Some((_, ch)) = self.cursor.next_if(|x| x.1 != '"') {
             lexeme.push(ch);
         }
+        let length = lexeme.len();
         if self.cursor.peek().map_or(false, |x| x.1 == '"') {
             let _ = self.cursor.next();
             Ok(Token::new(
-                self.make_index(start),
-                TokenType::StrLit(lexeme),
-                self.line,
+                TokenType::StringLiteral(lexeme),
+                self.make_span(start, length),
             ))
         } else {
-            let column = start as u16 - self.consumed;
-            Err(BessyError::UnterminatedString(self.make_index(start)))
+            Err(BessyError::UnterminatedString(
+                self.make_span(start, length),
+            ))
         }
     }
 
@@ -253,10 +276,10 @@ impl<'src> Lexer<'src> {
             }
         }
         let num = lexeme.parse::<f64>().expect("Unable to parse number.");
+        let span = self.make_span(start_pos, lexeme.len());
         self.tokens.push(Token::new(
-            self.make_index(start_pos),
             TokenType::Number(num),
-            self.line,
+            span ,
         ));
     }
 
@@ -271,7 +294,7 @@ impl<'src> Lexer<'src> {
         let kind = match lexeme.as_str() {
             "and" => TokenType::And,
             "else" => TokenType::Else,
-            "false" => TokenType::False,
+            "false" => TokenType::Boolean(false),
             "for" => TokenType::For,
             "fun" => TokenType::Fun,
             "if" => TokenType::If,
@@ -279,16 +302,14 @@ impl<'src> Lexer<'src> {
             "or" => TokenType::Or,
             "print" => TokenType::Print,
             "return" => TokenType::Return,
-            "true" => TokenType::True,
+            "true" => TokenType::Boolean(true),
             "var" => TokenType::Var,
             "while" => TokenType::While,
             _ => TokenType::Identifier(lexeme),
         };
-        self.tokens.push(Token::new(
-            self.make_index(start_pos),
-            kind,
-            self.line,
-        ));
+        let span = self.make_span(start_pos, len);
+        self.tokens
+            .push(Token::new(kind, span));
     }
 }
 
@@ -340,7 +361,7 @@ mod test_lexer {
     fn test_string() {
         assert!(test_runner(
             "\"hello\"",
-            &[TokenType::StrLit("hello".into())]
+            &[TokenType::StringLiteral("hello".into())]
         ))
     }
 
@@ -355,7 +376,7 @@ mod test_lexer {
     fn test_bools() {
         assert!(test_runner(
             "false and true",
-            &[TokenType::False, TokenType::And, TokenType::True,]
+            &[TokenType::Boolean(false), TokenType::And, TokenType::Boolean(true),]
         ));
     }
 

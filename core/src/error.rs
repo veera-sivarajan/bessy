@@ -1,30 +1,32 @@
+use crate::lexer::{Position, Span};
 use std::fmt;
 
-#[derive(Debug, Clone, Copy)]
-pub struct Index {
-    pub row: u16,
-    pub column: u16,
-}
-
-impl From<(u16, u16)> for Index {
-    fn from(index: (u16, u16)) -> Index {
-        Index {
-            row: index.0,
-            column: index.1,
-        }
+impl fmt::Display for Position {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "line {}, column {}",
+            self.line_number, self.column_number
+        )
     }
 }
 
-impl fmt::Display for Index {
+impl fmt::Display for Span {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "line {}, column {}", self.row, self.column)
+        write!(
+            f,
+            "line {}, columns {} - {}",
+            self.start.line_number,
+            self.start.column_number,
+            self.end.column_number
+        )
     }
 }
 
 #[derive(Debug)]
 pub enum BessyError {
-    UnterminatedString(Index),
-    Unexpected { msg: Box<str>, span: Option<Index> },
+    UnterminatedString(Span),
+    Unexpected { msg: Box<str>, span: Option<Span> },
 }
 
 impl fmt::Display for BessyError {

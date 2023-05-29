@@ -141,7 +141,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
                 args.push(self.expression()?);
             }
         }
-        
+
         let paren =
             self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
         Ok(Expr::Call {

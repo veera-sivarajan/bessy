@@ -1,4 +1,4 @@
-use crate::error::{BessyError};
+use crate::error::BessyError;
 use std::iter::Peekable;
 use std::str::CharIndices;
 
@@ -152,10 +152,7 @@ impl<'src> Lexer<'src> {
                     } else {
                         self.cursor.next();
                         let span = self.make_span(start_pos, c.len_utf8());
-                        self.tokens.push(Token::new(
-                            TokenType::Unknown,
-                            span,
-                        ));
+                        self.tokens.push(Token::new(TokenType::Unknown, span));
                     }
                 }
             }
@@ -180,8 +177,7 @@ impl<'src> Lexer<'src> {
             _ => unreachable!(),
         };
         let span = self.make_span(start_pos, c.len_utf8());
-        self.tokens
-            .push(Token::new(kind, span));
+        self.tokens.push(Token::new(kind, span));
     }
 
     fn scan_comment(&mut self) {
@@ -277,10 +273,7 @@ impl<'src> Lexer<'src> {
         }
         let num = lexeme.parse::<f64>().expect("Unable to parse number.");
         let span = self.make_span(start_pos, lexeme.len());
-        self.tokens.push(Token::new(
-            TokenType::Number(num),
-            span ,
-        ));
+        self.tokens.push(Token::new(TokenType::Number(num), span));
     }
 
     fn scan_identifier(&mut self, start_pos: usize) {
@@ -308,8 +301,7 @@ impl<'src> Lexer<'src> {
             _ => TokenType::Identifier(lexeme),
         };
         let span = self.make_span(start_pos, len);
-        self.tokens
-            .push(Token::new(kind, span));
+        self.tokens.push(Token::new(kind, span));
     }
 }
 
@@ -376,7 +368,11 @@ mod test_lexer {
     fn test_bools() {
         assert!(test_runner(
             "false and true",
-            &[TokenType::Boolean(false), TokenType::And, TokenType::Boolean(true),]
+            &[
+                TokenType::Boolean(false),
+                TokenType::And,
+                TokenType::Boolean(true),
+            ]
         ));
     }
 

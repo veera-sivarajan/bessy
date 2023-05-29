@@ -19,10 +19,7 @@ macro_rules! next_eq {
     };
 }
 
-pub struct Parser<T>
-where
-    T: Iterator<Item = Token>,
-{
+pub struct Parser<T: Iterator<Item = Token>> {
     cursor: Peekable<T>,
     statements: Vec<Stmt>,
 }
@@ -30,8 +27,8 @@ where
 impl<T: Iterator<Item = Token>> Parser<T> {
     pub fn new(tokens: T) -> Parser<T> {
         Parser {
+            statements: Vec::with_capacity(tokens.size_hint().0),
             cursor: tokens.peekable(),
-            statements: vec![],
         }
     }
 
@@ -152,32 +149,25 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     }
 
     fn primary(&mut self) -> Result<Expr, BessyError> {
-        if next_eq!(self, TokenType::Nil).is_some() {
-            Ok(Expr::Nil)
-        } else if next_eq!(self, TokenType::Boolean(false)).is_some() {
-            Ok(Expr::Boolean(false))
-        } else if next_eq!(self, TokenType::Boolean(true)).is_some() {
-            Ok(Expr::Boolean(true))
-        } else if let Some(Token {
-            kind: TokenType::Number(num),
-            ..
-        }) = self.cursor.next_if(|t| t.is_number())
-        {
-            Ok(Expr::Number(num))
-        } else if let Some(Token {
-            kind: TokenType::StringLiteral(literal),
-            ..
-        }) = self.cursor.next_if(|t| t.is_string())
-        {
-            Ok(Expr::String(literal))
-        } else if next_eq!(self, TokenType::LeftParen).is_some() {
-            let expr = self.expression()?;
-            self.consume(TokenType::RightParen, "Expect ')' after expression")?;
-            Ok(Expr::Group(Box::new(expr)))
-        } else if let Some(token) = self.cursor.next_if(|t| t.is_identifier()) {
-            Ok(Expr::Variable(token))
+        if let Some(expr) = self.cursor.next() {
+            match expr.kind {
+                TokenType::Nil => Ok(Expr::Nil),
+                TokenType::Boolean(value) => Ok(Expr::Boolean(value)),
+                TokenType::Number(num) => Ok(Expr::Number(num)),
+                TokenType::StringLiteral(lexeme) => Ok(Expr::String(lexeme)),
+                TokenType::LeftParen => {
+                    let expr = self.expression()?;
+                    self.consume(
+                        TokenType::RightParen,
+                        "Expect ')' after expression.",
+                    )?;
+                    Ok(Expr::Group(Box::new(expr)))
+                }
+                TokenType::Identifier(_) => Ok(Expr::Variable(expr)),
+                _ => Err(self.error("Expect expression.")),
+            }
         } else {
-            Err(self.error("Expect expression."))
+            Err(self.error("Expect expression but reached end of file."))
         }
     }
 }

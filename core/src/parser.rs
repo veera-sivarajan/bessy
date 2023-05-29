@@ -10,11 +10,7 @@ use std::iter::Peekable;
 macro_rules! next_eq {
     ( $parser: ident, $( $x: expr ), *) => {
         {
-            if $($parser.check($x)) || * {
-                $parser.cursor.next()
-            } else {
-                None
-            }
+            $parser.cursor.next_if(|t| $(t.kind == $x) || *)
         }
     };
 }
@@ -40,21 +36,16 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         Ok(self.statements.clone())
     }
 
-    fn check(&mut self, expected: TokenType) -> bool {
-        if let Some(token) = self.cursor.peek() {
-            return token.kind == expected;
-        }
-        false
+    fn peek_check(&mut self, expected: TokenType) -> bool {
+        self.cursor
+            .peek()
+            .map_or(false, |token| token.kind == expected)
     }
 
-    fn declaration(&mut self) -> Result<Stmt, BessyError> {
-        if next_eq!(self, TokenType::Var).is_some() {
-            self.variable_declaration()
-        } else if next_eq!(self, TokenType::Fun).is_some() {
-            todo!();
-        } else {
-            todo!();
-        }
+    fn next_eq(&mut self, expected: TokenType) -> bool {
+        self.cursor
+            .next_if(|token| token.kind == expected)
+            .is_some()
     }
 
     fn consume_if(
@@ -73,12 +64,23 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         self.consume_if(|t| t.kind == expected, error_msg)
     }
 
+    fn declaration(&mut self) -> Result<Stmt, BessyError> {
+        if self.next_eq(TokenType::Var) {
+            self.variable_declaration()
+        } else if self.next_eq(TokenType::Fun) {
+            todo!();
+        } else {
+            todo!();
+        }
+    }
+
+
     fn variable_declaration(&mut self) -> Result<Stmt, BessyError> {
         let name = self.consume_if(
             |token| token.is_identifier(),
             "Expect variable name.",
         )?;
-        if next_eq!(self, TokenType::Equal).is_some() {
+        if self.next_eq(TokenType::Equal) {
             let init = self.expression()?;
             self.consume(TokenType::Semicolon, "Expect semicolon.")?;
             Ok(Stmt::Var {
@@ -116,7 +118,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     fn call(&mut self) -> Result<Expr, BessyError> {
         let mut expr = self.primary()?;
         loop {
-            if next_eq!(self, TokenType::LeftParen).is_some() {
+            if self.next_eq(TokenType::LeftParen) {
                 expr = self.finish_call(expr)?;
             } else {
                 break;
@@ -127,9 +129,9 @@ impl<T: Iterator<Item = Token>> Parser<T> {
 
     fn finish_call(&mut self, callee: Expr) -> Result<Expr, BessyError> {
         let mut args = Vec::with_capacity(255);
-        if !self.check(TokenType::RightParen) {
+        if !self.peek_check(TokenType::RightParen) {
             args.push(self.expression()?);
-            while next_eq!(self, TokenType::Comma).is_some() {
+            while self.next_eq(TokenType::Comma) {
                 if args.len() > 255 {
                     return Err(
                         self.error("Can't have more than 255 arguments.")

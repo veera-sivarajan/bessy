@@ -43,6 +43,50 @@ pub enum TokenType {
     Or,
 }
 
+impl std::fmt::Display for TokenType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        use TokenType::*;
+        match self {
+            LeftParen => write!(f, "("),
+            RightParen => write!(f, ")"),
+            Dot => write!(f, "."),
+            Minus => write!(f, "-"),
+            Plus => write!(f, "+"),
+            Star => write!(f, "*"),
+            Semicolon => write!(f, ";"),
+            LeftBrace => write!(f, "{{"),
+            RightBrace => write!(f, "}}"),
+            Comma => write!(f, ","),
+            Slash => write!(f, "/"),
+            Bang => write!(f, "!"),
+            BangEqual => write!(f, "!="),
+            Equal => write!(f, "="),
+            EqualEqual => write!(f, "=="),
+            Greater => write!(f, ">"),
+            GreaterEqual => write!(f, ">="),
+            Less => write!(f, "<"),
+            LessEqual => write!(f, "<="),
+            Number(num) => write!(f, "number: {num}"),
+            Boolean(value) => write!(f, "boolean: {value}"),
+            Unknown => write!(f, "unknown token"),
+            Identifier(name) => write!(f, "identifier: {name}"),
+            StringLiteral(lexeme) => write!(f, "string: {lexeme}"),
+            Print => write!(f, "keyword print"),
+            Var => write!(f, "keyword var"),
+            Nil => write!(f, "keyword nil"),
+            If => write!(f, "keyword if"),
+            Else => write!(f, "keyword else"),
+            While => write!(f, "keyword while"),
+            For => write!(f, "keyword for"),
+            Fun => write!(f, "keyword fun"),
+            Return => write!(f, "keyword return"),
+            And => write!(f, "keyword and"),
+            Or => write!(f, "keyword or"),
+        }
+    }
+}
+    
+
 #[derive(Clone, Debug)]
 pub struct Token {
     pub kind: TokenType,

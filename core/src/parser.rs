@@ -1,9 +1,8 @@
 // a parser takens in a stream of tokens and turns them into a
 // intermediate representation in the form of an abstract syntax tree
-
 use crate::error::BessyError;
 use crate::expr::Expr;
-use crate::lexer::{Token, TokenType};
+use crate::lexer::{Span, Token, TokenType};
 use crate::stmt::Stmt;
 use std::iter::Peekable;
 
@@ -74,7 +73,6 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         }
     }
 
-
     fn variable_declaration(&mut self) -> Result<Stmt, BessyError> {
         let name = self.consume_if(
             |token| token.is_identifier(),
@@ -103,6 +101,13 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         BessyError::Unexpected {
             msg: message.into(),
             span: self.cursor.peek().map(|t| t.span),
+        }
+    }
+
+    fn error_with_span(&mut self, message: &str, span: Span) -> BessyError {
+        BessyError::Unexpected {
+            msg: message.into(),
+            span: Some(span),
         }
     }
 
@@ -150,6 +155,8 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         })
     }
 
+    // FIXME: Try not move .next() when expr.kind is not of
+    // the expected expression type
     fn primary(&mut self) -> Result<Expr, BessyError> {
         if let Some(expr) = self.cursor.next() {
             match expr.kind {
@@ -166,7 +173,13 @@ impl<T: Iterator<Item = Token>> Parser<T> {
                     Ok(Expr::Group(Box::new(expr)))
                 }
                 TokenType::Identifier(_) => Ok(Expr::Variable(expr)),
-                _ => Err(self.error("Expect expression.")),
+                other => Err(self.error_with_span(
+                    format!(
+                        "Expected a primary expression but found `{other}`"
+                    )
+                    .as_str(),
+                    expr.span,
+                )),
             }
         } else {
             Err(self.error("Expect expression but reached end of file."))

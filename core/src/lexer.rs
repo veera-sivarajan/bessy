@@ -15,6 +15,7 @@ pub enum TokenType {
     LeftBrace,
     RightBrace,
     Comma,
+    Percent,
 
     Bang,
     BangEqual,
@@ -57,6 +58,7 @@ impl std::fmt::Display for TokenType {
             LeftBrace => write!(f, "{{"),
             RightBrace => write!(f, "}}"),
             Comma => write!(f, ","),
+            Percent => write!(f, "%"),
             Slash => write!(f, "/"),
             Bang => write!(f, "!"),
             BangEqual => write!(f, "!="),
@@ -174,7 +176,7 @@ impl<'src> Lexer<'src> {
         while let Some(&(start_pos, c)) = self.cursor.peek() {
             match c {
                 '(' | ')' | '.' | '-' | '+' | '*' | ';' | '{' | '}' | ','
-                | '/' => self.scan_single_token(),
+                | '/' | '%' => self.scan_single_token(),
                 '~' => self.scan_comment(),
                 '!' | '=' | '>' | '<' => self.scan_double_token(),
                 ' ' | '\r' | '\t' => {
@@ -218,6 +220,7 @@ impl<'src> Lexer<'src> {
             '}' => TokenType::RightBrace,
             ',' => TokenType::Comma,
             '/' => TokenType::Slash,
+            '%' => TokenType::Percent,
             _ => unreachable!(),
         };
         let span = self.make_span(start_pos, c.len_utf8());

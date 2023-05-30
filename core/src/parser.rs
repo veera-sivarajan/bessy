@@ -63,6 +63,22 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         self.consume_if(|t| t.kind == expected, error_msg)
     }
 
+    // TODO: Make return type Result<!, BessyError>
+    // once the feature is stabilized
+    fn error(&mut self, message: &str) -> BessyError {
+        BessyError::Unexpected {
+            msg: message.into(),
+            span: self.cursor.peek().map(|t| t.span),
+        }
+    }
+
+    fn error_with_span(&mut self, message: &str, span: Span) -> BessyError {
+        BessyError::Unexpected {
+            msg: message.into(),
+            span: Some(span),
+        }
+    }
+
     fn declaration(&mut self) -> Result<Stmt, BessyError> {
         if self.next_eq(TokenType::Var) {
             self.variable_declaration()
@@ -92,23 +108,93 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     }
 
     fn expression(&mut self) -> Result<Expr, BessyError> {
-        self.unary()
+        self.assignment()
     }
 
-    // TODO: Make return type Result<!, BessyError>
-    // once the feature is stabilized
-    fn error(&mut self, message: &str) -> BessyError {
-        BessyError::Unexpected {
-            msg: message.into(),
-            span: self.cursor.peek().map(|t| t.span),
+
+    fn assignment(&mut self) -> Result<Expr, BessyError> {
+        let expr = self.equality()?;
+        if let Some(equals) = next_eq!(self, TokenType::Equal) {
+            let value = self.assignment()?;
+            match expr {
+                Expr::Variable(variable_name) => Ok(Expr::Assign {
+                    name: variable_name,
+                    value: Box::new(value),
+                }),
+                _ => Err(self.error_with_span(
+                    "Invalid assignment target.",
+                    equals.span,
+                )),
+            }
+        } else {
+            Ok(expr)
         }
     }
 
-    fn error_with_span(&mut self, message: &str, span: Span) -> BessyError {
-        BessyError::Unexpected {
-            msg: message.into(),
-            span: Some(span),
+    fn equality(&mut self) -> Result<Expr, BessyError> {
+        let mut expr = self.comparison()?;
+        while let Some(oper) =
+            next_eq!(self, TokenType::BangEqual, TokenType::EqualEqual)
+        {
+            let right = self.comparison()?;
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                oper,
+                right: Box::new(right),
+            };
         }
+        Ok(expr)
+    }
+
+    fn comparison(&mut self) -> Result<Expr, BessyError> {
+        let mut expr = self.term()?;
+        while let Some(oper) = next_eq!(
+            self,
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual
+        ) {
+            let right = self.term()?;
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                oper,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
+    }
+
+    fn term(&mut self) -> Result<Expr, BessyError> {
+        let mut expr = self.factor()?;
+        while let Some(oper) = next_eq!(self, TokenType::Minus, TokenType::Plus)
+        {
+            let right = self.factor()?;
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                oper,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
+    }
+
+    fn factor(&mut self) -> Result<Expr, BessyError> {
+        let mut expr = self.unary()?;
+        while let Some(oper) = next_eq!(
+            self,
+            TokenType::Slash,
+            TokenType::Star,
+            TokenType::Percent
+        ) {
+            let right = self.unary()?;
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                oper,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
     }
 
     fn unary(&mut self) -> Result<Expr, BessyError> {
@@ -182,7 +268,7 @@ impl<T: Iterator<Item = Token>> Parser<T> {
                 )),
             }
         } else {
-            Err(self.error("Expect expression but reached end of file."))
+            Err(self.error("Expected a primary expression"))
         }
     }
 }

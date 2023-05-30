@@ -47,12 +47,13 @@ impl<T: Iterator<Item = Token>> Parser<T> {
             .is_some()
     }
 
-    fn consume_if(
+    fn consume_identifier(
         &mut self,
-        predicate: impl FnOnce(&Token) -> bool,
         error_msg: &str,
     ) -> Result<Token, BessyError> {
-        self.cursor.next_if(predicate).ok_or(self.error(error_msg))
+        self.cursor
+            .next_if(|token| token.is_identifier())
+            .ok_or(self.error(error_msg))
     }
 
     fn consume(
@@ -60,7 +61,9 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         expected: TokenType,
         error_msg: &str,
     ) -> Result<Token, BessyError> {
-        self.consume_if(|t| t.kind == expected, error_msg)
+        self.cursor
+            .next_if(|t| t.kind == expected)
+            .ok_or(self.error(error_msg))
     }
 
     // TODO: Make return type Result<!, BessyError>
@@ -83,17 +86,14 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         if self.next_eq(TokenType::Var) {
             self.variable_declaration()
         } else if self.next_eq(TokenType::Fun) {
-            todo!();
+            self.function()
         } else {
-            todo!();
+            self.statement()
         }
     }
 
     fn variable_declaration(&mut self) -> Result<Stmt, BessyError> {
-        let name = self.consume_if(
-            |token| token.is_identifier(),
-            "Expect variable name.",
-        )?;
+        let name = self.consume_identifier("Expect variable name.")?;
         if self.next_eq(TokenType::Equal) {
             let init = self.expression()?;
             self.consume(TokenType::Semicolon, "Expect semicolon.")?;
@@ -107,10 +107,149 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         }
     }
 
+    fn function(&mut self) -> Result<Stmt, BessyError> {
+        let name = self.consume_identifier("Expect function name.")?;
+        self.consume(TokenType::LeftParen, "Expect '(' after function name.")?;
+        // parse all parameters
+        let mut params: Vec<Token> = vec![];
+        if !self.peek_check(TokenType::RightParen) {
+            params.push(self.consume_identifier("Expect parameter name.")?);
+            while self.next_eq(TokenType::Comma) {
+                if params.len() < 255 {
+                    params.push(
+                        self.consume_identifier("Expect parameter name.")?,
+                    );
+                } else {
+                    return Err(
+                        self.error("Can't have more than 255 paramters.")
+                    );
+                }
+            }
+        }
+        self.consume(TokenType::RightParen, "Expect ')' after parameters.")?;
+
+        self.consume(TokenType::LeftBrace, "Expect '{' before function body")?;
+        let body = self.block_stmt()?;
+        Ok(Stmt::Function { name, params, body })
+    }
+
+    fn statement(&mut self) -> Result<Stmt, BessyError> {
+        if self.next_eq(TokenType::Print) {
+            self.print_stmt()
+        } else if self.next_eq(TokenType::LeftBrace) {
+            let stmts = self.block_stmt()?;
+            Ok(Stmt::Block(stmts))
+        } else if self.next_eq(TokenType::If) {
+            self.if_stmt()
+        } else if self.next_eq(TokenType::While) {
+            self.while_stmt()
+        } else if self.next_eq(TokenType::For) {
+            self.for_stmt()
+        } else if let Some(token) = next_eq!(self, TokenType::Return) {
+            self.return_stmt(token)
+        } else {
+            self.expression_stmt()
+        }
+    }
+
+    fn return_stmt(&mut self, keyword: Token) -> Result<Stmt, BessyError> {
+        let mut value = None;
+        if !self.peek_check(TokenType::Semicolon) {
+            value = Some(self.expression()?);
+        }
+        self.consume(TokenType::Semicolon, "Expect ';' after return value.")?;
+        Ok(Stmt::Return { keyword, value })
+    }
+
+    fn for_stmt(&mut self) -> Result<Stmt, BessyError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;
+
+        let init;
+        if self.next_eq(TokenType::Semicolon) {
+            init = None;
+        } else if self.next_eq(TokenType::Var) {
+            init = Some(self.variable_declaration()?);
+        } else {
+            init = Some(self.expression_stmt()?);
+        }
+
+        let mut condition = None;
+        if !self.peek_check(TokenType::Semicolon) {
+            condition = Some(self.expression()?);
+        }
+        self.consume(TokenType::Semicolon, "Expect ';' after loop condition.")?;
+
+        let mut increment = None;
+        if !self.peek_check(TokenType::RightParen) {
+            increment = Some(self.expression()?);
+        }
+        self.consume(TokenType::RightParen, "Expect ')' after for clauses.")?;
+        let mut body = self.statement()?;
+        if let Some(increment_expression) = increment {
+            let increment_stmt = Stmt::Expression(increment_expression);
+            body = Stmt::Block(vec![body, increment_stmt]);
+        }
+        body = Stmt::While {
+            condition: condition.unwrap_or(Expr::Boolean(true)),
+            body: Box::new(body),
+        };
+        if let Some(init_statement) = init {
+            body = Stmt::Block(vec![init_statement, body]);
+        }
+        Ok(body)
+    }
+
+    fn while_stmt(&mut self) -> Result<Stmt, BessyError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
+        let body = self.statement()?;
+        Ok(Stmt::While {
+            condition,
+            body: Box::new(body),
+        })
+    }
+
+    fn if_stmt(&mut self) -> Result<Stmt, BessyError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
+        let then_branch = self.statement()?;
+        let mut elze = None;
+        if self.next_eq(TokenType::Else) {
+            elze = Some(Box::new(self.statement()?));
+        }
+        Ok(Stmt::If {
+            condition,
+            then: Box::new(then_branch),
+            elze,
+        })
+    }
+
+    fn block_stmt(&mut self) -> Result<Vec<Stmt>, BessyError> {
+        let mut stmts = Vec::new();
+        while !self.peek_check(TokenType::RightParen) {
+            stmts.push(self.declaration()?);
+        }
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
+        Ok(stmts)
+    }
+
+    fn print_stmt(&mut self) -> Result<Stmt, BessyError> {
+        let expr = self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect semicolon.")?;
+        Ok(Stmt::Print(expr))
+    }
+
+    fn expression_stmt(&mut self) -> Result<Stmt, BessyError> {
+        let expr = self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect semicolon.")?;
+        Ok(Stmt::Expression(expr))
+    }
+
     fn expression(&mut self) -> Result<Expr, BessyError> {
         self.assignment()
     }
-
 
     fn assignment(&mut self) -> Result<Expr, BessyError> {
         let expr = self.equality()?;

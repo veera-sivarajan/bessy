@@ -115,14 +115,6 @@ impl Token {
     pub const fn is_identifier(&self) -> bool {
         matches!(self.kind, TokenType::Identifier(_))
     }
-
-    pub const fn is_number(&self) -> bool {
-        matches!(self.kind, TokenType::Number(_))
-    }
-
-    pub const fn is_string(&self) -> bool {
-        matches!(self.kind, TokenType::StringLiteral(_))
-    }
 }
 
 pub struct Lexer<'src> {

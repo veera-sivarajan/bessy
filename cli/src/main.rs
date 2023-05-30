@@ -1,9 +1,8 @@
 use std::io::Write;
 
-fn get_input() -> String {
+fn get_input(prompt: &str) -> String {
     let mut input = String::new();
-    input.clear();
-    print!("bessy>> ");
+    print!("{prompt} ");
     let _ = std::io::stdout().flush();
     let _ = std::io::stdin().read_line(&mut input).unwrap();
     let _ = input.pop();
@@ -13,7 +12,7 @@ fn get_input() -> String {
 
 fn repl() {
     loop {
-        let input = get_input();
+        let input = get_input("bessy>>");
         match core::evaluate(&input) {
             Ok(()) => continue,
             Err(msg) => eprintln!("{msg}"),
